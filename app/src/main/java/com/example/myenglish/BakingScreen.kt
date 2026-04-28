@@ -39,12 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 val images = arrayOf(
-    // Image generated using Gemini from the prompt "cupcake image"
     R.drawable.baked_goods_1,
-    // Image generated using Gemini from the prompt "cookies images"
-    R.drawable.baked_goods_2,
-    // Image generated using Gemini from the prompt "cake images"
-    R.drawable.baked_goods_3,
+    R.drawable.baked_goods_1,
+    R.drawable.baked_goods_1,
 )
 val imageDescriptions = arrayOf(
     R.string.image1_description,
@@ -76,7 +73,7 @@ fun BakingScreen(
         LazyRow(
             modifier = Modifier.fillMaxWidth()
         ) {
-            itemsIndexed(images) { index, image ->
+            itemsIndexed(images) { index: Int, image: Int ->
                 var imageModifier = Modifier
                     .padding(start = 8.dp, end = 8.dp)
                     .requiredSize(200.dp)
@@ -84,8 +81,7 @@ fun BakingScreen(
                         selectedImage.intValue = index
                     }
                 if (index == selectedImage.intValue) {
-                    imageModifier =
-                        imageModifier.border(BorderStroke(4.dp, MaterialTheme.colorScheme.primary))
+                    imageModifier = imageModifier.border(BorderStroke(4.dp, MaterialTheme.colorScheme.primary))
                 }
                 Image(
                     painter = painterResource(image),
@@ -117,8 +113,7 @@ fun BakingScreen(
                     bakingViewModel.sendPrompt(bitmap, prompt)
                 },
                 enabled = prompt.isNotEmpty(),
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
+                modifier = Modifier.align(Alignment.CenterVertically)
             ) {
                 Text(text = stringResource(R.string.action_go))
             }
