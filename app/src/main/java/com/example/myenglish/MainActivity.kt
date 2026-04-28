@@ -31,6 +31,19 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+private object Lesson1Homework1Audio {
+    const val AUDIO_RES_ID = R.raw.lesson1
+
+    const val SENTENCE_1_START_MS = 900
+    const val SENTENCE_1_END_MS = 13670
+
+    const val SENTENCE_2_START_MS = 15430
+    const val SENTENCE_2_END_MS = 48720
+
+    const val SENTENCE_3_START_MS = 50090
+    const val SENTENCE_3_END_MS = 96740
+}
+
 @Composable
 fun LessonListScreen() {
     var currentScreen by remember { mutableStateOf("home") }
@@ -135,7 +148,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
     fun playAudioPart(startMs: Int, endMs: Int, label: String) {
         stopAudio()
 
-        val player = MediaPlayer.create(context, R.raw.lesson1)
+        val player = MediaPlayer.create(context, Lesson1Homework1Audio.AUDIO_RES_ID)
         if (player == null) {
             playbackMessage = "Audio file not found."
             return
@@ -186,7 +199,13 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             sentenceLabel = "Sentence 1",
             answer = answers[0],
             onAnswerChange = { answers[0] = it },
-            onPlay = { playAudioPart(900, 1800, "Sentence 1") }
+            onPlay = {
+                playAudioPart(
+                    Lesson1Homework1Audio.SENTENCE_1_START_MS,
+                    Lesson1Homework1Audio.SENTENCE_1_END_MS,
+                    "Sentence 1"
+                )
+            }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -195,7 +214,13 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             sentenceLabel = "Sentence 2",
             answer = answers[1],
             onAnswerChange = { answers[1] = it },
-            onPlay = { playAudioPart(3800, 5100, "Sentence 2") }
+            onPlay = {
+                playAudioPart(
+                    Lesson1Homework1Audio.SENTENCE_2_START_MS,
+                    Lesson1Homework1Audio.SENTENCE_2_END_MS,
+                    "Sentence 2"
+                )
+            }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -204,7 +229,13 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             sentenceLabel = "Sentence 3",
             answer = answers[2],
             onAnswerChange = { answers[2] = it },
-            onPlay = { playAudioPart(7600, 8800, "Sentence 3") }
+            onPlay = {
+                playAudioPart(
+                    Lesson1Homework1Audio.SENTENCE_3_START_MS,
+                    Lesson1Homework1Audio.SENTENCE_3_END_MS,
+                    "Sentence 3"
+                )
+            }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
