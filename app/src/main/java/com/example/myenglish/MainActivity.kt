@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -285,6 +286,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
     var independentScore by remember { mutableIntStateOf(0) }
     var submittedMessage by remember { mutableStateOf("") }
     var playbackMessage by remember { mutableStateOf("") }
+    var teacherReportToSend by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     val handler = remember { Handler(Looper.getMainLooper()) }
@@ -329,6 +331,30 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
         }, (endMs - startMs).toLong())
     }
 
+    fun buildTeacherReport(score: Int): String {
+        val builder = StringBuilder()
+        var index = 0
+
+        builder.append("Original score: ")
+        builder.append(score)
+        builder.append(" / ")
+        builder.append(lessonSentences.size)
+        builder.append("\n")
+
+        while (index < lessonSentences.size) {
+            builder.append(lessonSentences[index].label)
+            builder.append(": plays = ")
+            builder.append(replayCounts[index])
+            builder.append(", hints = ")
+            builder.append(hintCounts[index])
+            builder.append("\n")
+
+            index = index + 1
+        }
+
+        return builder.toString()
+    }
+
     fun submitHomework() {
         stopAudio()
 
@@ -349,30 +375,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
         independentScore = score
         submitted = true
         submittedMessage = "Submitted! Independent score: $score / ${lessonSentences.size}"
-    }
-
-    fun buildTeacherReport(): String {
-        val builder = StringBuilder()
-        var index = 0
-
-        builder.append("Original score: ")
-        builder.append(independentScore)
-        builder.append(" / ")
-        builder.append(lessonSentences.size)
-        builder.append("\n")
-
-        while (index < lessonSentences.size) {
-            builder.append(lessonSentences[index].label)
-            builder.append(": plays = ")
-            builder.append(replayCounts[index])
-            builder.append(", hints = ")
-            builder.append(hintCounts[index])
-            builder.append(" word(s)\n")
-
-            index = index + 1
-        }
-
-        return builder.toString()
+        teacherReportToSend = buildTeacherReport(score)
     }
 
     DisposableEffect(Unit) {
@@ -390,12 +393,6 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             .padding(16.dp)
     ) {
         Text("$lessonName - Homework", style = MaterialTheme.typography.headlineMedium)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = { playAudioPart(0, 124024, "full audio test") }) {
-            Text("Test full audio")
-        }
 
         if (playbackMessage != "") {
             Spacer(modifier = Modifier.height(8.dp))
@@ -436,6 +433,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
                         )
                     ) {
                         hintCounts[currentIndex] = hintCounts[currentIndex] + 1
+                        teacherReportToSend = buildTeacherReport(independentScore)
                     }
                 }
             )
@@ -451,12 +449,6 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
         if (submittedMessage != "") {
             Spacer(modifier = Modifier.height(8.dp))
             Text(submittedMessage)
-        }
-
-        if (submitted) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Teacher report", style = MaterialTheme.typography.titleMedium)
-            Text(buildTeacherReport())
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -483,53 +475,78 @@ fun SentenceAnswerRow(
     onStop: () -> Unit,
     onHint: () -> Unit
 ) {
-    Row {
-        Button(onClick = onPlay) {
-            Text("▶")
-        }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Row {
+                Text(
+                    text = sentence.label,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f)
+                )
 
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Button(onClick = onStop) {
-            Text("Stop")
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Text(sentence.label)
-    }
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    TextField(
-        value = answer,
-        onValueChange = onAnswerChange,
-        modifier = Modifier.fillMaxWidth()
-    )
-
-    Spacer(modifier = Modifier.height(4.dp))
-    Text("Plays: $replayCount")
-
-    if (submitted) {
-        if (independentCorrect) {
-            Text("Independent attempt: correct")
-        } else {
-            Text("Independent attempt: incorrect")
-        }
-
-        if (cleanAnswer(answer) == "") {
-            Text("Type an answer before using hints.")
-        } else if (replayCount < 5) {
-            Text("Hint locked: listen ${5 - replayCount} more time(s).")
-        } else {
-            Button(onClick = onHint) {
-                Text("Reveal next word")
+                if (submitted) {
+                    if (independentCorrect) {
+                        Text("✓")
+                    } else {
+                        Text("✕")
+                    }
+                }
             }
-        }
 
-        if (hintCount > 0) {
-            Text("Hint: ${revealedHintText(sentence.correctText, hintCount)}")
-            Text("Words revealed for this sentence: $hintCount")
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row {
+                Button(onClick = onPlay) {
+                    Text("▶")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(onClick = onStop) {
+                    Text("Stop")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextField(
+                value = answer,
+                onValueChange = onAnswerChange,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("Plays: $replayCount")
+
+            if (submitted) {
+                if (independentCorrect) {
+                    Text("Independent attempt: correct")
+                } else {
+                    Text("Independent attempt: incorrect")
+                }
+
+                if (cleanAnswer(answer) == "") {
+                    Text("Type an answer before using hints.")
+                } else if (replayCount < 5) {
+                    Text("Hint locked: listen ${5 - replayCount} more time(s).")
+                } else {
+                    Button(onClick = onHint) {
+                        Text("Reveal next word")
+                    }
+                }
+
+                if (hintCount > 0) {
+                    Text("Hint: ${revealedHintText(sentence.correctText, hintCount)}")
+                    Text("Hints used: $hintCount")
+                }
+            }
         }
     }
 }
