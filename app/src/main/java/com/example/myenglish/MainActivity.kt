@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
 }
 
 private object Lesson1Homework1Audio {
-    const val AUDIO_RES_ID = R.raw.lesson1
+    val AUDIO_RES_ID = R.raw.lesson1
 
     const val SENTENCE_1_START_MS = 900
     const val SENTENCE_1_END_MS = 13670
