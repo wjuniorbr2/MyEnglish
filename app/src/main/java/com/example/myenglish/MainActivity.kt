@@ -1,5 +1,4 @@
 package com.example.myenglish
-import kotlin.ranges.until
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -132,7 +131,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        for (index in 0 until sentences.size) {
+        for (index in sentences.indices) {
 
             Text("Sentence ${index + 1}")
 
