@@ -131,17 +131,32 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        repeat(sentences.size) { index ->
+        Text("Sentence 1")
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = answers[0],
+            onValueChange = { answers[0] = it },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(12.dp))
 
-            Text("Sentence ${index + 1}")
+        Text("Sentence 2")
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = answers[1],
+            onValueChange = { answers[1] = it },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            TextField(
-                value = answers[index],
-                onValueChange = { answers[index] = it },
-                modifier = Modifier.fillMaxWidth()
-            )
+        Text("Sentence 3")
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = answers[2],
+            onValueChange = { answers[2] = it },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(12.dp))
 
             Spacer(modifier = Modifier.height(12.dp))
         }
