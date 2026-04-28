@@ -1,14 +1,16 @@
 package com.example.myenglish
+
 import android.media.MediaPlayer
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.myenglish.ui.theme.MyEnglishTheme
 
@@ -31,12 +33,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun LessonListScreen() {
-
     var currentScreen by remember { mutableStateOf("home") }
     var selectedLesson by remember { mutableStateOf<String?>(null) }
 
     when (currentScreen) {
-
         "home" -> {
             Column(
                 modifier = Modifier
@@ -66,7 +66,7 @@ fun LessonListScreen() {
 
         "lesson" -> {
             LessonScreen(
-                lessonName = selectedLesson!!,
+                lessonName = selectedLesson ?: "Lesson",
                 onBack = { currentScreen = "home" },
                 onOpenHomework = { currentScreen = "homework" }
             )
@@ -74,7 +74,7 @@ fun LessonListScreen() {
 
         "homework" -> {
             HomeworkScreen(
-                lessonName = selectedLesson!!,
+                lessonName = selectedLesson ?: "Lesson",
                 onBack = { currentScreen = "lesson" }
             )
         }
@@ -109,119 +109,77 @@ fun LessonScreen(
 
 @Composable
 fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
-
-    val answers = remember {
-        mutableStateListOf("", "", "")
-    }
-
+    val answers = remember { mutableStateListOf("", "", "") }
     var submittedMessage by remember { mutableStateOf("") }
 
-    val context = androidx.compose.ui.platform.LocalContext.current
-    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    val context = LocalContext.current
     val handler = remember { Handler(Looper.getMainLooper()) }
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
 
+    fun playAudioPart(startMs: Int, endMs: Int) {
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
+
+        val player = MediaPlayer.create(context, R.raw.lesson1)
+        mediaPlayer = player
+
+        player.seekTo(startMs)
+        player.start()
+
+        handler.postDelayed({
+            player.stop()
+            player.release()
+            if (mediaPlayer == player) {
+                mediaPlayer = null
+            }
+        }, (endMs - startMs).toLong())
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer?.release()
+            mediaPlayer = null
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-
         Text("$lessonName - Homework", style = MaterialTheme.typography.headlineMedium)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row {
-            Button(onClick = {
+        SentenceAnswerRow(
+            sentenceLabel = "Sentence 1",
+            answer = answers[0],
+            onAnswerChange = { answers[0] = it },
+            onPlay = { playAudioPart(0, 2000) }
+        )
 
-                val (start, end) = timings[0]
-
-                mediaPlayer?.release()
-
-                mediaPlayer = MediaPlayer.create(context, R.raw.lesson1).apply {
-                    seekTo(start)
-                    start()
-
-                    handler.postDelayed({
-                        stop()
-                        release()
-                        mediaPlayer = null
-                    }, (end - start).toLong())
-                }
-
-            }) {
-                Text("▶")
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text("Sentence 1")
-        }
         Spacer(modifier = Modifier.height(12.dp))
 
-        Row {
-            Button(onClick = {
+        SentenceAnswerRow(
+            sentenceLabel = "Sentence 2",
+            answer = answers[1],
+            onAnswerChange = { answers[1] = it },
+            onPlay = { playAudioPart(2500, 4500) }
+        )
 
-                val start = 0
-                val end = 2000
-
-                mediaPlayer?.release()
-
-                mediaPlayer = MediaPlayer.create(context, R.raw.lesson1).apply {
-                    seekTo(start)
-                    start()
-
-                    handler.postDelayed({
-                        stop()
-                        release()
-                        mediaPlayer = null
-                    }, (end - start).toLong())
-                }
-
-            }) {
-                Text("▶")
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text("Sentence 2")
-        }
         Spacer(modifier = Modifier.height(12.dp))
 
-        Row {
-            Button(onClick = {
+        SentenceAnswerRow(
+            sentenceLabel = "Sentence 3",
+            answer = answers[2],
+            onAnswerChange = { answers[2] = it },
+            onPlay = { playAudioPart(5000, 7000) }
+        )
 
-                val start = 2500
-                val end = 4500
-
-                mediaPlayer?.release()
-
-                mediaPlayer = MediaPlayer.create(context, R.raw.lesson1).apply {
-                    seekTo(start)
-                    start()
-
-                    handler.postDelayed({
-                        stop()
-                        release()
-                        mediaPlayer = null
-                    }, (end - start).toLong())
-                }
-
-            }) {
-                Text("▶")
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text("Sentence 3")
-        }
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(onClick = {
-
-            val start = 5000
-            val end = 7000
-
             submittedMessage = "Submitted!"
         }) {
             Text("Submit")
@@ -238,4 +196,30 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             Text("Back")
         }
     }
+}
+
+@Composable
+fun SentenceAnswerRow(
+    sentenceLabel: String,
+    answer: String,
+    onAnswerChange: (String) -> Unit,
+    onPlay: () -> Unit
+) {
+    Row {
+        Button(onClick = onPlay) {
+            Text("▶")
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Text(sentenceLabel)
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    TextField(
+        value = answer,
+        onValueChange = onAnswerChange,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
