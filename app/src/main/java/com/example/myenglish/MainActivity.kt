@@ -107,7 +107,6 @@ fun LessonScreen(
 @Composable
 fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
-
     val answers = remember {
         mutableStateListOf("", "", "")
     }
@@ -150,9 +149,6 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(12.dp))
-
-            Spacer(modifier = Modifier.height(12.dp))
-        }
 
         Button(onClick = {
             submittedMessage = "Submitted!"
