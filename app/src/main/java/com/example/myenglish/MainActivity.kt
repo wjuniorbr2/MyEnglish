@@ -107,13 +107,6 @@ fun LessonScreen(
 @Composable
 fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
-    val sentences = remember {
-        mutableStateListOf(
-            "I drink milk",
-            "I like butter",
-            "I eat bread"
-        )
-    }
 
     val answers = remember {
         mutableStateListOf("", "", "")
