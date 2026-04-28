@@ -1,5 +1,9 @@
 package com.example.myenglish
+import android.media.MediaPlayer
+import android.os.Handler
+import android.os.Looper
 import android.os.Bundle
+import android.util.Pair
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -113,6 +117,16 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
     var submittedMessage by remember { mutableStateOf("") }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    val handler = remember { Handler(Looper.getMainLooper()) }
+
+    val timings = listOf(
+        Pair(0, 2000),    // Sentence 1
+        Pair(2500, 4500), // Sentence 2
+        Pair(5000, 7000)  // Sentence 3
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -123,31 +137,88 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Sentence 1")
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = answers[0],
-            onValueChange = { answers[0] = it },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Row {
+            Button(onClick = {
+
+                val (start, end) = timings[0]
+
+                mediaPlayer?.release()
+
+                mediaPlayer = MediaPlayer.create(context, R.raw.lesson1).apply {
+                    seekTo(start)
+                    start()
+
+                    handler.postDelayed({
+                        stop()
+                        release()
+                        mediaPlayer = null
+                    }, (end - start).toLong())
+                }
+
+            }) {
+                Text("▶")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text("Sentence 1")
+        }
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text("Sentence 2")
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = answers[1],
-            onValueChange = { answers[1] = it },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Row {
+            Button(onClick = {
+
+                val (start, end) = timings[1]
+
+                mediaPlayer?.release()
+
+                mediaPlayer = MediaPlayer.create(context, R.raw.lesson1).apply {
+                    seekTo(start)
+                    start()
+
+                    handler.postDelayed({
+                        stop()
+                        release()
+                        mediaPlayer = null
+                    }, (end - start).toLong())
+                }
+
+            }) {
+                Text("▶")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text("Sentence 1")
+        }
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text("Sentence 3")
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = answers[2],
-            onValueChange = { answers[2] = it },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Row {
+            Button(onClick = {
+
+                val (start, end) = timings[0]
+
+                mediaPlayer?.release()
+
+                mediaPlayer = MediaPlayer.create(context, R.raw.lesson1).apply {
+                    seekTo(start)
+                    start()
+
+                    handler.postDelayed({
+                        stop()
+                        release()
+                        mediaPlayer = null
+                    }, (end - start).toLong())
+                }
+
+            }) {
+                Text("▶")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text("Sentence 1")
+        }
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(onClick = {
