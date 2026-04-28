@@ -1,5 +1,5 @@
 package com.example.myenglish
-
+import kotlin.ranges.until
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -132,7 +132,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        sentences.forEachIndexed { index, sentence ->
+        for (index in 0 until sentences.size) {
 
             Text("Sentence ${index + 1}")
 
@@ -153,7 +153,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             Text("Submit")
         }
 
-        if (submittedMessage.isNotEmpty()) {
+        if (submittedMessage != "") {
             Spacer(modifier = Modifier.height(8.dp))
             Text(submittedMessage)
         }
