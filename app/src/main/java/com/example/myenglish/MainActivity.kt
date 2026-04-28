@@ -16,9 +16,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myenglish.ui.theme.MyEnglishTheme
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.StringTokenizer
 
 class MainActivity : ComponentActivity() {
@@ -165,12 +170,18 @@ fun canUseHint(
         hintCount < countWords(correctText)
 }
 
+fun currentDateTimeText(): String {
+    val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    return formatter.format(Date())
+}
+
 @Composable
 fun LessonListScreen() {
     val lessonSentences = Lesson1Homework1Audio.sentences
 
     var currentScreen by remember { mutableStateOf("home") }
     var selectedLesson by remember { mutableStateOf<String?>(null) }
+    var showHomeworkChoices by remember { mutableStateOf(false) }
 
     val answers = remember {
         val list = mutableStateListOf<String>()
@@ -227,37 +238,22 @@ fun LessonListScreen() {
 
     when (currentScreen) {
         "home" -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                Text("MyEnglish", style = MaterialTheme.typography.headlineMedium)
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(onClick = {
-                    selectedLesson = "Lesson 1"
+            HomeScreen(
+                onOpenLesson = { lessonName ->
+                    selectedLesson = lessonName
+                    showHomeworkChoices = false
                     currentScreen = "lesson"
-                }) { Text("Lesson 1") }
-
-                Button(onClick = {
-                    selectedLesson = "Lesson 2"
-                    currentScreen = "lesson"
-                }) { Text("Lesson 2") }
-
-                Button(onClick = {
-                    selectedLesson = "Lesson 3"
-                    currentScreen = "lesson"
-                }) { Text("Lesson 3") }
-            }
+                }
+            )
         }
 
         "lesson" -> {
             LessonScreen(
                 lessonName = selectedLesson ?: "Lesson",
-                onBack = { currentScreen = "home" },
-                onOpenHomework = { currentScreen = "homework" }
+                showHomeworkChoices = showHomeworkChoices,
+                onShowHomeworkChoices = { showHomeworkChoices = true },
+                onOpenListeningHomework = { currentScreen = "homework" },
+                onBack = { currentScreen = "home" }
             )
         }
 
@@ -284,10 +280,41 @@ fun LessonListScreen() {
 }
 
 @Composable
+fun HomeScreen(onOpenLesson: (String) -> Unit) {
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(16.dp)
+    ) {
+        Text("My English", style = MaterialTheme.typography.headlineMedium)
+        Text("Book 1", style = MaterialTheme.typography.titleLarge)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        var lessonNumber = 1
+        while (lessonNumber <= 31) {
+            Button(
+                onClick = { onOpenLesson("Lesson $lessonNumber") },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Lesson $lessonNumber")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            lessonNumber = lessonNumber + 1
+        }
+    }
+}
+
+@Composable
 fun LessonScreen(
     lessonName: String,
-    onBack: () -> Unit,
-    onOpenHomework: () -> Unit
+    showHomeworkChoices: Boolean,
+    onShowHomeworkChoices: () -> Unit,
+    onOpenListeningHomework: () -> Unit,
+    onBack: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -298,10 +325,30 @@ fun LessonScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = onOpenHomework) { Text("Homework") }
-        Button(onClick = { }) { Text("Vocabulary") }
-        Button(onClick = { }) { Text("Practice") }
-        Button(onClick = { }) { Text("Grammar") }
+        Button(onClick = { }, modifier = Modifier.fillMaxWidth()) { Text("Vocabulary") }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = { }, modifier = Modifier.fillMaxWidth()) { Text("Grammar") }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = { }, modifier = Modifier.fillMaxWidth()) { Text("Practice") }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = onShowHomeworkChoices, modifier = Modifier.fillMaxWidth()) { Text("Homework") }
+
+        if (showHomeworkChoices) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Choose homework", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = onOpenListeningHomework, modifier = Modifier.fillMaxWidth()) {
+                Text("Listening homework")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = { }, modifier = Modifier.fillMaxWidth(), enabled = false) {
+                Text("Written homework")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = { }, modifier = Modifier.fillMaxWidth(), enabled = false) {
+                Text("Spoken homework")
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -327,11 +374,18 @@ fun HomeworkScreen(
     onTeacherReportChange: (String) -> Unit,
     onBack: () -> Unit
 ) {
-    var playbackMessage by remember { mutableStateOf("") }
-
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
     val handler = remember { Handler(Looper.getMainLooper()) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+
+    LaunchedEffect(scrollState.isScrollInProgress) {
+        if (scrollState.isScrollInProgress) {
+            focusManager.clearFocus()
+        }
+    }
 
     fun stopAudio() {
         handler.removeCallbacksAndMessages(null)
@@ -346,7 +400,6 @@ fun HomeworkScreen(
             // Already released.
         }
         mediaPlayer = null
-        playbackMessage = ""
     }
 
     fun playAudioPart(startMs: Int, endMs: Int, label: String) {
@@ -354,13 +407,10 @@ fun HomeworkScreen(
 
         val player = MediaPlayer.create(context, Lesson1Homework1Audio.AUDIO_RES_ID)
         if (player == null) {
-            playbackMessage = "Audio file not found."
             return
         }
 
         mediaPlayer = player
-        playbackMessage = "Playing $label"
-
         player.setVolume(1.0f, 1.0f)
         player.seekTo(startMs)
         player.start()
@@ -376,12 +426,14 @@ fun HomeworkScreen(
         val builder = StringBuilder()
         var index = 0
 
+        builder.append("Submitted at: ")
+        builder.append(currentDateTimeText())
+        builder.append("\n")
         builder.append("Original score: ")
         builder.append(score)
         builder.append(" / ")
         builder.append(lessonSentences.size)
         builder.append("\n")
-
         builder.append("Student submitted answers: yes\n")
         builder.append("Student submitted corrections: ")
         if (correctionsSubmitted) {
@@ -397,7 +449,6 @@ fun HomeworkScreen(
             builder.append(", hints = ")
             builder.append(hintCounts[index])
             builder.append("\n")
-
             index = index + 1
         }
 
@@ -406,6 +457,7 @@ fun HomeworkScreen(
 
     fun submitAnswers() {
         stopAudio()
+        focusManager.clearFocus()
 
         var score = 0
         var index = 0
@@ -413,22 +465,22 @@ fun HomeworkScreen(
         while (index < lessonSentences.size) {
             val correct = isCorrectAnswer(answers[index], lessonSentences[index].correctText)
             firstAttemptCorrect[index] = correct
-
             if (correct) {
                 score = score + 1
             }
-
             index = index + 1
         }
 
         onFirstAttemptScoreChange(score)
         onSubmitStepChange(1)
-        onSubmittedMessageChange("Submitted! First attempt score: $score / ${lessonSentences.size}")
+        onSubmittedMessageChange("First attempt score: $score / ${lessonSentences.size}")
         onTeacherReportChange(buildTeacherReport(score, false))
+        coroutineScope.launch { scrollState.scrollTo(0) }
     }
 
     fun submitCorrections() {
         stopAudio()
+        focusManager.clearFocus()
 
         var allCorrect = true
         var index = 0
@@ -437,7 +489,6 @@ fun HomeworkScreen(
             if (!isCorrectAnswer(answers[index], lessonSentences[index].correctText)) {
                 allCorrect = false
             }
-
             index = index + 1
         }
 
@@ -449,6 +500,7 @@ fun HomeworkScreen(
             onSubmittedMessageChange("Some corrections are still incorrect. Please check the red X sentences.")
             onTeacherReportChange(buildTeacherReport(firstAttemptScore, false))
         }
+        coroutineScope.launch { scrollState.scrollTo(0) }
     }
 
     DisposableEffect(Unit) {
@@ -457,19 +509,17 @@ fun HomeworkScreen(
         }
     }
 
-    val scrollState = rememberScrollState()
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        Text("$lessonName - Homework", style = MaterialTheme.typography.headlineMedium)
+        Text("$lessonName - Listening homework", style = MaterialTheme.typography.headlineMedium)
 
-        if (playbackMessage != "") {
+        if (submittedMessage != "") {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(playbackMessage)
+            Text(submittedMessage)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -490,11 +540,7 @@ fun HomeworkScreen(
                 hintCount = hintCounts[currentIndex],
                 onPlay = {
                     replayCounts[currentIndex] = replayCounts[currentIndex] + 1
-                    playAudioPart(
-                        currentSentence.startMs,
-                        currentSentence.endMs,
-                        currentSentence.label
-                    )
+                    playAudioPart(currentSentence.startMs, currentSentence.endMs, currentSentence.label)
                 },
                 onStop = { stopAudio() },
                 onHint = {
@@ -517,13 +563,9 @@ fun HomeworkScreen(
         }
 
         if (submitStep == 0) {
-            Button(onClick = { submitAnswers() }) {
-                Text("Submit answers")
-            }
+            Button(onClick = { submitAnswers() }) { Text("Submit answers") }
         } else if (submitStep == 1) {
-            Button(onClick = { submitCorrections() }) {
-                Text("Submit corrections")
-            }
+            Button(onClick = { submitCorrections() }) { Text("Submit corrections") }
         } else {
             Button(
                 onClick = { },
@@ -532,14 +574,7 @@ fun HomeworkScreen(
                     disabledContainerColor = Color(0xFF2E7D32),
                     disabledContentColor = Color.White
                 )
-            ) {
-                Text("Submitted")
-            }
-        }
-
-        if (submittedMessage != "") {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(submittedMessage)
+            ) { Text("Submitted") }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -547,9 +582,7 @@ fun HomeworkScreen(
         Button(onClick = {
             stopAudio()
             onBack()
-        }) {
-            Text("Back")
-        }
+        }) { Text("Back") }
     }
 }
 
@@ -584,18 +617,10 @@ fun SentenceAnswerRow(
                 )
 
                 if (submitStep >= 1) {
-                    if (submitStep == 2 || firstAttemptCorrect) {
-                        Text(
-                            text = "✓",
-                            color = Color(0xFF2E7D32),
-                            fontSize = 36.sp
-                        )
+                    if (submitStep == 2 || currentCorrect) {
+                        Text("✓", color = Color(0xFF2E7D32), fontSize = 72.sp)
                     } else {
-                        Text(
-                            text = "✕",
-                            color = Color(0xFFC62828),
-                            fontSize = 36.sp
-                        )
+                        Text("✕", color = Color(0xFFC62828), fontSize = 72.sp)
                     }
                 }
             }
@@ -603,15 +628,9 @@ fun SentenceAnswerRow(
             Spacer(modifier = Modifier.height(8.dp))
 
             Row {
-                Button(onClick = onPlay) {
-                    Text("▶")
-                }
-
+                Button(onClick = onPlay) { Text("▶") }
                 Spacer(modifier = Modifier.width(8.dp))
-
-                Button(onClick = onStop) {
-                    Text("Stop")
-                }
+                Button(onClick = onStop) { Text("Stop") }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -637,9 +656,7 @@ fun SentenceAnswerRow(
                 } else if (replayCount < 5) {
                     Text("Hint locked: listen ${5 - replayCount} more time(s).")
                 } else if (submitStep < 2 && !currentCorrect) {
-                    Button(onClick = onHint) {
-                        Text("Reveal next word")
-                    }
+                    Button(onClick = onHint) { Text("Reveal next word") }
                 }
 
                 if (hintCount > 0) {
