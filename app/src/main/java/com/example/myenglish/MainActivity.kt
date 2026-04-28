@@ -143,6 +143,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             // Already released.
         }
         mediaPlayer = null
+        playbackMessage = ""
     }
 
     fun playAudioPart(startMs: Int, endMs: Int, label: String) {
@@ -164,7 +165,6 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
         handler.postDelayed({
             if (mediaPlayer == player) {
                 stopAudio()
-                playbackMessage = ""
             }
         }, (endMs - startMs).toLong())
     }
@@ -205,7 +205,8 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
                     Lesson1Homework1Audio.SENTENCE_1_END_MS,
                     "Sentence 1"
                 )
-            }
+            },
+            onStop = { stopAudio() }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -220,7 +221,8 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
                     Lesson1Homework1Audio.SENTENCE_2_END_MS,
                     "Sentence 2"
                 )
-            }
+            },
+            onStop = { stopAudio() }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -235,7 +237,8 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
                     Lesson1Homework1Audio.SENTENCE_3_END_MS,
                     "Sentence 3"
                 )
-            }
+            },
+            onStop = { stopAudio() }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -268,11 +271,18 @@ fun SentenceAnswerRow(
     sentenceLabel: String,
     answer: String,
     onAnswerChange: (String) -> Unit,
-    onPlay: () -> Unit
+    onPlay: () -> Unit,
+    onStop: () -> Unit
 ) {
     Row {
         Button(onClick = onPlay) {
             Text("▶")
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Button(onClick = onStop) {
+            Text("Stop")
         }
 
         Spacer(modifier = Modifier.width(8.dp))
