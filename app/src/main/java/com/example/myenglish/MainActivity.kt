@@ -111,35 +111,54 @@ fun LessonScreen(
 fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
     val answers = remember { mutableStateListOf("", "", "") }
     var submittedMessage by remember { mutableStateOf("") }
+    var playbackMessage by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     val handler = remember { Handler(Looper.getMainLooper()) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
 
-    fun playAudioPart(startMs: Int, endMs: Int) {
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
+    fun stopAudio() {
+        handler.removeCallbacksAndMessages(null)
+        try {
+            mediaPlayer?.stop()
+        } catch (_: Exception) {
+            // Already stopped or not prepared.
+        }
+        try {
+            mediaPlayer?.release()
+        } catch (_: Exception) {
+            // Already released.
+        }
         mediaPlayer = null
+    }
+
+    fun playAudioPart(startMs: Int, endMs: Int, label: String) {
+        stopAudio()
 
         val player = MediaPlayer.create(context, R.raw.lesson1)
-        mediaPlayer = player
+        if (player == null) {
+            playbackMessage = "Audio file not found."
+            return
+        }
 
+        mediaPlayer = player
+        playbackMessage = "Playing $label"
+
+        player.setVolume(1.0f, 1.0f)
         player.seekTo(startMs)
         player.start()
 
         handler.postDelayed({
-            player.stop()
-            player.release()
             if (mediaPlayer == player) {
-                mediaPlayer = null
+                stopAudio()
+                playbackMessage = ""
             }
         }, (endMs - startMs).toLong())
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            mediaPlayer?.release()
-            mediaPlayer = null
+            stopAudio()
         }
     }
 
@@ -152,11 +171,22 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        Button(onClick = { playAudioPart(0, 125000, "full audio test") }) {
+            Text("Test full audio")
+        }
+
+        if (playbackMessage != "") {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(playbackMessage)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         SentenceAnswerRow(
             sentenceLabel = "Sentence 1",
             answer = answers[0],
             onAnswerChange = { answers[0] = it },
-            onPlay = { playAudioPart(0, 2000) }
+            onPlay = { playAudioPart(900, 1800, "Sentence 1") }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -165,7 +195,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             sentenceLabel = "Sentence 2",
             answer = answers[1],
             onAnswerChange = { answers[1] = it },
-            onPlay = { playAudioPart(2500, 4500) }
+            onPlay = { playAudioPart(3800, 5100, "Sentence 2") }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -174,12 +204,13 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             sentenceLabel = "Sentence 3",
             answer = answers[2],
             onAnswerChange = { answers[2] = it },
-            onPlay = { playAudioPart(5000, 7000) }
+            onPlay = { playAudioPart(7600, 8800, "Sentence 3") }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(onClick = {
+            stopAudio()
             submittedMessage = "Submitted!"
         }) {
             Text("Submit")
@@ -192,7 +223,10 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = onBack) {
+        Button(onClick = {
+            stopAudio()
+            onBack()
+        }) {
             Text("Back")
         }
     }
