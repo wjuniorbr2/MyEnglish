@@ -3,7 +3,7 @@ import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
 import android.os.Bundle
-import android.util.Pair
+import kotlin.Pair
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -189,7 +189,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Text("Sentence 1")
+            Text("Sentence 2")
         }
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -216,8 +216,8 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             }
 
             Spacer(modifier = Modifier.width(8.dp))
-
-            Text("Sentence 1")
+            val (start, end) = timings[2]
+            Text("Sentence 3")
         }
         Spacer(modifier = Modifier.height(12.dp))
 
