@@ -131,7 +131,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        for (index in sentences.indices) {
+        repeat(sentences.size) { index ->
 
             Text("Sentence ${index + 1}")
 
