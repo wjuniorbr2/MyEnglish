@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -13,8 +14,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.myenglish.ui.theme.MyEnglishTheme
 import java.util.StringTokenizer
 
@@ -46,38 +49,38 @@ private object Lesson1Homework1Audio {
     val AUDIO_RES_ID = R.raw.lesson1
 
     val sentences = arrayOf(
-        HomeworkSentence("Sentence 1", "I like.", 956, 1630),
-        HomeworkSentence("Sentence 2", "You eat meat.", 2525, 4879),
-        HomeworkSentence("Sentence 3", "I don't like.", 5878, 8649),
-        HomeworkSentence("Sentence 4", "They don't drink water.", 9424, 12421),
-        HomeworkSentence("Sentence 5", "Do you drink milk?", 13255, 16491),
-        HomeworkSentence("Sentence 6", "Do we eat meat?", 17674, 20578),
-        HomeworkSentence("Sentence 7", "I like bread with butter.", 21386, 25227),
-        HomeworkSentence("Sentence 8", "I eat.", 26210, 29106),
-        HomeworkSentence("Sentence 9", "You like.", 29941, 32615),
-        HomeworkSentence("Sentence 10", "I don't like.", 33422, 36051),
-        HomeworkSentence("Sentence 11", "You don't like.", 37253, 39960),
-        HomeworkSentence("Sentence 12", "Do you like?", 40792, 43427),
-        HomeworkSentence("Sentence 13", "Do they like?", 44610, 47072),
-        HomeworkSentence("Sentence 14", "Don't you like?", 48278, 51227),
-        HomeworkSentence("Sentence 15", "Don't they like?", 53012, 55241),
-        HomeworkSentence("Sentence 16", "I like to eat.", 56918, 59323),
-        HomeworkSentence("Sentence 17", "I eat in the morning.", 60367, 63038),
-        HomeworkSentence("Sentence 18", "I drink milk in the morning.", 64019, 67486),
-        HomeworkSentence("Sentence 19", "Do you like milk?", 68595, 71102),
-        HomeworkSentence("Sentence 20", "They don't eat bread with butter.", 72256, 76071),
-        HomeworkSentence("Sentence 21", "I don't like to eat in the morning.", 77488, 81110),
-        HomeworkSentence("Sentence 22", "I drink water.", 81730, 84592),
-        HomeworkSentence("Sentence 23", "I eat bread.", 85798, 88330),
-        HomeworkSentence("Sentence 24", "I drink juice.", 89611, 92429),
-        HomeworkSentence("Sentence 25", "I don't like milk.", 93295, 96441),
-        HomeworkSentence("Sentence 26", "I don't drink in the morning.", 97235, 100840),
-        HomeworkSentence("Sentence 27", "You eat.", 101588, 104054),
-        HomeworkSentence("Sentence 28", "We like.", 104969, 107484),
-        HomeworkSentence("Sentence 29", "They like to drink at night.", 108519, 112146),
-        HomeworkSentence("Sentence 30", "We don't drink in the morning.", 112934, 116767),
-        HomeworkSentence("Sentence 31", "Do you like butter?", 118711, 119819),
-        HomeworkSentence("Sentence 32", "Do they like to drink beer?", 120575, 124024)
+        HomeworkSentence("Sentence 1", "I like.", 870, 2527),
+        HomeworkSentence("Sentence 2", "You eat meat.", 3750, 5880),
+        HomeworkSentence("Sentence 3", "I don't like.", 7610, 9426),
+        HomeworkSentence("Sentence 4", "They don't drink water.", 11140, 13257),
+        HomeworkSentence("Sentence 5", "Do you drink milk?", 15400, 17676),
+        HomeworkSentence("Sentence 6", "Do we eat meat?", 19230, 21388),
+        HomeworkSentence("Sentence 7", "I like bread with butter.", 23320, 26212),
+        HomeworkSentence("Sentence 8", "I eat.", 28140, 29943),
+        HomeworkSentence("Sentence 9", "You like.", 31790, 33424),
+        HomeworkSentence("Sentence 10", "I don't like.", 35040, 37255),
+        HomeworkSentence("Sentence 11", "You don't like.", 38820, 40794),
+        HomeworkSentence("Sentence 12", "Do you like?", 42610, 44612),
+        HomeworkSentence("Sentence 13", "Do they like?", 46060, 48280),
+        HomeworkSentence("Sentence 14", "Don't you like?", 50060, 53014),
+        HomeworkSentence("Sentence 15", "Don't they like?", 54040, 56920),
+        HomeworkSentence("Sentence 16", "I like to eat.", 58100, 60369),
+        HomeworkSentence("Sentence 17", "I eat in the morning.", 61660, 64021),
+        HomeworkSentence("Sentence 18", "I drink milk in the morning.", 65550, 68597),
+        HomeworkSentence("Sentence 19", "Do you like milk?", 70140, 72258),
+        HomeworkSentence("Sentence 20", "They don't eat bread with butter.", 74010, 77491),
+        HomeworkSentence("Sentence 21", "I don't like to eat in the morning.", 79160, 82187),
+        HomeworkSentence("Sentence 22", "I drink water.", 83690, 85800),
+        HomeworkSentence("Sentence 23", "I eat bread.", 87270, 89614),
+        HomeworkSentence("Sentence 24", "I drink juice.", 91220, 93297),
+        HomeworkSentence("Sentence 25", "I don't like milk.", 95200, 97238),
+        HomeworkSentence("Sentence 26", "I don't drink in the morning.", 99010, 101591),
+        HomeworkSentence("Sentence 27", "You eat.", 103310, 104970),
+        HomeworkSentence("Sentence 28", "We like.", 106630, 108521),
+        HomeworkSentence("Sentence 29", "They like to drink at night.", 110110, 112936),
+        HomeworkSentence("Sentence 30", "We don't drink in the morning.", 114640, 116940),
+        HomeworkSentence("Sentence 31", "Do you like butter?", 118630, 120577),
+        HomeworkSentence("Sentence 32", "Do they like to drink beer?", 122320, 124916)
     )
 }
 
@@ -152,11 +155,11 @@ fun revealedHintText(correctText: String, hintCount: Int): String {
 fun canUseHint(
     answer: String,
     replayCount: Int,
-    submitted: Boolean,
+    submittedAnswers: Boolean,
     hintCount: Int,
     correctText: String
 ): Boolean {
-    return submitted &&
+    return submittedAnswers &&
         cleanAnswer(answer) != "" &&
         replayCount >= 5 &&
         hintCount < countWords(correctText)
@@ -164,8 +167,63 @@ fun canUseHint(
 
 @Composable
 fun LessonListScreen() {
+    val lessonSentences = Lesson1Homework1Audio.sentences
+
     var currentScreen by remember { mutableStateOf("home") }
     var selectedLesson by remember { mutableStateOf<String?>(null) }
+
+    val answers = remember {
+        val list = mutableStateListOf<String>()
+        var index = 0
+        while (index < lessonSentences.size) {
+            list.add("")
+            index = index + 1
+        }
+        list
+    }
+
+    val replayCounts = remember {
+        val list = mutableStateListOf<Int>()
+        var index = 0
+        while (index < lessonSentences.size) {
+            list.add(0)
+            index = index + 1
+        }
+        list
+    }
+
+    val hintCounts = remember {
+        val list = mutableStateListOf<Int>()
+        var index = 0
+        while (index < lessonSentences.size) {
+            list.add(0)
+            index = index + 1
+        }
+        list
+    }
+
+    val firstAttemptCorrect = remember {
+        val list = mutableStateListOf<Boolean>()
+        var index = 0
+        while (index < lessonSentences.size) {
+            list.add(false)
+            index = index + 1
+        }
+        list
+    }
+
+    var submitStep by remember { mutableIntStateOf(0) }
+    var firstAttemptScore by remember { mutableIntStateOf(0) }
+    var submittedMessage by remember { mutableStateOf("") }
+    var teacherReportToSend by remember { mutableStateOf("") }
+
+    BackHandler(enabled = currentScreen != "home") {
+        if (currentScreen == "homework") {
+            currentScreen = "lesson"
+        } else if (currentScreen == "lesson") {
+            currentScreen = "home"
+        }
+    }
 
     when (currentScreen) {
         "home" -> {
@@ -206,6 +264,19 @@ fun LessonListScreen() {
         "homework" -> {
             HomeworkScreen(
                 lessonName = selectedLesson ?: "Lesson",
+                lessonSentences = lessonSentences,
+                answers = answers,
+                replayCounts = replayCounts,
+                hintCounts = hintCounts,
+                firstAttemptCorrect = firstAttemptCorrect,
+                submitStep = submitStep,
+                firstAttemptScore = firstAttemptScore,
+                submittedMessage = submittedMessage,
+                teacherReportToSend = teacherReportToSend,
+                onFirstAttemptScoreChange = { firstAttemptScore = it },
+                onSubmitStepChange = { submitStep = it },
+                onSubmittedMessageChange = { submittedMessage = it },
+                onTeacherReportChange = { teacherReportToSend = it },
                 onBack = { currentScreen = "lesson" }
             )
         }
@@ -239,54 +310,24 @@ fun LessonScreen(
 }
 
 @Composable
-fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
-    val lessonSentences = Lesson1Homework1Audio.sentences
-
-    val answers = remember {
-        val list = mutableStateListOf<String>()
-        var index = 0
-        while (index < lessonSentences.size) {
-            list.add("")
-            index = index + 1
-        }
-        list
-    }
-
-    val replayCounts = remember {
-        val list = mutableStateListOf<Int>()
-        var index = 0
-        while (index < lessonSentences.size) {
-            list.add(0)
-            index = index + 1
-        }
-        list
-    }
-
-    val hintCounts = remember {
-        val list = mutableStateListOf<Int>()
-        var index = 0
-        while (index < lessonSentences.size) {
-            list.add(0)
-            index = index + 1
-        }
-        list
-    }
-
-    val independentCorrect = remember {
-        val list = mutableStateListOf<Boolean>()
-        var index = 0
-        while (index < lessonSentences.size) {
-            list.add(false)
-            index = index + 1
-        }
-        list
-    }
-
-    var submitted by remember { mutableStateOf(false) }
-    var independentScore by remember { mutableIntStateOf(0) }
-    var submittedMessage by remember { mutableStateOf("") }
+fun HomeworkScreen(
+    lessonName: String,
+    lessonSentences: Array<HomeworkSentence>,
+    answers: MutableList<String>,
+    replayCounts: MutableList<Int>,
+    hintCounts: MutableList<Int>,
+    firstAttemptCorrect: MutableList<Boolean>,
+    submitStep: Int,
+    firstAttemptScore: Int,
+    submittedMessage: String,
+    teacherReportToSend: String,
+    onFirstAttemptScoreChange: (Int) -> Unit,
+    onSubmitStepChange: (Int) -> Unit,
+    onSubmittedMessageChange: (String) -> Unit,
+    onTeacherReportChange: (String) -> Unit,
+    onBack: () -> Unit
+) {
     var playbackMessage by remember { mutableStateOf("") }
-    var teacherReportToSend by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     val handler = remember { Handler(Looper.getMainLooper()) }
@@ -331,7 +372,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
         }, (endMs - startMs).toLong())
     }
 
-    fun buildTeacherReport(score: Int): String {
+    fun buildTeacherReport(score: Int, correctionsSubmitted: Boolean): String {
         val builder = StringBuilder()
         var index = 0
 
@@ -340,6 +381,14 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
         builder.append(" / ")
         builder.append(lessonSentences.size)
         builder.append("\n")
+
+        builder.append("Student submitted answers: yes\n")
+        builder.append("Student submitted corrections: ")
+        if (correctionsSubmitted) {
+            builder.append("yes\n")
+        } else {
+            builder.append("no\n")
+        }
 
         while (index < lessonSentences.size) {
             builder.append(lessonSentences[index].label)
@@ -355,7 +404,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
         return builder.toString()
     }
 
-    fun submitHomework() {
+    fun submitAnswers() {
         stopAudio()
 
         var score = 0
@@ -363,7 +412,7 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
 
         while (index < lessonSentences.size) {
             val correct = isCorrectAnswer(answers[index], lessonSentences[index].correctText)
-            independentCorrect[index] = correct
+            firstAttemptCorrect[index] = correct
 
             if (correct) {
                 score = score + 1
@@ -372,10 +421,34 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             index = index + 1
         }
 
-        independentScore = score
-        submitted = true
-        submittedMessage = "Submitted! Independent score: $score / ${lessonSentences.size}"
-        teacherReportToSend = buildTeacherReport(score)
+        onFirstAttemptScoreChange(score)
+        onSubmitStepChange(1)
+        onSubmittedMessageChange("Submitted! First attempt score: $score / ${lessonSentences.size}")
+        onTeacherReportChange(buildTeacherReport(score, false))
+    }
+
+    fun submitCorrections() {
+        stopAudio()
+
+        var allCorrect = true
+        var index = 0
+
+        while (index < lessonSentences.size) {
+            if (!isCorrectAnswer(answers[index], lessonSentences[index].correctText)) {
+                allCorrect = false
+            }
+
+            index = index + 1
+        }
+
+        if (allCorrect) {
+            onSubmitStepChange(2)
+            onSubmittedMessageChange("Submitted! All corrections are correct.")
+            onTeacherReportChange(buildTeacherReport(firstAttemptScore, true))
+        } else {
+            onSubmittedMessageChange("Some corrections are still incorrect. Please check the red X sentences.")
+            onTeacherReportChange(buildTeacherReport(firstAttemptScore, false))
+        }
     }
 
     DisposableEffect(Unit) {
@@ -411,8 +484,9 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
                 answer = answers[currentIndex],
                 onAnswerChange = { answers[currentIndex] = it },
                 replayCount = replayCounts[currentIndex],
-                submitted = submitted,
-                independentCorrect = independentCorrect[currentIndex],
+                submitStep = submitStep,
+                firstAttemptCorrect = firstAttemptCorrect[currentIndex],
+                currentCorrect = isCorrectAnswer(answers[currentIndex], currentSentence.correctText),
                 hintCount = hintCounts[currentIndex],
                 onPlay = {
                     replayCounts[currentIndex] = replayCounts[currentIndex] + 1
@@ -427,13 +501,13 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
                     if (canUseHint(
                             answers[currentIndex],
                             replayCounts[currentIndex],
-                            submitted,
+                            submitStep >= 1,
                             hintCounts[currentIndex],
                             currentSentence.correctText
                         )
                     ) {
                         hintCounts[currentIndex] = hintCounts[currentIndex] + 1
-                        teacherReportToSend = buildTeacherReport(independentScore)
+                        onTeacherReportChange(buildTeacherReport(firstAttemptScore, submitStep == 2))
                     }
                 }
             )
@@ -442,8 +516,25 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             rowIndex = rowIndex + 1
         }
 
-        Button(onClick = { submitHomework() }) {
-            Text("Submit")
+        if (submitStep == 0) {
+            Button(onClick = { submitAnswers() }) {
+                Text("Submit answers")
+            }
+        } else if (submitStep == 1) {
+            Button(onClick = { submitCorrections() }) {
+                Text("Submit corrections")
+            }
+        } else {
+            Button(
+                onClick = { },
+                enabled = false,
+                colors = ButtonDefaults.buttonColors(
+                    disabledContainerColor = Color(0xFF2E7D32),
+                    disabledContentColor = Color.White
+                )
+            ) {
+                Text("Submitted")
+            }
         }
 
         if (submittedMessage != "") {
@@ -468,8 +559,9 @@ fun SentenceAnswerRow(
     answer: String,
     onAnswerChange: (String) -> Unit,
     replayCount: Int,
-    submitted: Boolean,
-    independentCorrect: Boolean,
+    submitStep: Int,
+    firstAttemptCorrect: Boolean,
+    currentCorrect: Boolean,
     hintCount: Int,
     onPlay: () -> Unit,
     onStop: () -> Unit,
@@ -491,11 +583,19 @@ fun SentenceAnswerRow(
                     modifier = Modifier.weight(1f)
                 )
 
-                if (submitted) {
-                    if (independentCorrect) {
-                        Text("✓")
+                if (submitStep >= 1) {
+                    if (submitStep == 2 || firstAttemptCorrect) {
+                        Text(
+                            text = "✓",
+                            color = Color(0xFF2E7D32),
+                            fontSize = 36.sp
+                        )
                     } else {
-                        Text("✕")
+                        Text(
+                            text = "✕",
+                            color = Color(0xFFC62828),
+                            fontSize = 36.sp
+                        )
                     }
                 }
             }
@@ -525,18 +625,18 @@ fun SentenceAnswerRow(
             Spacer(modifier = Modifier.height(4.dp))
             Text("Plays: $replayCount")
 
-            if (submitted) {
-                if (independentCorrect) {
-                    Text("Independent attempt: correct")
+            if (submitStep >= 1) {
+                if (firstAttemptCorrect) {
+                    Text("First attempt: correct")
                 } else {
-                    Text("Independent attempt: incorrect")
+                    Text("First attempt: incorrect")
                 }
 
                 if (cleanAnswer(answer) == "") {
                     Text("Type an answer before using hints.")
                 } else if (replayCount < 5) {
                     Text("Hint locked: listen ${5 - replayCount} more time(s).")
-                } else {
+                } else if (submitStep < 2 && !currentCorrect) {
                     Button(onClick = onHint) {
                         Text("Reveal next word")
                     }
