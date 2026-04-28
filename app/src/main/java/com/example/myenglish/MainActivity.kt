@@ -3,7 +3,6 @@ import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
 import android.os.Bundle
-import kotlin.Pair
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -121,11 +120,6 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     val handler = remember { Handler(Looper.getMainLooper()) }
 
-    val timings = listOf(
-        Pair(0, 2000),    // Sentence 1
-        Pair(2500, 4500), // Sentence 2
-        Pair(5000, 7000)  // Sentence 3
-    )
 
     Column(
         modifier = Modifier
@@ -168,7 +162,8 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
         Row {
             Button(onClick = {
 
-                val (start, end) = timings[1]
+                val start = 0
+                val end = 2000
 
                 mediaPlayer?.release()
 
@@ -196,7 +191,8 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
         Row {
             Button(onClick = {
 
-                val (start, end) = timings[0]
+                val start = 2500
+                val end = 4500
 
                 mediaPlayer?.release()
 
@@ -216,12 +212,16 @@ fun HomeworkScreen(lessonName: String, onBack: () -> Unit) {
             }
 
             Spacer(modifier = Modifier.width(8.dp))
-            val (start, end) = timings[2]
+
             Text("Sentence 3")
         }
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(onClick = {
+
+            val start = 5000
+            val end = 7000
+
             submittedMessage = "Submitted!"
         }) {
             Text("Submit")
