@@ -31,7 +31,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myenglish.ui.theme.MyEnglishTheme
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -174,20 +173,32 @@ fun currentDateTimeText(): String {
 }
 
 fun displayStudentName(fullName: String): String {
-    val clean = fullName.trim()
-    if (clean == "") return "Student"
+    val parts = StringTokenizer(fullName, " ")
+    if (!parts.hasMoreTokens()) return "Student"
 
-    val parts = StringTokenizer(clean, " ")
     val firstName = parts.nextToken()
 
     if (parts.hasMoreTokens()) {
         val secondName = parts.nextToken()
         if (secondName.length > 0) {
-            return firstName + " " + secondName[0].uppercaseChar() + "."
+            return firstName + " " + Character.toUpperCase(secondName[0]) + "."
         }
     }
 
     return firstName
+}
+
+@Composable
+fun ScreenBackground(content: @Composable () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.screenbg),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        content()
+    }
 }
 
 @Composable
@@ -205,10 +216,7 @@ fun AppWithSplash() {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
+        ScreenBackground {
             LessonListScreen()
         }
 
@@ -300,9 +308,8 @@ fun LessonListScreen() {
         StudentNameDialog(
             currentName = studentName,
             onSave = { newName ->
-                val savedName = newName.trim()
-                studentName = savedName
-                prefs.edit().putString("student_name", savedName).apply()
+                studentName = newName
+                prefs.edit().putString("student_name", newName).apply()
                 showNameDialog = false
             }
         )
@@ -379,7 +386,7 @@ fun StudentNameDialog(currentName: String, onSave: (String) -> Unit) {
         },
         confirmButton = {
             Button(onClick = {
-                if (nameText.trim() != "") {
+                if (cleanAnswer(nameText) != "") {
                     onSave(nameText)
                 }
             }) {
@@ -538,7 +545,7 @@ fun HomeworkScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
+    var scrollToTopRequest by remember { mutableIntStateOf(0) }
     val handler = remember { Handler(Looper.getMainLooper()) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     val focusRequesters = remember { Array(lessonSentences.size) { FocusRequester() } }
@@ -546,6 +553,12 @@ fun HomeworkScreen(
     LaunchedEffect(scrollState.isScrollInProgress) {
         if (scrollState.isScrollInProgress) {
             focusManager.clearFocus()
+        }
+    }
+
+    LaunchedEffect(scrollToTopRequest) {
+        if (scrollToTopRequest > 0) {
+            scrollState.scrollTo(0)
         }
     }
 
@@ -637,7 +650,7 @@ fun HomeworkScreen(
         onSubmitStepChange(1)
         onSubmittedMessageChange("First attempt score: $score / ${lessonSentences.size}")
         onTeacherReportChange(buildTeacherReport(score, false))
-        coroutineScope.launch { scrollState.scrollTo(0) }
+        scrollToTopRequest = scrollToTopRequest + 1
     }
 
     fun submitCorrections() {
@@ -663,7 +676,7 @@ fun HomeworkScreen(
             onSubmittedMessageChange("Some corrections are still incorrect. Please check the red X sentences.")
             onTeacherReportChange(buildTeacherReport(firstAttemptScore, false))
         }
-        coroutineScope.launch { scrollState.scrollTo(0) }
+        scrollToTopRequest = scrollToTopRequest + 1
     }
 
     DisposableEffect(Unit) {
