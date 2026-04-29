@@ -10,6 +10,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,12 +23,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myenglish.ui.theme.MyEnglishTheme
@@ -202,6 +209,126 @@ fun ScreenBackground(content: @Composable () -> Unit) {
 }
 
 @Composable
+fun AppTitleText(
+    text: String,
+    modifier: Modifier = Modifier,
+    fontSize: Int = 34,
+    textAlign: TextAlign = TextAlign.Start
+) {
+    Text(
+        text = text,
+        modifier = modifier,
+        color = Color.White,
+        fontSize = fontSize.sp,
+        fontWeight = FontWeight.Black,
+        textAlign = textAlign,
+        style = LocalTextStyle.current.copy(
+            shadow = Shadow(
+                color = Color(0xFF00B8FF),
+                offset = Offset(0f, 0f),
+                blurRadius = 18f
+            )
+        )
+    )
+}
+
+@Composable
+fun AppButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    backgroundResId: Int = R.drawable.bluebutton,
+    enabled: Boolean = true,
+    fontSize: Int = 18,
+    content: (@Composable BoxScope.() -> Unit)? = null
+) {
+    Box(
+        modifier = modifier
+            .height(54.dp)
+            .alpha(if (enabled) 1f else 0.55f)
+            .clickable(enabled = enabled) { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = backgroundResId),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds
+        )
+
+        if (content == null) {
+            Text(
+                text = text,
+                color = Color.White,
+                fontSize = fontSize.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                style = LocalTextStyle.current.copy(
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(1.5f, 1.5f),
+                        blurRadius = 5f
+                    )
+                )
+            )
+        } else {
+            content()
+        }
+    }
+}
+
+@Composable
+fun HomeworkStatusIcon(kind: Int, done: Boolean) {
+    val iconColor = if (done) {
+        if (kind == 0) Color(0xFF00D9FF) else if (kind == 1) Color(0xFFFFD54F) else Color(0xFFFF5FD2)
+    } else {
+        Color(0xFFB8B8B8)
+    }
+
+    Canvas(modifier = Modifier.size(27.dp)) {
+        val w = size.width
+        val h = size.height
+        val stroke = Stroke(width = 3.2f)
+
+        if (kind == 0) {
+            drawArc(
+                color = iconColor,
+                startAngle = 205f,
+                sweepAngle = 130f,
+                useCenter = false,
+                topLeft = Offset(w * 0.18f, h * 0.16f),
+                size = Size(w * 0.64f, h * 0.62f),
+                style = stroke
+            )
+            drawLine(iconColor, Offset(w * 0.24f, h * 0.54f), Offset(w * 0.24f, h * 0.82f), strokeWidth = 4f)
+            drawLine(iconColor, Offset(w * 0.76f, h * 0.54f), Offset(w * 0.76f, h * 0.82f), strokeWidth = 4f)
+        } else if (kind == 1) {
+            drawLine(iconColor, Offset(w * 0.22f, h * 0.78f), Offset(w * 0.72f, h * 0.28f), strokeWidth = 4f)
+            drawLine(iconColor, Offset(w * 0.67f, h * 0.23f), Offset(w * 0.80f, h * 0.36f), strokeWidth = 4f)
+            drawLine(iconColor, Offset(w * 0.18f, h * 0.84f), Offset(w * 0.36f, h * 0.80f), strokeWidth = 3f)
+        } else {
+            drawOval(
+                color = iconColor,
+                topLeft = Offset(w * 0.34f, h * 0.14f),
+                size = Size(w * 0.32f, h * 0.46f),
+                style = stroke
+            )
+            drawLine(iconColor, Offset(w * 0.50f, h * 0.60f), Offset(w * 0.50f, h * 0.82f), strokeWidth = 3.2f)
+            drawLine(iconColor, Offset(w * 0.34f, h * 0.84f), Offset(w * 0.66f, h * 0.84f), strokeWidth = 3.2f)
+            drawArc(
+                color = iconColor,
+                startAngle = 25f,
+                sweepAngle = 130f,
+                useCenter = false,
+                topLeft = Offset(w * 0.22f, h * 0.42f),
+                size = Size(w * 0.56f, h * 0.30f),
+                style = stroke
+            )
+        }
+    }
+}
+
+@Composable
 fun AppWithSplash() {
     var splashVisible by remember { mutableStateOf(true) }
     var splashAlphaTarget by remember { mutableStateOf(0f) }
@@ -221,23 +348,18 @@ fun AppWithSplash() {
         }
 
         if (splashVisible) {
-            Surface(
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.appsplash),
-                        contentDescription = "My English splash",
-                        modifier = Modifier
-                            .fillMaxWidth(0.4f)
-                            .alpha(splashAlpha),
-                        contentScale = ContentScale.Fit
-                    )
-                }
+                Image(
+                    painter = painterResource(id = R.drawable.appsplash),
+                    contentDescription = "My English splash",
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .alpha(splashAlpha),
+                    contentScale = ContentScale.Fit
+                )
             }
         }
     }
@@ -410,30 +532,33 @@ fun HomeScreen(
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("My English", style = MaterialTheme.typography.headlineMedium)
-                Text("Book 1", style = MaterialTheme.typography.titleLarge)
+                AppTitleText("My English", fontSize = 38)
+                AppTitleText("Book 1", fontSize = 28)
             }
 
             Text(
                 text = studentName,
                 modifier = Modifier.clickable { onChangeName() },
-                color = MaterialTheme.colorScheme.primary
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                style = LocalTextStyle.current.copy(
+                    shadow = Shadow(Color.Black, Offset(1f, 1f), 5f)
+                )
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
         var lessonNumber = 1
         while (lessonNumber <= 31) {
             val currentLessonNumber = lessonNumber
-            Button(
+            AppButton(
+                text = "Lesson $currentLessonNumber",
                 onClick = { onOpenLesson("Lesson $currentLessonNumber") },
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Lesson $currentLessonNumber")
-            }
+            )
             Spacer(modifier = Modifier.height(8.dp))
             lessonNumber = lessonNumber + 1
         }
@@ -450,53 +575,69 @@ fun LessonScreen(
     onBack: () -> Unit
 ) {
     val listeningAvailable = lessonName == "Lesson 1"
+    val listeningDoneForThisLesson = lesson1ListeningDone && lessonName == "Lesson 1"
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(lessonName, style = MaterialTheme.typography.headlineMedium)
+        AppTitleText(lessonName, fontSize = 36)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { }, modifier = Modifier.fillMaxWidth()) { Text("Vocabulary") }
+        AppButton(text = "Vocabulary", onClick = { }, modifier = Modifier.fillMaxWidth())
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { }, modifier = Modifier.fillMaxWidth()) { Text("Grammar") }
+        AppButton(text = "Grammar", onClick = { }, modifier = Modifier.fillMaxWidth())
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { }, modifier = Modifier.fillMaxWidth()) { Text("Practice") }
+        AppButton(text = "Practice", onClick = { }, modifier = Modifier.fillMaxWidth())
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(onClick = onShowHomeworkChoices, modifier = Modifier.fillMaxWidth()) {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("Homework", modifier = Modifier.weight(1f))
-                Text("🎧", color = if (lesson1ListeningDone && lessonName == "Lesson 1") Color(0xFF1565C0) else Color.Gray)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("✍", color = Color.Gray)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("🎤", color = Color.Gray)
+        AppButton(
+            text = "Homework",
+            onClick = onShowHomeworkChoices,
+            modifier = Modifier.fillMaxWidth(),
+            content = {
+                Text(
+                    text = "Homework",
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    style = LocalTextStyle.current.copy(
+                        shadow = Shadow(Color.Black, Offset(1.5f, 1.5f), 5f)
+                    )
+                )
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HomeworkStatusIcon(0, listeningDoneForThisLesson)
+                    Spacer(modifier = Modifier.width(9.dp))
+                    HomeworkStatusIcon(1, false)
+                    Spacer(modifier = Modifier.width(9.dp))
+                    HomeworkStatusIcon(2, false)
+                }
             }
-        }
+        )
 
         if (showHomeworkChoices) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Choose homework", style = MaterialTheme.typography.titleMedium)
+            AppTitleText("Choose homework", fontSize = 24)
             Spacer(modifier = Modifier.height(8.dp))
 
             Box(modifier = Modifier.fillMaxWidth()) {
-                Button(
+                AppButton(
+                    text = if (listeningAvailable) "Listening homework" else "Listening homework - coming soon",
                     onClick = onOpenListeningHomework,
                     modifier = Modifier.fillMaxWidth(),
                     enabled = listeningAvailable
-                ) {
-                    if (listeningAvailable) {
-                        Text("🎧 Listening homework")
-                    } else {
-                        Text("🎧 Listening homework - coming soon")
-                    }
-                }
+                )
 
-                if (lesson1ListeningDone && lessonName == "Lesson 1") {
+                if (listeningDoneForThisLesson) {
                     Image(
                         painter = painterResource(id = R.drawable.donestamp),
                         contentDescription = "Done",
@@ -508,17 +649,25 @@ fun LessonScreen(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { }, modifier = Modifier.fillMaxWidth(), enabled = false) {
-                Text("✍ Written homework")
-            }
+            AppButton(
+                text = "Written homework",
+                onClick = { },
+                modifier = Modifier.fillMaxWidth(),
+                backgroundResId = R.drawable.graybutton,
+                enabled = false
+            )
             Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { }, modifier = Modifier.fillMaxWidth(), enabled = false) {
-                Text("🎤 Spoken homework")
-            }
+            AppButton(
+                text = "Spoken homework",
+                onClick = { },
+                modifier = Modifier.fillMaxWidth(),
+                backgroundResId = R.drawable.graybutton,
+                enabled = false
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onBack) { Text("Back") }
+        AppButton(text = "Back", onClick = onBack, modifier = Modifier.fillMaxWidth(), backgroundResId = R.drawable.redbutton)
     }
 }
 
@@ -689,11 +838,18 @@ fun HomeworkScreen(
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        Text("$lessonName - Listening homework", style = MaterialTheme.typography.headlineMedium)
+        AppTitleText("$lessonName - Listening homework", fontSize = 28)
 
         if (submittedMessage != "") {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(submittedMessage)
+            Text(
+                submittedMessage,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                style = LocalTextStyle.current.copy(
+                    shadow = Shadow(Color.Black, Offset(1f, 1f), 4f)
+                )
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -738,9 +894,9 @@ fun HomeworkScreen(
         }
 
         if (submitStep == 0) {
-            Button(onClick = { submitAnswers() }) { Text("Submit answers") }
+            AppButton(text = "Submit answers", onClick = { submitAnswers() }, modifier = Modifier.fillMaxWidth())
         } else if (submitStep == 1) {
-            Button(onClick = { submitCorrections() }) { Text("Submit corrections") }
+            AppButton(text = "Submit corrections", onClick = { submitCorrections() }, modifier = Modifier.fillMaxWidth())
         } else {
             Button(
                 onClick = { },
@@ -753,7 +909,12 @@ fun HomeworkScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { stopAudio(); onBack() }) { Text("Back") }
+        AppButton(
+            text = "Back",
+            onClick = { stopAudio(); onBack() },
+            modifier = Modifier.fillMaxWidth(),
+            backgroundResId = R.drawable.redbutton
+        )
     }
 }
 
@@ -800,9 +961,9 @@ fun SentenceAnswerRow(
             Spacer(modifier = Modifier.height(8.dp))
 
             Row {
-                Button(onClick = onPlay) { Text("▶") }
+                AppButton(text = "▶", onClick = onPlay, modifier = Modifier.width(76.dp), fontSize = 20)
                 Spacer(modifier = Modifier.width(8.dp))
-                Button(onClick = onStop) { Text("Stop") }
+                AppButton(text = "Stop", onClick = onStop, modifier = Modifier.width(100.dp), backgroundResId = R.drawable.redbutton, fontSize = 16)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -826,7 +987,13 @@ fun SentenceAnswerRow(
                 } else if (replayCount < 5) {
                     Text("Hint locked: listen ${5 - replayCount} more time(s).")
                 } else if (submitStep < 2 && !currentCorrect) {
-                    Button(onClick = onHint) { Text("Reveal next word") }
+                    AppButton(
+                        text = "Reveal next word",
+                        onClick = onHint,
+                        modifier = Modifier.fillMaxWidth(),
+                        backgroundResId = R.drawable.graybutton,
+                        fontSize = 16
+                    )
                 }
 
                 if (hintCount > 0) {
