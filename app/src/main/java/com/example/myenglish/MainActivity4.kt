@@ -138,16 +138,28 @@ fun Bg4(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun Header4(leftTitle: String) {
+fun Header4(leftTitle: String, subtitle: String? = null) {
     val context = LocalContext.current
     val titleId = remember { context.resources.getIdentifier("title", "drawable", context.packageName) }
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-        StrokeGlowTitle4(leftTitle)
-        Spacer(Modifier.weight(1f))
+    Box(Modifier.fillMaxWidth().height(155.dp)) {
+        Column(
+            modifier = Modifier.align(Alignment.TopStart).padding(start = 10.dp, top = if (subtitle == null) 56.dp else 44.dp)
+        ) {
+            StrokeGlowTitle4(leftTitle)
+            if (subtitle != null) {
+                Spacer(Modifier.height(2.dp))
+                StrokeGlowTitle4(subtitle, fontSize = 24)
+            }
+        }
         if (titleId != 0) {
-            Image(painterResource(id = titleId), "My English", Modifier.width(360.dp).height(149.dp), contentScale = ContentScale.Fit)
+            Image(
+                painterResource(id = titleId),
+                "My English",
+                Modifier.align(Alignment.TopEnd).offset(x = 12.dp).width(360.dp).height(149.dp),
+                contentScale = ContentScale.Fit
+            )
         } else {
-            StrokeGlowTitle4("My English", Modifier.width(240.dp), 26)
+            StrokeGlowTitle4("My English", Modifier.align(Alignment.TopEnd).padding(top = 30.dp), 26)
         }
     }
 }
@@ -157,10 +169,13 @@ fun StrokeGlowTitle4(text: String, modifier: Modifier = Modifier, fontSize: Int 
     Box(modifier.padding(top = 6.dp)) {
         val style = LocalTextStyle.current.copy(fontFamily = FontFamily.Serif, shadow = Shadow(Color.White, Offset(0f, 0f), 13f))
         Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(3.dp, 3.dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset((-2).dp, 0.dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(2.dp, 0.dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(0.dp, (-2).dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(0.dp, 2.dp))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset((-3).dp, 0.dp))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(3.dp, 0.dp))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(0.dp, (-3).dp))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(0.dp, 3.dp))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset((-2).dp, (-2).dp))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(2.dp, (-2).dp))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset((-2).dp, 2.dp))
         Text(text, color = Color.White, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style)
     }
 }
@@ -203,16 +218,22 @@ fun Button4(
         modifier
             .height(heightDp.dp)
             .shadow(7.dp, RoundedCornerShape(18.dp))
-            .clip(RoundedCornerShape(18.dp))
             .alpha(if (enabled) 1f else 0.58f)
             .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Image(painterResource(id = backgroundResId), null, Modifier.matchParentSize().graphicsLayer(scaleX = 1.32f, scaleY = 1.25f), contentScale = ContentScale.Crop)
-        Canvas(Modifier.matchParentSize()) {
-            drawRoundRect(Color(0x33FFFFFF), Offset(6f, 4f), Size(size.width - 12f, size.height * 0.16f), CornerRadius(18f, 18f))
-            drawRoundRect(Color(0x44000000), Offset(6f, size.height * 0.84f), Size(size.width - 12f, size.height * 0.10f), CornerRadius(18f, 18f))
-            drawRoundRect(Color.White, Offset(2f, 2f), Size(size.width - 4f, size.height - 4f), CornerRadius(18f, 18f), style = Stroke(width = 1.6f))
+        Box(Modifier.matchParentSize().clip(RoundedCornerShape(18.dp))) {
+            Image(
+                painterResource(id = backgroundResId),
+                null,
+                Modifier.matchParentSize().graphicsLayer(scaleX = 1.35f, scaleY = 1.62f),
+                contentScale = ContentScale.Crop
+            )
+            Canvas(Modifier.matchParentSize()) {
+                drawRoundRect(Color(0x22FFFFFF), Offset(6f, 4f), Size(size.width - 12f, size.height * 0.08f), CornerRadius(18f, 18f))
+                drawRoundRect(Color(0x33000000), Offset(6f, size.height * 0.90f), Size(size.width - 12f, size.height * 0.05f), CornerRadius(18f, 18f))
+                drawRoundRect(Color.White, Offset(2f, 2f), Size(size.width - 4f, size.height - 4f), CornerRadius(18f, 18f), style = Stroke(width = 1.5f))
+            }
         }
         if (content == null) {
             Text(
@@ -231,17 +252,17 @@ fun Button4(
 @Composable
 fun HomeworkIcon4(kind: Int, done: Boolean) {
     val iconColor = if (done) { if (kind == 0) Color(0xFF00AEEF) else if (kind == 1) Color(0xFFFFB300) else Color(0xFFE91E63) } else Color(0xFF888888)
-    Canvas(Modifier.size(29.dp)) {
+    Canvas(Modifier.size(28.dp)) {
         val w = size.width; val h = size.height
         drawCircle(Color.White, w * 0.48f, Offset(w / 2f, h / 2f))
         drawCircle(Color.Black, w * 0.48f, Offset(w / 2f, h / 2f), style = Stroke(width = 2.1f))
         if (kind == 0) {
-            drawArc(iconColor, 205f, 130f, false, Offset(w * 0.24f, h * 0.20f), Size(w * 0.52f, h * 0.52f), style = Stroke(width = 2.8f))
+            drawArc(iconColor, 205f, 130f, false, Offset(w * 0.24f, h * 0.20f), Size(w * 0.52f, h * 0.52f), style = Stroke(width = 2.7f))
             drawRoundRect(iconColor, Offset(w * 0.22f, h * 0.50f), Size(w * 0.14f, h * 0.24f), CornerRadius(4f, 4f)); drawRoundRect(iconColor, Offset(w * 0.64f, h * 0.50f), Size(w * 0.14f, h * 0.24f), CornerRadius(4f, 4f))
         } else if (kind == 1) {
-            drawRoundRect(iconColor, Offset(w * 0.25f, h * 0.23f), Size(w * 0.50f, h * 0.56f), CornerRadius(4f, 4f), style = Stroke(width = 2.5f)); drawLine(iconColor, Offset(w * 0.35f, h * 0.40f), Offset(w * 0.66f, h * 0.40f), strokeWidth = 2f); drawLine(iconColor, Offset(w * 0.35f, h * 0.54f), Offset(w * 0.66f, h * 0.54f), strokeWidth = 2f); drawLine(iconColor, Offset(w * 0.25f, h * 0.30f), Offset(w * 0.25f, h * 0.72f), strokeWidth = 3f)
+            drawRoundRect(iconColor, Offset(w * 0.25f, h * 0.23f), Size(w * 0.50f, h * 0.56f), CornerRadius(4f, 4f), style = Stroke(width = 2.4f)); drawLine(iconColor, Offset(w * 0.35f, h * 0.40f), Offset(w * 0.66f, h * 0.40f), strokeWidth = 2f); drawLine(iconColor, Offset(w * 0.35f, h * 0.54f), Offset(w * 0.66f, h * 0.54f), strokeWidth = 2f); drawLine(iconColor, Offset(w * 0.25f, h * 0.30f), Offset(w * 0.25f, h * 0.72f), strokeWidth = 3f)
         } else {
-            drawRoundRect(iconColor, Offset(w * 0.38f, h * 0.18f), Size(w * 0.24f, h * 0.42f), CornerRadius(8f, 8f), style = Stroke(width = 2.6f)); drawArc(iconColor, 25f, 130f, false, Offset(w * 0.25f, h * 0.40f), Size(w * 0.50f, h * 0.28f), style = Stroke(width = 2.4f)); drawLine(iconColor, Offset(w * 0.50f, h * 0.62f), Offset(w * 0.50f, h * 0.78f), strokeWidth = 2.4f); drawLine(iconColor, Offset(w * 0.34f, h * 0.80f), Offset(w * 0.66f, h * 0.80f), strokeWidth = 2.4f)
+            drawRoundRect(iconColor, Offset(w * 0.38f, h * 0.18f), Size(w * 0.24f, h * 0.42f), CornerRadius(8f, 8f), style = Stroke(width = 2.5f)); drawArc(iconColor, 25f, 130f, false, Offset(w * 0.25f, h * 0.40f), Size(w * 0.50f, h * 0.28f), style = Stroke(width = 2.3f)); drawLine(iconColor, Offset(w * 0.50f, h * 0.62f), Offset(w * 0.50f, h * 0.78f), strokeWidth = 2.3f); drawLine(iconColor, Offset(w * 0.34f, h * 0.80f), Offset(w * 0.66f, h * 0.80f), strokeWidth = 2.3f)
         }
     }
 }
@@ -331,7 +352,7 @@ fun Homework4(name: String, studentName: String, sentences: Array<HomeworkSenten
     fun submitCorrections() { stop(); focusManager.clearFocus(); var all = true; var i = 0; while (i < sentences.size) { if (!isCorrectAnswer(answers[i], sentences[i].correctText)) all = false; i++ }; if (all) { setStep(2); setMsg("Submitted! All corrections are correct."); setReport(report(score, true)); done() } else { setMsg("Some corrections are still incorrect. Please check the red X sentences."); setReport(report(score, false)) }; topReq++ }
     DisposableEffect(Unit) { onDispose { stop() } }
     Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Header4("$name - Listening"); if (msg != "") { Spacer(Modifier.height(8.dp)); Text(msg, color = Color.White, fontWeight = FontWeight.Bold, style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(1f, 1f), 5f))) }; Spacer(Modifier.height(16.dp))
+        Header4(name, "Listening"); if (msg != "") { Spacer(Modifier.height(8.dp)); Text(msg, color = Color.White, fontWeight = FontWeight.Bold, style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(1f, 1f), 5f))) }; Spacer(Modifier.height(16.dp))
         var i = 0
         while (i < sentences.size) { val idx = i; val sentence = sentences[idx]; Row4(sentence, answers[idx], { answers[idx] = it }, plays[idx], submitStep, firstCorrect[idx], isCorrectAnswer(answers[idx], sentence.correctText), hints[idx], focus[idx], { plays[idx]++; play(idx, sentence.startMs, sentence.endMs) }, { stop() }, { if (canUseHint(answers[idx], plays[idx], submitStep >= 1, hints[idx], sentence.correctText)) { hints[idx]++; setReport(report(score, submitStep == 2)) } }); Spacer(Modifier.height(12.dp)); i++ }
         if (submitStep == 0) Button4("Submit answers", { submitAnswers() }) else if (submitStep == 1) Button4("Submit corrections", { submitCorrections() }) else Button(onClick = { }, enabled = false, colors = ButtonDefaults.buttonColors(disabledContainerColor = Color(0xFF2E7D32), disabledContentColor = Color.White)) { Text("Submitted") }
