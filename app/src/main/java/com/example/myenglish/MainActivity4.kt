@@ -62,12 +62,22 @@ class MainActivity4 : ComponentActivity() {
         overridePendingTransition(0, 0)
         setContent { MyEnglishTheme { PolishedAppWithSplash(this) } }
     }
-    override fun finish() { super.finish(); overridePendingTransition(0, 0) }
+
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(0, 0)
+    }
 }
 
 fun prepareSplashWindow4(window: Window) {
     window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
-    window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+    window.decorView.systemUiVisibility =
+        View.SYSTEM_UI_FLAG_FULLSCREEN or
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
 }
 
 fun restoreAppWindow4(activity: Activity) {
@@ -79,8 +89,9 @@ fun restoreAppWindow4(activity: Activity) {
 }
 
 private object Audio4 {
-    val AUDIO_RES_ID = R.raw.lesson1
-    val sentences = arrayOf(
+    val LESSON_1_AUDIO_RES_ID = R.raw.lesson1
+
+    val lesson1Sentences = arrayOf(
         HomeworkSentence("Sentence 1", "I like.", 870, 2527), HomeworkSentence("Sentence 2", "You eat meat.", 3750, 5880),
         HomeworkSentence("Sentence 3", "I don't like.", 7610, 9426), HomeworkSentence("Sentence 4", "They don't drink water.", 11140, 13257),
         HomeworkSentence("Sentence 5", "Do you drink milk?", 15400, 17676), HomeworkSentence("Sentence 6", "Do we eat meat?", 19230, 21388),
@@ -98,6 +109,39 @@ private object Audio4 {
         HomeworkSentence("Sentence 29", "They like to drink at night.", 110110, 112936), HomeworkSentence("Sentence 30", "We don't drink in the morning.", 114640, 116940),
         HomeworkSentence("Sentence 31", "Do you like butter?", 118630, 120577), HomeworkSentence("Sentence 32", "Do they like to drink beer?", 122320, 124916)
     )
+
+    val lesson2Sentences = arrayOf(
+        HomeworkSentence("Sentence 1", "You speak French.", 1060, 3990), HomeworkSentence("Sentence 2", "I don't want.", 5430, 8260),
+        HomeworkSentence("Sentence 3", "We don’t want to speak french.", 10020, 14240), HomeworkSentence("Sentence 4", "Do they want milk?", 15690, 19130),
+        HomeworkSentence("Sentence 5", "We wanna eat bread and ham", 20860, 25370), HomeworkSentence("Sentence 6", "I want to study there.", 26670, 30490),
+        HomeworkSentence("Sentence 7", "I eat here in the morning.", 32000, 36140), HomeworkSentence("Sentence 8", "You study here.", 37420, 40870),
+        HomeworkSentence("Sentence 9", "I study my small lesson.", 42390, 46470), HomeworkSentence("Sentence 10", "I don't want.", 47980, 50700),
+        HomeworkSentence("Sentence 11", "We don’t wanna drink.", 51930, 55280), HomeworkSentence("Sentence 12", "Do you want water?", 56670, 60140),
+        HomeworkSentence("Sentence 13", "Do they study german?", 61410, 65050), HomeworkSentence("Sentence 14", "Don’t you speak Portuguese?", 66340, 70450),
+        HomeworkSentence("Sentence 15", "Don’t they want?", 71480, 75000), HomeworkSentence("Sentence 16", "I want to eat there.", 76180, 79960),
+        HomeworkSentence("Sentence 17", "I study at night.", 81240, 85270), HomeworkSentence("Sentence 18", "We want milk in the afternoon.", 86310, 90790),
+        HomeworkSentence("Sentence 19", "Do you want hot milk?", 91930, 95860), HomeworkSentence("Sentence 20", "Don’t they want to study English?", 96930, 101190),
+        HomeworkSentence("Sentence 21", "I don’t want to eat in the morning.", 102690, 107120), HomeworkSentence("Sentence 22", "I don’t speak German.", 108530, 112220),
+        HomeworkSentence("Sentence 23", "We study Spanish with you.", 113360, 117870), HomeworkSentence("Sentence 24", "Do you want to speak English?", 119090, 123090),
+        HomeworkSentence("Sentence 25", "I don’t want to study math.", 124670, 128670), HomeworkSentence("Sentence 26", "They don’t speak with you.", 130120, 133980),
+        HomeworkSentence("Sentence 27", "I study wine.", 135460, 139230), HomeworkSentence("Sentence 28", "Do you want music here?", 140980, 144810),
+        HomeworkSentence("Sentence 29", "They want to drink at night.", 146460, 150650), HomeworkSentence("Sentence 30", "We don’t speak English in the morning.", 152010, 156480),
+        HomeworkSentence("Sentence 31", "I don’t speak Portuguese with you.", 157900, 162840), HomeworkSentence("Sentence 32", "Do you wanna drink cold beer?", 164860, 169100)
+    )
+
+    fun sentencesForLesson(lessonName: String): Array<HomeworkSentence> {
+        return if (lessonName == "Lesson 2") lesson2Sentences else lesson1Sentences
+    }
+
+    fun audioResIdForLesson(context: Context, lessonName: String): Int {
+        if (lessonName == "Lesson 1") return LESSON_1_AUDIO_RES_ID
+        if (lessonName == "Lesson 2") return context.resources.getIdentifier("lesson2", "raw", context.packageName)
+        return 0
+    }
+
+    fun hasListeningHomework(lessonName: String): Boolean {
+        return lessonName == "Lesson 1" || lessonName == "Lesson 2"
+    }
 }
 
 @Composable
@@ -116,7 +160,9 @@ fun PolishedAppWithSplash(activity: Activity) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Image(painterResource(id = R.drawable.appsplash), "My English splash", Modifier.fillMaxWidth(0.92f).alpha(alpha), contentScale = ContentScale.Fit)
         }
-    } else Bg4 { Root4() }
+    } else {
+        Bg4 { Root4() }
+    }
 }
 
 @Composable
@@ -132,12 +178,20 @@ fun Header4(leftTitle: String, subtitle: String? = null) {
     val context = LocalContext.current
     val titleId = remember { context.resources.getIdentifier("title", "drawable", context.packageName) }
     Box(Modifier.fillMaxWidth().height(128.dp)) {
-        Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = if (subtitle == null) 38.dp else 28.dp)) {
+        Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = if (subtitle == null) 30.dp else 22.dp)) {
             StrokeGlowTitle4(leftTitle)
-            if (subtitle != null) { Spacer(Modifier.height(2.dp)); StrokeGlowTitle4(subtitle, fontSize = 24) }
+            if (subtitle != null) {
+                Spacer(Modifier.height(2.dp))
+                StrokeGlowTitle4(subtitle, fontSize = 24)
+            }
         }
         if (titleId != 0) {
-            Image(painterResource(id = titleId), "My English", Modifier.align(Alignment.TopEnd).offset(x = 4.dp).width(255.dp).height(106.dp), contentScale = ContentScale.Fit)
+            Image(
+                painterResource(id = titleId),
+                "My English",
+                Modifier.align(Alignment.TopEnd).offset(x = 18.dp).width(306.dp).height(127.dp),
+                contentScale = ContentScale.Fit
+            )
         } else {
             StrokeGlowTitle4("My English", Modifier.align(Alignment.TopEnd).padding(top = 30.dp), 26)
         }
@@ -171,10 +225,10 @@ fun StudentBadge4(studentName: String, onChangeName: () -> Unit) {
 fun Button4(text: String, onClick: () -> Unit, modifier: Modifier = Modifier.fillMaxWidth(0.6f), backgroundResId: Int = R.drawable.bluebutton, enabled: Boolean = true, heightDp: Int = 60, fontSize: Int = 19, content: (@Composable BoxScope.() -> Unit)? = null) {
     Box(modifier.height(heightDp.dp).shadow(7.dp, RoundedCornerShape(18.dp)).alpha(if (enabled) 1f else 0.58f).clickable(enabled = enabled) { onClick() }, contentAlignment = Alignment.Center) {
         Box(Modifier.matchParentSize().clip(RoundedCornerShape(18.dp))) {
-            Image(painterResource(id = backgroundResId), null, Modifier.matchParentSize().graphicsLayer(scaleX = 1.42f, scaleY = 2.15f), contentScale = ContentScale.Crop)
+            Image(painterResource(id = backgroundResId), null, Modifier.matchParentSize().graphicsLayer(scaleX = 1.42f, scaleY = 2.80f), contentScale = ContentScale.Crop)
             Canvas(Modifier.matchParentSize()) {
-                drawRoundRect(Color(0x18FFFFFF), Offset(6f, 4f), Size(size.width - 12f, size.height * 0.04f), CornerRadius(18f, 18f))
-                drawRoundRect(Color(0x22000000), Offset(6f, size.height * 0.93f), Size(size.width - 12f, size.height * 0.03f), CornerRadius(18f, 18f))
+                drawRoundRect(Color(0x28FFFFFF), Offset(6f, 4f), Size(size.width - 12f, size.height * 0.06f), CornerRadius(18f, 18f))
+                drawRoundRect(Color(0x30000000), Offset(6f, size.height * 0.91f), Size(size.width - 12f, size.height * 0.04f), CornerRadius(18f, 18f))
                 drawRoundRect(Color.White, Offset(2f, 2f), Size(size.width - 4f, size.height - 4f), CornerRadius(18f, 18f), style = Stroke(width = 1.4f))
             }
         }
@@ -206,20 +260,67 @@ fun HomeworkIcon4(kind: Int, done: Boolean) {
 fun Root4() {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("my_english_prefs", Context.MODE_PRIVATE) }
-    val sentences = Audio4.sentences
-    var screen by remember { mutableStateOf("home") }; var selectedLesson by remember { mutableStateOf("Lesson 1") }; var showChoices by remember { mutableStateOf(false) }
-    var studentName by remember { mutableStateOf(prefs.getString("student_name", "") ?: "") }; var showNameDialog by remember { mutableStateOf(studentName == "") }; var lesson1Done by remember { mutableStateOf(prefs.getBoolean("lesson1_listening_done", false)) }
-    val answers = remember { mutableStateListOf<String>() }; val plays = remember { mutableStateListOf<Int>() }; val hints = remember { mutableStateListOf<Int>() }; val firstCorrect = remember { mutableStateListOf<Boolean>() }
-    fun resetAttempt() { answers.clear(); plays.clear(); hints.clear(); firstCorrect.clear(); var i = 0; while (i < sentences.size) { answers.add(""); plays.add(0); hints.add(0); firstCorrect.add(false); i++ } }
-    LaunchedEffect(Unit) { resetAttempt() }
-    var submitStep by remember { mutableIntStateOf(0) }; var score by remember { mutableIntStateOf(0) }; var message by remember { mutableStateOf("") }; var report by remember { mutableStateOf("") }
-    fun retryIfNeeded() { if (submitStep == 2) { resetAttempt(); submitStep = 0; score = 0; message = ""; report = "" } }
+    var screen by remember { mutableStateOf("home") }
+    var selectedLesson by remember { mutableStateOf("Lesson 1") }
+    var activeHomeworkLesson by remember { mutableStateOf("Lesson 1") }
+    var showChoices by remember { mutableStateOf(false) }
+    var studentName by remember { mutableStateOf(prefs.getString("student_name", "") ?: "") }
+    var showNameDialog by remember { mutableStateOf(studentName == "") }
+    var lesson1Done by remember { mutableStateOf(prefs.getBoolean("lesson1_listening_done", false)) }
+    var lesson2Done by remember { mutableStateOf(prefs.getBoolean("lesson2_listening_done", false)) }
+    val answers = remember { mutableStateListOf<String>() }
+    val plays = remember { mutableStateListOf<Int>() }
+    val hints = remember { mutableStateListOf<Int>() }
+    val firstCorrect = remember { mutableStateListOf<Boolean>() }
+
+    fun resetAttempt(sentenceCount: Int) {
+        answers.clear(); plays.clear(); hints.clear(); firstCorrect.clear()
+        var i = 0
+        while (i < sentenceCount) { answers.add(""); plays.add(0); hints.add(0); firstCorrect.add(false); i++ }
+    }
+
+    LaunchedEffect(Unit) { resetAttempt(Audio4.lesson1Sentences.size) }
+
+    var submitStep by remember { mutableIntStateOf(0) }
+    var score by remember { mutableIntStateOf(0) }
+    var message by remember { mutableStateOf("") }
+    var report by remember { mutableStateOf("") }
+
+    fun openListeningHomework() {
+        val sentences = Audio4.sentencesForLesson(selectedLesson)
+        if (activeHomeworkLesson != selectedLesson || submitStep == 2 || answers.size != sentences.size) {
+            resetAttempt(sentences.size)
+            submitStep = 0; score = 0; message = ""; report = ""
+            activeHomeworkLesson = selectedLesson
+        }
+        screen = "homework"
+    }
+
+    fun listeningDoneForLesson(lessonName: String): Boolean {
+        return if (lessonName == "Lesson 1") lesson1Done else if (lessonName == "Lesson 2") lesson2Done else false
+    }
+
+    fun markListeningDone(lessonName: String) {
+        if (lessonName == "Lesson 1") {
+            lesson1Done = true
+            prefs.edit().putBoolean("lesson1_listening_done", true).apply()
+        } else if (lessonName == "Lesson 2") {
+            lesson2Done = true
+            prefs.edit().putBoolean("lesson2_listening_done", true).apply()
+        }
+    }
+
     BackHandler(enabled = screen != "home") { if (screen == "homework") screen = "lesson" else if (screen == "lesson") screen = "home" }
     if (showNameDialog) StudentNameDialog(studentName) { newName -> studentName = newName; prefs.edit().putString("student_name", newName).apply(); showNameDialog = false }
+
     when (screen) {
         "home" -> Home4(displayStudentName(studentName), { showNameDialog = true }) { lesson -> selectedLesson = lesson; showChoices = false; screen = "lesson" }
-        "lesson" -> Lesson4(selectedLesson, lesson1Done, showChoices, { showChoices = true }, { if (selectedLesson == "Lesson 1") { retryIfNeeded(); screen = "homework" } }, { screen = "home" })
-        "homework" -> Homework4(selectedLesson, displayStudentName(studentName), sentences, answers, plays, hints, firstCorrect, submitStep, score, message, { score = it }, { submitStep = it }, { message = it }, { report = it }, { lesson1Done = true; prefs.edit().putBoolean("lesson1_listening_done", true).apply() }, { screen = "lesson" })
+        "lesson" -> Lesson4(selectedLesson, listeningDoneForLesson(selectedLesson), showChoices, { showChoices = true }, { openListeningHomework() }, { screen = "home" })
+        "homework" -> {
+            val sentences = Audio4.sentencesForLesson(activeHomeworkLesson)
+            val audioResId = Audio4.audioResIdForLesson(context, activeHomeworkLesson)
+            Homework4(activeHomeworkLesson, displayStudentName(studentName), sentences, audioResId, answers, plays, hints, firstCorrect, submitStep, score, message, { score = it }, { submitStep = it }, { message = it }, { report = it }, { markListeningDone(activeHomeworkLesson) }, { screen = "lesson" })
+        }
     }
 }
 
@@ -252,8 +353,8 @@ fun StudentBadge4(studentName: String, onChangeName: () -> Unit, modifier: Modif
 }
 
 @Composable
-fun Lesson4(name: String, lesson1Done: Boolean, showChoices: Boolean, showHomework: () -> Unit, openListening: () -> Unit, back: () -> Unit) {
-    val listeningAvailable = name == "Lesson 1"; val listeningDone = lesson1Done && name == "Lesson 1"
+fun Lesson4(name: String, listeningDone: Boolean, showChoices: Boolean, showHomework: () -> Unit, openListening: () -> Unit, back: () -> Unit) {
+    val listeningAvailable = Audio4.hasListeningHomework(name)
     Column(Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Header4(name); Spacer(Modifier.height(14.dp))
         Button4("Vocabulary", { }); Spacer(Modifier.height(7.dp)); Button4("Grammar", { }); Spacer(Modifier.height(7.dp)); Button4("Practice", { }); Spacer(Modifier.height(7.dp))
@@ -271,17 +372,17 @@ fun Lesson4(name: String, lesson1Done: Boolean, showChoices: Boolean, showHomewo
 }
 
 @Composable
-fun Homework4(name: String, studentName: String, sentences: Array<HomeworkSentence>, answers: MutableList<String>, plays: MutableList<Int>, hints: MutableList<Int>, firstCorrect: MutableList<Boolean>, submitStep: Int, score: Int, msg: String, setScore: (Int) -> Unit, setStep: (Int) -> Unit, setMsg: (String) -> Unit, setReport: (String) -> Unit, done: () -> Unit, back: () -> Unit) {
-    val context = LocalContext.current; val focusManager = LocalFocusManager.current; val keyboard = LocalSoftwareKeyboardController.current; val scroll = rememberScrollState(); var topReq by remember { mutableIntStateOf(0) }; val handler = remember { Handler(Looper.getMainLooper()) }; var player by remember { mutableStateOf<MediaPlayer?>(null) }; val focus = remember { Array(sentences.size) { FocusRequester() } }
+fun Homework4(name: String, studentName: String, sentences: Array<HomeworkSentence>, audioResId: Int, answers: MutableList<String>, plays: MutableList<Int>, hints: MutableList<Int>, firstCorrect: MutableList<Boolean>, submitStep: Int, score: Int, msg: String, setScore: (Int) -> Unit, setStep: (Int) -> Unit, setMsg: (String) -> Unit, setReport: (String) -> Unit, done: () -> Unit, back: () -> Unit) {
+    val context = LocalContext.current; val focusManager = LocalFocusManager.current; val keyboard = LocalSoftwareKeyboardController.current; val scroll = rememberScrollState(); var topReq by remember { mutableIntStateOf(0) }; val handler = remember { Handler(Looper.getMainLooper()) }; var player by remember { mutableStateOf<MediaPlayer?>(null) }; val focus = remember(sentences.size) { Array(sentences.size) { FocusRequester() } }
     LaunchedEffect(scroll.isScrollInProgress) { if (scroll.isScrollInProgress) focusManager.clearFocus() }; LaunchedEffect(topReq) { if (topReq > 0) scroll.scrollTo(0) }
     fun stop() { handler.removeCallbacksAndMessages(null); try { player?.stop() } catch (_: Exception) {}; try { player?.release() } catch (_: Exception) {}; player = null }
-    fun play(i: Int, s: Int, e: Int) { stop(); val p = MediaPlayer.create(context, Audio4.AUDIO_RES_ID) ?: return; player = p; p.setVolume(1f, 1f); p.seekTo(s); p.start(); handler.postDelayed({ if (player == p) { stop(); focus[i].requestFocus(); keyboard?.show() } }, (e - s).toLong()) }
+    fun play(i: Int, s: Int, e: Int) { stop(); if (audioResId == 0) return; val p = MediaPlayer.create(context, audioResId) ?: return; player = p; p.setVolume(1f, 1f); p.seekTo(s); p.start(); handler.postDelayed({ if (player == p) { stop(); focus[i].requestFocus(); keyboard?.show() } }, (e - s).toLong()) }
     fun report(sc: Int, corr: Boolean): String { val b = StringBuilder(); b.append("Student: ").append(studentName).append("\nSubmitted at: ").append(SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())).append("\nLesson: ").append(name).append("\nHomework: Listening homework\nOriginal score: ").append(sc).append(" / ").append(sentences.size).append("\nStudent submitted answers: yes\nStudent submitted corrections: ").append(if (corr) "yes" else "no").append("\n"); var i = 0; while (i < sentences.size) { b.append(sentences[i].label).append(": plays = ").append(plays[i]).append(", hints = ").append(hints[i]).append("\n"); i++ }; return b.toString() }
     fun submitAnswers() { stop(); focusManager.clearFocus(); var sc = 0; var i = 0; while (i < sentences.size) { val ok = isCorrectAnswer(answers[i], sentences[i].correctText); firstCorrect[i] = ok; if (ok) sc++; i++ }; setScore(sc); setStep(1); setMsg("First attempt score: $sc / ${sentences.size}"); setReport(report(sc, false)); topReq++ }
     fun submitCorrections() { stop(); focusManager.clearFocus(); var all = true; var i = 0; while (i < sentences.size) { if (!isCorrectAnswer(answers[i], sentences[i].correctText)) all = false; i++ }; if (all) { setStep(2); setMsg("Submitted! All corrections are correct."); setReport(report(score, true)); done() } else { setMsg("Some corrections are still incorrect. Please check the red X sentences."); setReport(report(score, false)) }; topReq++ }
     DisposableEffect(Unit) { onDispose { stop() } }
     Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Header4(name, "Listening"); if (msg != "") { Spacer(Modifier.height(8.dp)); Text(msg, color = Color.White, fontWeight = FontWeight.Bold, style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(1f, 1f), 5f))) }; Spacer(Modifier.height(16.dp))
+        Header4(name, "Listening"); if (msg != "") { Spacer(Modifier.height(8.dp)); Text(msg, color = Color.White, fontWeight = FontWeight.Bold, style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(1f, 1f), 5f))) }; if (audioResId == 0) { Spacer(Modifier.height(4.dp)); Text("Audio file lesson2.mp3 not found in res/raw.", color = Color.White, fontWeight = FontWeight.Bold) }; Spacer(Modifier.height(16.dp))
         var i = 0
         while (i < sentences.size) { val idx = i; val sentence = sentences[idx]; Row4(sentence, answers[idx], { answers[idx] = it }, plays[idx], submitStep, firstCorrect[idx], isCorrectAnswer(answers[idx], sentence.correctText), hints[idx], focus[idx], { plays[idx]++; play(idx, sentence.startMs, sentence.endMs) }, { stop() }, { if (canUseHint(answers[idx], plays[idx], submitStep >= 1, hints[idx], sentence.correctText)) { hints[idx]++; setReport(report(score, submitStep == 2)) } }); Spacer(Modifier.height(12.dp)); i++ }
         if (submitStep == 0) Button4("Submit answers", { submitAnswers() }) else if (submitStep == 1) Button4("Submit corrections", { submitCorrections() }) else Button(onClick = { }, enabled = false, colors = ButtonDefaults.buttonColors(disabledContainerColor = Color(0xFF2E7D32), disabledContentColor = Color.White)) { Text("Submitted") }
