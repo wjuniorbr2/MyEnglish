@@ -5,7 +5,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
-private const val HOMEWORK_REPORT_URL = "https://script.google.com/macros/s/AKfycbxCX9tuJY-MH-T76CDAiNwgyYegDp13PEP4uY6MZNqyZsBbSuI3kQkIIa1NhxicqX08/exec"
+private const val HOMEWORK_REPORT_URL = "https://script.google.com/macros/s/AKfycybksQagvT7h-ollndev2cEsW3S-pHE9zrTSi5kQ_gxkvp8cuPrNaFMrtqf3hgeTAK1L/exec"
 
 fun sendHomeworkReportToTeacher(
     studentName: String,
