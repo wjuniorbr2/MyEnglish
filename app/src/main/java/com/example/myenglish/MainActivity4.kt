@@ -142,11 +142,12 @@ fun Header4(leftTitle: String) {
     val context = LocalContext.current
     val titleId = remember { context.resources.getIdentifier("title", "drawable", context.packageName) }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-        StrokeGlowTitle4(leftTitle, Modifier.weight(1f))
+        StrokeGlowTitle4(leftTitle)
+        Spacer(Modifier.weight(1f))
         if (titleId != 0) {
-            Image(painterResource(id = titleId), "My English", Modifier.width(300.dp).height(124.dp), contentScale = ContentScale.Fit)
+            Image(painterResource(id = titleId), "My English", Modifier.width(360.dp).height(149.dp), contentScale = ContentScale.Fit)
         } else {
-            StrokeGlowTitle4("My English", Modifier.width(220.dp))
+            StrokeGlowTitle4("My English", Modifier.width(240.dp), 26)
         }
     }
 }
@@ -154,13 +155,13 @@ fun Header4(leftTitle: String) {
 @Composable
 fun StrokeGlowTitle4(text: String, modifier: Modifier = Modifier, fontSize: Int = 28) {
     Box(modifier.padding(top = 6.dp)) {
-        val style = LocalTextStyle.current.copy(fontFamily = FontFamily.Cursive, shadow = Shadow(Color.White, Offset(0f, 0f), 13f))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, style = style, modifier = Modifier.offset(3.dp, 3.dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, style = style, modifier = Modifier.offset((-1).dp, 0.dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, style = style, modifier = Modifier.offset(1.dp, 0.dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, style = style, modifier = Modifier.offset(0.dp, (-1).dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, style = style, modifier = Modifier.offset(0.dp, 1.dp))
-        Text(text, color = Color.White, fontSize = fontSize.sp, fontWeight = FontWeight.Black, style = style)
+        val style = LocalTextStyle.current.copy(fontFamily = FontFamily.Serif, shadow = Shadow(Color.White, Offset(0f, 0f), 13f))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(3.dp, 3.dp))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset((-2).dp, 0.dp))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(2.dp, 0.dp))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(0.dp, (-2).dp))
+        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(0.dp, 2.dp))
+        Text(text, color = Color.White, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style)
     }
 }
 
@@ -168,9 +169,11 @@ fun StrokeGlowTitle4(text: String, modifier: Modifier = Modifier, fontSize: Int 
 fun StudentBadge4(studentName: String, onChangeName: () -> Unit) {
     Box(
         Modifier
-            .shadow(8.dp, RoundedCornerShape(14.dp))
+            .shadow(10.dp, RoundedCornerShape(14.dp))
             .background(Color.White, RoundedCornerShape(14.dp))
-            .border(2.dp, Color.Black, RoundedCornerShape(14.dp))
+            .border(1.dp, Color.White, RoundedCornerShape(14.dp))
+            .padding(2.dp)
+            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
             .clickable { onChangeName() }
             .padding(horizontal = 22.dp, vertical = 8.dp)
     ) {
@@ -189,28 +192,27 @@ fun StudentBadge4(studentName: String, onChangeName: () -> Unit) {
 fun Button4(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.fillMaxWidth(0.6f),
     backgroundResId: Int = R.drawable.bluebutton,
     enabled: Boolean = true,
-    heightDp: Int = 68,
-    fontSize: Int = 21,
+    heightDp: Int = 60,
+    fontSize: Int = 19,
     content: (@Composable BoxScope.() -> Unit)? = null
 ) {
     Box(
         modifier
-            .fillMaxWidth(0.6f)
             .height(heightDp.dp)
-            .shadow(9.dp, RoundedCornerShape(18.dp))
+            .shadow(7.dp, RoundedCornerShape(18.dp))
             .clip(RoundedCornerShape(18.dp))
             .alpha(if (enabled) 1f else 0.58f)
             .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Image(painterResource(id = backgroundResId), null, Modifier.matchParentSize().graphicsLayer(scaleX = 1.28f), contentScale = ContentScale.Crop)
+        Image(painterResource(id = backgroundResId), null, Modifier.matchParentSize().graphicsLayer(scaleX = 1.32f, scaleY = 1.25f), contentScale = ContentScale.Crop)
         Canvas(Modifier.matchParentSize()) {
-            drawRoundRect(Color(0x55FFFFFF), Offset(6f, 4f), Size(size.width - 12f, size.height * 0.33f), CornerRadius(18f, 18f))
-            drawRoundRect(Color(0x66000000), Offset(6f, size.height * 0.68f), Size(size.width - 12f, size.height * 0.26f), CornerRadius(18f, 18f))
-            drawRoundRect(Color.White, Offset(2f, 2f), Size(size.width - 4f, size.height - 4f), CornerRadius(18f, 18f), style = Stroke(width = 2.2f))
+            drawRoundRect(Color(0x33FFFFFF), Offset(6f, 4f), Size(size.width - 12f, size.height * 0.16f), CornerRadius(18f, 18f))
+            drawRoundRect(Color(0x44000000), Offset(6f, size.height * 0.84f), Size(size.width - 12f, size.height * 0.10f), CornerRadius(18f, 18f))
+            drawRoundRect(Color.White, Offset(2f, 2f), Size(size.width - 4f, size.height - 4f), CornerRadius(18f, 18f), style = Stroke(width = 1.6f))
         }
         if (content == null) {
             Text(
@@ -218,9 +220,9 @@ fun Button4(
                 color = Color.White,
                 fontSize = fontSize.sp,
                 fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.Cursive,
+                fontFamily = FontFamily.SansSerif,
                 textAlign = TextAlign.Center,
-                style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(2.2f, 2.2f), 4f))
+                style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(2f, 2f), 4f))
             )
         } else content()
     }
@@ -229,7 +231,7 @@ fun Button4(
 @Composable
 fun HomeworkIcon4(kind: Int, done: Boolean) {
     val iconColor = if (done) { if (kind == 0) Color(0xFF00AEEF) else if (kind == 1) Color(0xFFFFB300) else Color(0xFFE91E63) } else Color(0xFF888888)
-    Canvas(Modifier.size(30.dp)) {
+    Canvas(Modifier.size(29.dp)) {
         val w = size.width; val h = size.height
         drawCircle(Color.White, w * 0.48f, Offset(w / 2f, h / 2f))
         drawCircle(Color.Black, w * 0.48f, Offset(w / 2f, h / 2f), style = Stroke(width = 2.1f))
@@ -272,7 +274,20 @@ fun Home4(studentName: String, onChangeName: () -> Unit, openLesson: (String) ->
         Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Header4("Book 1"); Spacer(Modifier.height(12.dp))
             var n = 1
-            while (n <= 31) { val c = n; Button4("Lesson $c", { openLesson("Lesson $c") }); Spacer(Modifier.height(7.dp)); n++ }
+            while (n <= 31) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    val left = n
+                    Button4("Lesson $left", { openLesson("Lesson $left") }, Modifier.width(145.dp), heightDp = 52, fontSize = 16)
+                    if (left + 1 <= 31) {
+                        val right = left + 1
+                        Button4("Lesson $right", { openLesson("Lesson $right") }, Modifier.width(145.dp), heightDp = 52, fontSize = 16)
+                    } else {
+                        Spacer(Modifier.width(145.dp))
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                n += 2
+            }
             Spacer(Modifier.height(72.dp))
         }
         StudentBadge4(studentName, onChangeName, Modifier.align(Alignment.BottomEnd).padding(16.dp))
@@ -281,7 +296,7 @@ fun Home4(studentName: String, onChangeName: () -> Unit, openLesson: (String) ->
 
 @Composable
 fun StudentBadge4(studentName: String, onChangeName: () -> Unit, modifier: Modifier) {
-    Box(modifier.shadow(8.dp, RoundedCornerShape(14.dp)).background(Color.White, RoundedCornerShape(14.dp)).border(2.dp, Color.Black, RoundedCornerShape(14.dp)).clickable { onChangeName() }.padding(horizontal = 22.dp, vertical = 8.dp)) {
+    Box(modifier.shadow(10.dp, RoundedCornerShape(14.dp)).background(Color.White, RoundedCornerShape(14.dp)).border(1.dp, Color.White, RoundedCornerShape(14.dp)).padding(2.dp).border(2.dp, Color.Black, RoundedCornerShape(12.dp)).clickable { onChangeName() }.padding(horizontal = 22.dp, vertical = 8.dp)) {
         Text(studentName, color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Cursive, style = LocalTextStyle.current.copy(shadow = Shadow(Color(0x99000000), Offset(1.7f, 1.7f), 2f)))
     }
 }
@@ -292,16 +307,16 @@ fun Lesson4(name: String, lesson1Done: Boolean, showChoices: Boolean, showHomewo
     Column(Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Header4(name); Spacer(Modifier.height(14.dp))
         Button4("Vocabulary", { }); Spacer(Modifier.height(7.dp)); Button4("Grammar", { }); Spacer(Modifier.height(7.dp)); Button4("Practice", { }); Spacer(Modifier.height(7.dp))
-        Button4("Homework", showHomework, content = {
-            Text("Homework", Modifier.align(Alignment.Center), color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Cursive, style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(2.2f, 2.2f), 4f)))
-            Row(Modifier.align(Alignment.CenterEnd).padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) { HomeworkIcon4(0, listeningDone); Spacer(Modifier.width(4.dp)); HomeworkIcon4(1, false); Spacer(Modifier.width(4.dp)); HomeworkIcon4(2, false) }
+        Button4("Homework", showHomework, heightDp = 68, content = {
+            Text("Homework", Modifier.align(Alignment.Center), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.SansSerif, style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(2f, 2f), 4f)))
+            Row(Modifier.align(Alignment.BottomCenter).offset(y = 14.dp), verticalAlignment = Alignment.CenterVertically) { HomeworkIcon4(0, listeningDone); Spacer(Modifier.width(5.dp)); HomeworkIcon4(1, false); Spacer(Modifier.width(5.dp)); HomeworkIcon4(2, false) }
         })
         if (showChoices) {
-            Spacer(Modifier.height(16.dp)); StrokeGlowTitle4("Choose homework", fontSize = 22); Spacer(Modifier.height(8.dp))
-            Box(contentAlignment = Alignment.Center) { Button4(if (listeningAvailable) "Listening homework" else "Listening homework - coming soon", openListening, enabled = listeningAvailable); if (listeningDone) Image(painterResource(id = R.drawable.donestamp), "Done", Modifier.align(Alignment.CenterEnd).size(72.dp)) }
-            Spacer(Modifier.height(7.dp)); Button4("Written homework", { }, backgroundResId = R.drawable.graybutton, enabled = false); Spacer(Modifier.height(7.dp)); Button4("Spoken homework", { }, backgroundResId = R.drawable.graybutton, enabled = false)
+            Spacer(Modifier.height(24.dp)); StrokeGlowTitle4("Choose homework", fontSize = 22); Spacer(Modifier.height(8.dp))
+            Box(contentAlignment = Alignment.Center) { Button4(if (listeningAvailable) "Listening homework" else "Listening homework - coming soon", openListening, enabled = listeningAvailable, fontSize = 17); if (listeningDone) Image(painterResource(id = R.drawable.donestamp), "Done", Modifier.align(Alignment.CenterEnd).size(72.dp)) }
+            Spacer(Modifier.height(7.dp)); Button4("Written homework", { }, backgroundResId = R.drawable.graybutton, enabled = false, fontSize = 17); Spacer(Modifier.height(7.dp)); Button4("Spoken homework", { }, backgroundResId = R.drawable.graybutton, enabled = false, fontSize = 17)
         }
-        Spacer(Modifier.height(16.dp)); Button4("Back", back, backgroundResId = R.drawable.redbutton)
+        Spacer(Modifier.height(16.dp)); Button4("Back", back, Modifier.fillMaxWidth(0.45f), backgroundResId = R.drawable.redbutton)
     }
 }
 
@@ -320,7 +335,7 @@ fun Homework4(name: String, studentName: String, sentences: Array<HomeworkSenten
         var i = 0
         while (i < sentences.size) { val idx = i; val sentence = sentences[idx]; Row4(sentence, answers[idx], { answers[idx] = it }, plays[idx], submitStep, firstCorrect[idx], isCorrectAnswer(answers[idx], sentence.correctText), hints[idx], focus[idx], { plays[idx]++; play(idx, sentence.startMs, sentence.endMs) }, { stop() }, { if (canUseHint(answers[idx], plays[idx], submitStep >= 1, hints[idx], sentence.correctText)) { hints[idx]++; setReport(report(score, submitStep == 2)) } }); Spacer(Modifier.height(12.dp)); i++ }
         if (submitStep == 0) Button4("Submit answers", { submitAnswers() }) else if (submitStep == 1) Button4("Submit corrections", { submitCorrections() }) else Button(onClick = { }, enabled = false, colors = ButtonDefaults.buttonColors(disabledContainerColor = Color(0xFF2E7D32), disabledContentColor = Color.White)) { Text("Submitted") }
-        Spacer(Modifier.height(16.dp)); Button4("Back", { stop(); back() }, backgroundResId = R.drawable.redbutton)
+        Spacer(Modifier.height(16.dp)); Button4("Back", { stop(); back() }, Modifier.fillMaxWidth(0.45f), backgroundResId = R.drawable.redbutton)
     }
 }
 
@@ -329,9 +344,9 @@ fun Row4(sentence: HomeworkSentence, answer: String, change: (String) -> Unit, p
     Card(Modifier.fillMaxWidth(), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
         Column(Modifier.fillMaxWidth().padding(12.dp)) {
             Row { Text(sentence.label, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f)); if (submitStep >= 1) Text(if (submitStep == 2 || currentOk) "✓" else "✕", color = if (submitStep == 2 || currentOk) Color(0xFF2E7D32) else Color(0xFFC62828), fontSize = 64.sp) }
-            Spacer(Modifier.height(8.dp)); Row { Button4("▶", play, Modifier.width(90.dp), heightDp = 60, fontSize = 22); Spacer(Modifier.width(8.dp)); Button4("Stop", stop, Modifier.width(112.dp), backgroundResId = R.drawable.redbutton, heightDp = 60, fontSize = 18) }
+            Spacer(Modifier.height(8.dp)); Row { Button4("▶", play, Modifier.width(90.dp), heightDp = 56, fontSize = 20); Spacer(Modifier.width(8.dp)); Button4("Stop", stop, Modifier.width(112.dp), backgroundResId = R.drawable.redbutton, heightDp = 56, fontSize = 16) }
             Spacer(Modifier.height(8.dp)); TextField(answer, change, Modifier.fillMaxWidth().focusRequester(focus)); Spacer(Modifier.height(4.dp)); Text("Plays: $playCount")
-            if (submitStep >= 1) { Text(if (firstOk) "First attempt: correct" else "First attempt: incorrect"); if (cleanAnswer(answer) == "") Text("Type an answer before using hints.") else if (playCount < 5) Text("Hint locked: listen ${5 - playCount} more time(s).") else if (submitStep < 2 && !currentOk) Button4("Reveal next word", hint, backgroundResId = R.drawable.graybutton, heightDp = 60, fontSize = 18); if (hintCount > 0) { Text("Hint: ${revealedHintText(sentence.correctText, hintCount)}"); Text("Hints used: $hintCount") } }
+            if (submitStep >= 1) { Text(if (firstOk) "First attempt: correct" else "First attempt: incorrect"); if (cleanAnswer(answer) == "") Text("Type an answer before using hints.") else if (playCount < 5) Text("Hint locked: listen ${5 - playCount} more time(s).") else if (submitStep < 2 && !currentOk) Button4("Reveal next word", hint, Modifier.fillMaxWidth(0.7f), backgroundResId = R.drawable.graybutton, heightDp = 56, fontSize = 16); if (hintCount > 0) { Text("Hint: ${revealedHintText(sentence.correctText, hintCount)}"); Text("Hints used: $hintCount") } }
         }
     }
 }
