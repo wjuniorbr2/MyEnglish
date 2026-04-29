@@ -62,18 +62,12 @@ class MainActivity4 : ComponentActivity() {
         overridePendingTransition(0, 0)
         setContent { MyEnglishTheme { PolishedAppWithSplash(this) } }
     }
-
-    override fun finish() {
-        super.finish()
-        overridePendingTransition(0, 0)
-    }
+    override fun finish() { super.finish(); overridePendingTransition(0, 0) }
 }
 
 fun prepareSplashWindow4(window: Window) {
     window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
-    window.decorView.systemUiVisibility =
-        View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+    window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
 }
 
 fun restoreAppWindow4(activity: Activity) {
@@ -111,7 +105,6 @@ fun PolishedAppWithSplash(activity: Activity) {
     var splashVisible by remember { mutableStateOf(true) }
     var alphaTarget by remember { mutableStateOf(0f) }
     val alpha by animateFloatAsState(alphaTarget, animationSpec = tween(950), label = "splashAlpha4")
-
     DisposableEffect(Unit) {
         val handler = Handler(Looper.getMainLooper())
         handler.postDelayed({ alphaTarget = 1f }, 420)
@@ -119,14 +112,11 @@ fun PolishedAppWithSplash(activity: Activity) {
         handler.postDelayed({ splashVisible = false; restoreAppWindow4(activity) }, 3950)
         onDispose { handler.removeCallbacksAndMessages(null) }
     }
-
     if (splashVisible) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Image(painterResource(id = R.drawable.appsplash), "My English splash", Modifier.fillMaxWidth(0.92f).alpha(alpha), contentScale = ContentScale.Fit)
         }
-    } else {
-        Bg4 { Root4() }
-    }
+    } else Bg4 { Root4() }
 }
 
 @Composable
@@ -141,23 +131,13 @@ fun Bg4(content: @Composable () -> Unit) {
 fun Header4(leftTitle: String, subtitle: String? = null) {
     val context = LocalContext.current
     val titleId = remember { context.resources.getIdentifier("title", "drawable", context.packageName) }
-    Box(Modifier.fillMaxWidth().height(155.dp)) {
-        Column(
-            modifier = Modifier.align(Alignment.TopStart).padding(start = 10.dp, top = if (subtitle == null) 56.dp else 44.dp)
-        ) {
+    Box(Modifier.fillMaxWidth().height(128.dp)) {
+        Column(Modifier.align(Alignment.TopStart).padding(start = 14.dp, top = if (subtitle == null) 38.dp else 28.dp)) {
             StrokeGlowTitle4(leftTitle)
-            if (subtitle != null) {
-                Spacer(Modifier.height(2.dp))
-                StrokeGlowTitle4(subtitle, fontSize = 24)
-            }
+            if (subtitle != null) { Spacer(Modifier.height(2.dp)); StrokeGlowTitle4(subtitle, fontSize = 24) }
         }
         if (titleId != 0) {
-            Image(
-                painterResource(id = titleId),
-                "My English",
-                Modifier.align(Alignment.TopEnd).offset(x = 12.dp).width(360.dp).height(149.dp),
-                contentScale = ContentScale.Fit
-            )
+            Image(painterResource(id = titleId), "My English", Modifier.align(Alignment.TopEnd).offset(x = 4.dp).width(255.dp).height(106.dp), contentScale = ContentScale.Fit)
         } else {
             StrokeGlowTitle4("My English", Modifier.align(Alignment.TopEnd).padding(top = 30.dp), 26)
         }
@@ -182,69 +162,24 @@ fun StrokeGlowTitle4(text: String, modifier: Modifier = Modifier, fontSize: Int 
 
 @Composable
 fun StudentBadge4(studentName: String, onChangeName: () -> Unit) {
-    Box(
-        Modifier
-            .shadow(10.dp, RoundedCornerShape(14.dp))
-            .background(Color.White, RoundedCornerShape(14.dp))
-            .border(1.dp, Color.White, RoundedCornerShape(14.dp))
-            .padding(2.dp)
-            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
-            .clickable { onChangeName() }
-            .padding(horizontal = 22.dp, vertical = 8.dp)
-    ) {
-        Text(
-            studentName,
-            color = Color.Black,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Black,
-            fontFamily = FontFamily.Cursive,
-            style = LocalTextStyle.current.copy(shadow = Shadow(Color(0x99000000), Offset(1.7f, 1.7f), 2f))
-        )
+    Box(Modifier.shadow(10.dp, RoundedCornerShape(14.dp)).background(Color.White, RoundedCornerShape(14.dp)).border(1.dp, Color.White, RoundedCornerShape(14.dp)).padding(2.dp).border(2.dp, Color.Black, RoundedCornerShape(12.dp)).clickable { onChangeName() }.padding(horizontal = 22.dp, vertical = 8.dp)) {
+        Text(studentName, color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.Cursive, style = LocalTextStyle.current.copy(shadow = Shadow(Color(0x99000000), Offset(1.7f, 1.7f), 2f)))
     }
 }
 
 @Composable
-fun Button4(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier.fillMaxWidth(0.6f),
-    backgroundResId: Int = R.drawable.bluebutton,
-    enabled: Boolean = true,
-    heightDp: Int = 60,
-    fontSize: Int = 19,
-    content: (@Composable BoxScope.() -> Unit)? = null
-) {
-    Box(
-        modifier
-            .height(heightDp.dp)
-            .shadow(7.dp, RoundedCornerShape(18.dp))
-            .alpha(if (enabled) 1f else 0.58f)
-            .clickable(enabled = enabled) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
+fun Button4(text: String, onClick: () -> Unit, modifier: Modifier = Modifier.fillMaxWidth(0.6f), backgroundResId: Int = R.drawable.bluebutton, enabled: Boolean = true, heightDp: Int = 60, fontSize: Int = 19, content: (@Composable BoxScope.() -> Unit)? = null) {
+    Box(modifier.height(heightDp.dp).shadow(7.dp, RoundedCornerShape(18.dp)).alpha(if (enabled) 1f else 0.58f).clickable(enabled = enabled) { onClick() }, contentAlignment = Alignment.Center) {
         Box(Modifier.matchParentSize().clip(RoundedCornerShape(18.dp))) {
-            Image(
-                painterResource(id = backgroundResId),
-                null,
-                Modifier.matchParentSize().graphicsLayer(scaleX = 1.35f, scaleY = 1.62f),
-                contentScale = ContentScale.Crop
-            )
+            Image(painterResource(id = backgroundResId), null, Modifier.matchParentSize().graphicsLayer(scaleX = 1.42f, scaleY = 2.15f), contentScale = ContentScale.Crop)
             Canvas(Modifier.matchParentSize()) {
-                drawRoundRect(Color(0x22FFFFFF), Offset(6f, 4f), Size(size.width - 12f, size.height * 0.08f), CornerRadius(18f, 18f))
-                drawRoundRect(Color(0x33000000), Offset(6f, size.height * 0.90f), Size(size.width - 12f, size.height * 0.05f), CornerRadius(18f, 18f))
-                drawRoundRect(Color.White, Offset(2f, 2f), Size(size.width - 4f, size.height - 4f), CornerRadius(18f, 18f), style = Stroke(width = 1.5f))
+                drawRoundRect(Color(0x18FFFFFF), Offset(6f, 4f), Size(size.width - 12f, size.height * 0.04f), CornerRadius(18f, 18f))
+                drawRoundRect(Color(0x22000000), Offset(6f, size.height * 0.93f), Size(size.width - 12f, size.height * 0.03f), CornerRadius(18f, 18f))
+                drawRoundRect(Color.White, Offset(2f, 2f), Size(size.width - 4f, size.height - 4f), CornerRadius(18f, 18f), style = Stroke(width = 1.4f))
             }
         }
         if (content == null) {
-            Text(
-                text,
-                color = Color.White,
-                fontSize = fontSize.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.SansSerif,
-                textAlign = TextAlign.Center,
-                style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(2f, 2f), 4f))
-            )
+            Text(text, color = Color.White, fontSize = fontSize.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.SansSerif, textAlign = TextAlign.Center, style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(2f, 2f), 4f)))
         } else content()
     }
 }
@@ -252,17 +187,17 @@ fun Button4(
 @Composable
 fun HomeworkIcon4(kind: Int, done: Boolean) {
     val iconColor = if (done) { if (kind == 0) Color(0xFF00AEEF) else if (kind == 1) Color(0xFFFFB300) else Color(0xFFE91E63) } else Color(0xFF888888)
-    Canvas(Modifier.size(28.dp)) {
+    Canvas(Modifier.size(23.dp)) {
         val w = size.width; val h = size.height
         drawCircle(Color.White, w * 0.48f, Offset(w / 2f, h / 2f))
-        drawCircle(Color.Black, w * 0.48f, Offset(w / 2f, h / 2f), style = Stroke(width = 2.1f))
+        drawCircle(Color.Black, w * 0.48f, Offset(w / 2f, h / 2f), style = Stroke(width = 1.8f))
         if (kind == 0) {
-            drawArc(iconColor, 205f, 130f, false, Offset(w * 0.24f, h * 0.20f), Size(w * 0.52f, h * 0.52f), style = Stroke(width = 2.7f))
+            drawArc(iconColor, 205f, 130f, false, Offset(w * 0.24f, h * 0.20f), Size(w * 0.52f, h * 0.52f), style = Stroke(width = 2.3f))
             drawRoundRect(iconColor, Offset(w * 0.22f, h * 0.50f), Size(w * 0.14f, h * 0.24f), CornerRadius(4f, 4f)); drawRoundRect(iconColor, Offset(w * 0.64f, h * 0.50f), Size(w * 0.14f, h * 0.24f), CornerRadius(4f, 4f))
         } else if (kind == 1) {
-            drawRoundRect(iconColor, Offset(w * 0.25f, h * 0.23f), Size(w * 0.50f, h * 0.56f), CornerRadius(4f, 4f), style = Stroke(width = 2.4f)); drawLine(iconColor, Offset(w * 0.35f, h * 0.40f), Offset(w * 0.66f, h * 0.40f), strokeWidth = 2f); drawLine(iconColor, Offset(w * 0.35f, h * 0.54f), Offset(w * 0.66f, h * 0.54f), strokeWidth = 2f); drawLine(iconColor, Offset(w * 0.25f, h * 0.30f), Offset(w * 0.25f, h * 0.72f), strokeWidth = 3f)
+            drawRoundRect(iconColor, Offset(w * 0.25f, h * 0.23f), Size(w * 0.50f, h * 0.56f), CornerRadius(4f, 4f), style = Stroke(width = 2f)); drawLine(iconColor, Offset(w * 0.35f, h * 0.40f), Offset(w * 0.66f, h * 0.40f), strokeWidth = 1.7f); drawLine(iconColor, Offset(w * 0.35f, h * 0.54f), Offset(w * 0.66f, h * 0.54f), strokeWidth = 1.7f); drawLine(iconColor, Offset(w * 0.25f, h * 0.30f), Offset(w * 0.25f, h * 0.72f), strokeWidth = 2.4f)
         } else {
-            drawRoundRect(iconColor, Offset(w * 0.38f, h * 0.18f), Size(w * 0.24f, h * 0.42f), CornerRadius(8f, 8f), style = Stroke(width = 2.5f)); drawArc(iconColor, 25f, 130f, false, Offset(w * 0.25f, h * 0.40f), Size(w * 0.50f, h * 0.28f), style = Stroke(width = 2.3f)); drawLine(iconColor, Offset(w * 0.50f, h * 0.62f), Offset(w * 0.50f, h * 0.78f), strokeWidth = 2.3f); drawLine(iconColor, Offset(w * 0.34f, h * 0.80f), Offset(w * 0.66f, h * 0.80f), strokeWidth = 2.3f)
+            drawRoundRect(iconColor, Offset(w * 0.38f, h * 0.18f), Size(w * 0.24f, h * 0.42f), CornerRadius(8f, 8f), style = Stroke(width = 2.1f)); drawArc(iconColor, 25f, 130f, false, Offset(w * 0.25f, h * 0.40f), Size(w * 0.50f, h * 0.28f), style = Stroke(width = 2f)); drawLine(iconColor, Offset(w * 0.50f, h * 0.62f), Offset(w * 0.50f, h * 0.78f), strokeWidth = 2f); drawLine(iconColor, Offset(w * 0.34f, h * 0.80f), Offset(w * 0.66f, h * 0.80f), strokeWidth = 2f)
         }
     }
 }
@@ -299,15 +234,9 @@ fun Home4(studentName: String, onChangeName: () -> Unit, openLesson: (String) ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     val left = n
                     Button4("Lesson $left", { openLesson("Lesson $left") }, Modifier.width(145.dp), heightDp = 52, fontSize = 16)
-                    if (left + 1 <= 31) {
-                        val right = left + 1
-                        Button4("Lesson $right", { openLesson("Lesson $right") }, Modifier.width(145.dp), heightDp = 52, fontSize = 16)
-                    } else {
-                        Spacer(Modifier.width(145.dp))
-                    }
+                    if (left + 1 <= 31) { val right = left + 1; Button4("Lesson $right", { openLesson("Lesson $right") }, Modifier.width(145.dp), heightDp = 52, fontSize = 16) } else Spacer(Modifier.width(145.dp))
                 }
-                Spacer(Modifier.height(8.dp))
-                n += 2
+                Spacer(Modifier.height(8.dp)); n += 2
             }
             Spacer(Modifier.height(72.dp))
         }
@@ -328,12 +257,12 @@ fun Lesson4(name: String, lesson1Done: Boolean, showChoices: Boolean, showHomewo
     Column(Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Header4(name); Spacer(Modifier.height(14.dp))
         Button4("Vocabulary", { }); Spacer(Modifier.height(7.dp)); Button4("Grammar", { }); Spacer(Modifier.height(7.dp)); Button4("Practice", { }); Spacer(Modifier.height(7.dp))
-        Button4("Homework", showHomework, heightDp = 68, content = {
-            Text("Homework", Modifier.align(Alignment.Center), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.SansSerif, style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(2f, 2f), 4f)))
-            Row(Modifier.align(Alignment.BottomCenter).offset(y = 14.dp), verticalAlignment = Alignment.CenterVertically) { HomeworkIcon4(0, listeningDone); Spacer(Modifier.width(5.dp)); HomeworkIcon4(1, false); Spacer(Modifier.width(5.dp)); HomeworkIcon4(2, false) }
+        Button4("Homework", showHomework, heightDp = 78, content = {
+            Text("Homework", Modifier.align(Alignment.Center).offset(y = (-8).dp), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Black, fontFamily = FontFamily.SansSerif, style = LocalTextStyle.current.copy(shadow = Shadow(Color.Black, Offset(2f, 2f), 4f)))
+            Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) { HomeworkIcon4(0, listeningDone); Spacer(Modifier.width(5.dp)); HomeworkIcon4(1, false); Spacer(Modifier.width(5.dp)); HomeworkIcon4(2, false) }
         })
         if (showChoices) {
-            Spacer(Modifier.height(24.dp)); StrokeGlowTitle4("Choose homework", fontSize = 22); Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(20.dp)); StrokeGlowTitle4("Choose homework", fontSize = 22); Spacer(Modifier.height(8.dp))
             Box(contentAlignment = Alignment.Center) { Button4(if (listeningAvailable) "Listening homework" else "Listening homework - coming soon", openListening, enabled = listeningAvailable, fontSize = 17); if (listeningDone) Image(painterResource(id = R.drawable.donestamp), "Done", Modifier.align(Alignment.CenterEnd).size(72.dp)) }
             Spacer(Modifier.height(7.dp)); Button4("Written homework", { }, backgroundResId = R.drawable.graybutton, enabled = false, fontSize = 17); Spacer(Modifier.height(7.dp)); Button4("Spoken homework", { }, backgroundResId = R.drawable.graybutton, enabled = false, fontSize = 17)
         }
