@@ -191,7 +191,7 @@ fun Homework(
                     if (success) {
                         setStep(2)
                         done()
-                        setMsg("Boom! Your report has landed.")
+                        setMsg("Boom! Your masterpiece has been sent to your teacher.")
                     } else {
                         setMsg("Failed to send report. Please try again.")
                     }
