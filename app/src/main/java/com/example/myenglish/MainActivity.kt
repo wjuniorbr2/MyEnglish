@@ -2,7 +2,6 @@ package com.example.myenglish
 
 import com.example.myenglish.data.HomeworkData
 import com.example.myenglish.data.HomeworkSentence
-import com.example.myenglish.data.Lesson3Homework1Audio
 import com.example.myenglish.utils.attemptPrefix
 import com.example.myenglish.utils.currentDateTimeText
 import com.example.myenglish.utils.displayStudentName
@@ -388,7 +387,7 @@ fun AppRoot() {
     }
 
     LaunchedEffect(Unit) {
-        resetAttempt(HomeworkData.lesson1Sentences.size)
+        resetAttempt(HomeworkData.sentencesForLesson("Lesson 1").size)
     }
 
     fun listeningDoneForLesson(lessonName: String): Boolean {

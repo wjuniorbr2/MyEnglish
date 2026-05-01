@@ -1,9 +1,7 @@
 package com.example.myenglish.data
 
-import com.example.myenglish.R
-
-object Lesson3Homework1Audio {
-    val AUDIO_RES_ID = R.raw.lesson3
+object Lesson3ListeningData {
+    val AUDIO_RES_ID = com.example.myenglish.R.raw.lesson3
 
     val sentences = arrayOf(
         HomeworkSentence("Sentence 1", "I like.", 0, 3000),
