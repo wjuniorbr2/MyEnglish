@@ -1,5 +1,6 @@
 package com.example.myenglish
 
+import com.example.myenglish.data.HomeworkSentence
 import android.app.Activity
 import android.content.Context
 import android.media.MediaPlayer
@@ -75,13 +76,6 @@ class MainActivity : ComponentActivity() {
         overridePendingTransition(0, 0)
     }
 }
-
-data class HomeworkSentence(
-    val label: String,
-    val correctText: String,
-    val startMs: Int,
-    val endMs: Int
-)
 
 private object Lesson3Homework1Audio {
     val AUDIO_RES_ID = R.raw.lesson3
