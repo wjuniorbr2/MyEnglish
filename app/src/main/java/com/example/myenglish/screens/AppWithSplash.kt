@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import com.example.myenglish.AppRoot
 import com.example.myenglish.R
 import com.example.myenglish.components.AppBackground
 import com.example.myenglish.utils.restoreAppWindow
