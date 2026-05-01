@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,15 +69,6 @@ fun Lesson(
             onClick = showHomework,
             heightDp = 78,
             content = {
-                if (listeningDone) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .padding(5.dp)
-                            .background(Color(0x5537D67A), RoundedCornerShape(16.dp))
-                    )
-                }
-
                 Text(
                     text = "Homework",
                     modifier = Modifier
@@ -98,11 +89,11 @@ fun Lesson(
                         .padding(bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    HomeworkIcon(0, listeningDone)
+                    HomeworkIconSpot(0, listeningDone)
                     Spacer(Modifier.width(5.dp))
-                    HomeworkIcon(1, false)
+                    HomeworkIconSpot(1, false)
                     Spacer(Modifier.width(5.dp))
-                    HomeworkIcon(2, false)
+                    HomeworkIconSpot(2, false)
                 }
             }
         )
@@ -164,5 +155,19 @@ fun Lesson(
             modifier = Modifier.fillMaxWidth(0.45f),
             backgroundResId = R.drawable.redbutton
         )
+    }
+}
+
+@Composable
+private fun HomeworkIconSpot(kind: Int, done: Boolean) {
+    Box(contentAlignment = Alignment.Center) {
+        if (done) {
+            Box(
+                modifier = Modifier
+                    .size(29.dp)
+                    .background(Color(0x6637D67A), CircleShape)
+            )
+        }
+        HomeworkIcon(kind, done)
     }
 }
