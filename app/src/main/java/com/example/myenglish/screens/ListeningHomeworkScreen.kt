@@ -105,7 +105,7 @@ fun Homework(
     fun scrollSentenceToMiddle(index: Int) {
         val rowTop = rowPositions[index]
         val viewportMiddle = scroll.viewportSize / 2
-        val target = (rowTop - viewportMiddle).coerceAtLeast(0)
+        val target = (rowTop - viewportMiddle + 80).coerceAtLeast(0)
         scrollScope.launch {
             scroll.animateScrollTo(target)
         }
