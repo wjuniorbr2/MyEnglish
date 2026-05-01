@@ -17,6 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myenglish.R
@@ -152,6 +158,11 @@ fun SentenceRow(
             TextField(
                 value = answer,
                 onValueChange = change,
+                visualTransformation = if (submitStep == 1 && !currentOk) {
+                    CorrectionVisualTransformation(sentence.correctText)
+                } else {
+                    VisualTransformation.None
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focus)
@@ -171,7 +182,7 @@ fun SentenceRow(
                 Text(attemptMessage)
 
                 if (cleanAnswer(answer) == "") {
-                    Text("Type an answer before using hints.")
+                    Text("Type first, beg later.")
                 } else if (playCount < 5) {
                     val lockedIndex = playCount.coerceIn(0, 4)
                     Text(lockedHintMessages[lockedIndex])
@@ -196,4 +207,59 @@ fun SentenceRow(
             }
         }
     }
+}
+
+private class CorrectionVisualTransformation(
+    private val correctText: String
+) : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val rawText = text.text
+        val correctedWords = cleanAnswer(correctText).split(" ").filter { it.isNotEmpty() }
+        val ranges = completedWordRanges(rawText)
+
+        val annotated = buildAnnotatedString {
+            append(rawText)
+
+            var i = 0
+            while (i < ranges.size) {
+                val range = ranges[i]
+                val studentWord = cleanAnswer(rawText.substring(range.first, range.last))
+                val expectedWord = if (i < correctedWords.size) correctedWords[i] else ""
+
+                if (studentWord != "" && studentWord != expectedWord) {
+                    addStyle(
+                        style = SpanStyle(color = Color(0xFFC62828)),
+                        start = range.first,
+                        end = range.last
+                    )
+                }
+                i++
+            }
+        }
+
+        return TransformedText(annotated, OffsetMapping.Identity)
+    }
+}
+
+private fun completedWordRanges(text: String): List<IntRange> {
+    val ranges = mutableListOf<IntRange>()
+    var wordStart = -1
+    var i = 0
+
+    while (i < text.length) {
+        val isSpace = text[i].isWhitespace()
+
+        if (!isSpace && wordStart == -1) {
+            wordStart = i
+        }
+
+        if (isSpace && wordStart != -1) {
+            ranges.add(IntRange(wordStart, i))
+            wordStart = -1
+        }
+
+        i++
+    }
+
+    return ranges
 }
