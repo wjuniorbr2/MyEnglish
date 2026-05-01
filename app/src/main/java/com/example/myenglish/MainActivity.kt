@@ -1,5 +1,6 @@
 package com.example.myenglish
 
+import com.example.myenglish.components.ArtButton
 import com.example.myenglish.components.HomeworkIcon
 import com.example.myenglish.data.HomeworkData
 import com.example.myenglish.data.HomeworkSentence
@@ -204,57 +205,6 @@ fun StudentBadge(studentName: String, onChangeName: () -> Unit, modifier: Modifi
                 shadow = Shadow(Color(0x99000000), Offset(1.7f, 1.7f), 2f)
             )
         )
-    }
-}
-
-@Composable
-fun ArtButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier.fillMaxWidth(0.6f),
-    backgroundResId: Int = R.drawable.bluebutton,
-    enabled: Boolean = true,
-    heightDp: Int = 60,
-    fontSize: Int = 19,
-    content: (@Composable BoxScope.() -> Unit)? = null
-) {
-    Box(
-        modifier
-            .height(heightDp.dp)
-            .shadow(7.dp, RoundedCornerShape(18.dp))
-            .alpha(if (enabled) 1f else 0.58f)
-            .clickable(enabled = enabled) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Box(Modifier.matchParentSize().clip(RoundedCornerShape(18.dp))) {
-            Image(
-                painter = painterResource(id = backgroundResId),
-                contentDescription = null,
-                modifier = Modifier.matchParentSize().graphicsLayer(scaleX = 1.42f, scaleY = 2.80f),
-                contentScale = ContentScale.Crop
-            )
-            Canvas(Modifier.matchParentSize()) {
-                drawRoundRect(Color(0x28FFFFFF), Offset(6f, 4f), Size(size.width - 12f, size.height * 0.06f), CornerRadius(18f, 18f))
-                drawRoundRect(Color(0x30000000), Offset(6f, size.height * 0.91f), Size(size.width - 12f, size.height * 0.04f), CornerRadius(18f, 18f))
-                drawRoundRect(Color.White, Offset(2f, 2f), Size(size.width - 4f, size.height - 4f), CornerRadius(18f, 18f), style = Stroke(width = 1.4f))
-            }
-        }
-
-        if (content == null) {
-            Text(
-                text = text,
-                color = Color.White,
-                fontSize = fontSize.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.SansSerif,
-                textAlign = TextAlign.Center,
-                style = LocalTextStyle.current.copy(
-                    shadow = Shadow(Color.Black, Offset(2f, 2f), 4f)
-                )
-            )
-        } else {
-            content()
-        }
     }
 }
 
