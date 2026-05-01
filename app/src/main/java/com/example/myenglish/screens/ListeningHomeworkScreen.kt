@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +44,7 @@ import com.example.myenglish.sendHomeworkReportToTeacher
 import com.example.myenglish.utils.canUseHint
 import com.example.myenglish.utils.currentDateTimeText
 import com.example.myenglish.utils.isCorrectAnswer
+import kotlinx.coroutines.launch
 
 @Composable
 fun Homework(
@@ -69,6 +71,7 @@ fun Homework(
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
     val scroll = rememberScrollState()
+    val scrollScope = rememberCoroutineScope()
     var topReq by remember { mutableIntStateOf(0) }
     val handler = remember { Handler(Looper.getMainLooper()) }
     var player by remember { mutableStateOf<MediaPlayer?>(null) }
@@ -95,8 +98,17 @@ fun Homework(
         player = null
     }
 
+    fun scrollSentenceToMiddle(index: Int) {
+        val estimatedRowHeightPx = 330
+        val target = (index * estimatedRowHeightPx - 260).coerceAtLeast(0)
+        scrollScope.launch {
+            scroll.animateScrollTo(target)
+        }
+    }
+
     fun play(i: Int, startMs: Int, endMs: Int) {
         stop()
+        scrollSentenceToMiddle(i)
 
         if (audioResId == 0) return
 
@@ -118,15 +130,13 @@ fun Homework(
         )
     }
 
-    fun buildReport(currentScore: Int, correctionsSubmitted: Boolean): String {
+    fun buildReport(currentScore: Int): String {
         val builder = StringBuilder()
         builder.append("Student: ").append(studentName).append("\n")
         builder.append("Submitted at: ").append(currentDateTimeText()).append("\n")
         builder.append("Lesson: ").append(name).append("\n")
         builder.append("Homework: Listening homework\n")
         builder.append("Original score: ").append(currentScore).append(" / ").append(sentences.size).append("\n")
-        builder.append("Student submitted answers: yes\n")
-        builder.append("Student submitted corrections: ").append(if (correctionsSubmitted) "yes" else "no").append("\n")
 
         var i = 0
         while (i < sentences.size) {
@@ -159,7 +169,7 @@ fun Homework(
         setScore(currentScore)
         setStep(1)
         setMsg("First attempt score: $currentScore / ${sentences.size}")
-        setReport(buildReport(currentScore, false))
+        setReport(buildReport(currentScore))
         onAttemptChanged()
         topReq++
     }
@@ -177,14 +187,14 @@ fun Homework(
         }
 
         if (allCorrect) {
-            val finalReport = buildReport(score, true)
+            val finalReport = buildReport(score)
 
             setMsg("Sending your lesson report to your teacher...")
             setReport(finalReport)
 
             sendHomeworkReportToTeacher(
                 studentName = studentName,
-                lessonName = "Lesson 3",
+                lessonName = name,
                 homeworkType = "Listening homework",
                 scoreText = "$score / ${sentences.size}",
                 report = finalReport
@@ -201,7 +211,7 @@ fun Homework(
             }
         } else {
             setMsg("Some corrections are still incorrect. Please check the red X sentences.")
-            setReport(buildReport(score, false))
+            setReport(buildReport(score))
             onAttemptChanged()
         }
 
@@ -236,7 +246,7 @@ fun Homework(
         if (audioResId == 0) {
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "Audio file lesson2.mp3 not found in res/raw.",
+                text = "Audio file not found in res/raw.",
                 color = Color.White,
                 fontWeight = FontWeight.Bold
             )
@@ -273,7 +283,7 @@ fun Homework(
                 hint = {
                     if (canUseHint(answers[index], plays[index], submitStep >= 1, hints[index], sentence.correctText)) {
                         hints[index]++
-                        setReport(buildReport(score, submitStep == 2))
+                        setReport(buildReport(score))
                         onAttemptChanged()
                     }
                 }
@@ -284,7 +294,7 @@ fun Homework(
         }
 
         if (submitStep == 0) {
-            ArtButton("Submit answers", { submitAnswers() })
+            ArtButton("Correct me, I dare you!", { submitAnswers() })
         } else if (submitStep == 1) {
             ArtButton("Submit corrections", { submitCorrections() })
         } else {
