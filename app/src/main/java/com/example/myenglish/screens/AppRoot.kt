@@ -29,8 +29,7 @@ fun AppRoot() {
     var showChoices by remember { mutableStateOf(false) }
     var studentName by remember { mutableStateOf(prefs.getString("student_name", "") ?: "") }
     var showNameDialog by remember { mutableStateOf(studentName == "") }
-    var lesson1Done by remember { mutableStateOf(prefs.getBoolean("lesson1_listening_done", false)) }
-    var lesson2Done by remember { mutableStateOf(prefs.getBoolean("lesson2_listening_done", false)) }
+    var doneVersion by remember { mutableIntStateOf(0) }
 
     val answers = remember { mutableStateListOf<String>() }
     val plays = remember { mutableStateListOf<Int>() }
@@ -95,25 +94,18 @@ fun AppRoot() {
         resetAttempt(HomeworkData.sentencesForLesson("Lesson 1").size)
     }
 
+    fun listeningDoneKey(lessonName: String): String {
+        return lessonName.lowercase().replace(" ", "_") + "_listening_done"
+    }
+
     fun listeningDoneForLesson(lessonName: String): Boolean {
-        return if (lessonName == "Lesson 1") {
-            lesson1Done
-        } else if (lessonName == "Lesson 2") {
-            lesson2Done
-        } else {
-            false
-        }
+        doneVersion
+        return prefs.getBoolean(listeningDoneKey(lessonName), false)
     }
 
     fun markListeningDone(lessonName: String) {
-        if (lessonName == "Lesson 1") {
-            lesson1Done = true
-            prefs.edit().putBoolean("lesson1_listening_done", true).apply()
-        } else if (lessonName == "Lesson 2") {
-            lesson2Done = true
-            prefs.edit().putBoolean("lesson2_listening_done", true).apply()
-        }
-
+        prefs.edit().putBoolean(listeningDoneKey(lessonName), true).apply()
+        doneVersion++
         clearCurrentAttempt(lessonName)
     }
 
