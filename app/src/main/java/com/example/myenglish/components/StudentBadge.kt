@@ -1,5 +1,6 @@
 package com.example.myenglish.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,21 +29,39 @@ fun StudentBadge(
     Box(
         modifier
             .shadow(10.dp, RoundedCornerShape(14.dp))
-            .background(Color.White, RoundedCornerShape(14.dp))
-            .border(1.dp, Color.White, RoundedCornerShape(14.dp))
-            .padding(2.dp)
-            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
+            .background(Color(0xFFE7C98F), RoundedCornerShape(14.dp))
+            .border(2.dp, Color(0xFF5B3217), RoundedCornerShape(14.dp))
             .clickable { onChangeName() }
-            .padding(horizontal = 22.dp, vertical = 8.dp)
+            .padding(horizontal = 22.dp, vertical = 9.dp)
     ) {
+        Canvas(Modifier.matchParentSize()) {
+            val lineColor = Color(0x33FFFFFF)
+            var y = 6f
+            while (y < size.height) {
+                drawLine(
+                    color = lineColor,
+                    start = Offset(0f, y),
+                    end = Offset(size.width, y + 8f),
+                    strokeWidth = 2f
+                )
+                y += 16f
+            }
+
+            drawCircle(
+                color = Color(0x665B3217),
+                radius = 5f,
+                center = Offset(11f, size.height / 2f)
+            )
+        }
+
         Text(
             text = studentName,
-            color = Color.Black,
+            color = Color(0xFF2A1608),
             fontSize = 20.sp,
             fontWeight = FontWeight.Black,
             fontFamily = FontFamily.Cursive,
             style = LocalTextStyle.current.copy(
-                shadow = Shadow(Color(0x99000000), Offset(1.7f, 1.7f), 2f)
+                shadow = Shadow(Color(0x66FFFFFF), Offset(1.2f, 1.2f), 1.5f)
             )
         )
     }
