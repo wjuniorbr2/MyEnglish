@@ -3,7 +3,6 @@ package com.example.myenglish.screens
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,8 +29,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -47,7 +43,6 @@ import com.example.myenglish.sendHomeworkReportToTeacher
 import com.example.myenglish.utils.canUseHint
 import com.example.myenglish.utils.currentDateTimeText
 import com.example.myenglish.utils.isCorrectAnswer
-import kotlinx.coroutines.launch
 
 @Composable
 fun Homework(
@@ -74,12 +69,10 @@ fun Homework(
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
     val scroll = rememberScrollState()
-    val scrollScope = rememberCoroutineScope()
     var topReq by remember { mutableIntStateOf(0) }
     val handler = remember { Handler(Looper.getMainLooper()) }
     var player by remember { mutableStateOf<MediaPlayer?>(null) }
     val focus = remember(sentences.size) { Array(sentences.size) { FocusRequester() } }
-    val rowPositions = remember(sentences.size) { IntArray(sentences.size) }
 
     LaunchedEffect(scroll.isScrollInProgress) {
         if (scroll.isScrollInProgress) focusManager.clearFocus()
@@ -102,18 +95,8 @@ fun Homework(
         player = null
     }
 
-    fun scrollSentenceToMiddle(index: Int) {
-        val rowTop = rowPositions[index]
-        val viewportMiddle = scroll.viewportSize / 2
-        val target = (rowTop - viewportMiddle + 80).coerceAtLeast(0)
-        scrollScope.launch {
-            scroll.animateScrollTo(target)
-        }
-    }
-
     fun play(i: Int, startMs: Int, endMs: Int) {
         stop()
-        scrollSentenceToMiddle(i)
 
         if (audioResId == 0) return
 
@@ -264,42 +247,36 @@ fun Homework(
             val index = i
             val sentence = sentences[index]
 
-            Box(
-                modifier = Modifier.onGloballyPositioned { coordinates ->
-                    rowPositions[index] = coordinates.positionInParent().y.toInt()
-                }
-            ) {
-                SentenceRow(
-                    sentence = sentence,
-                    answer = answers[index],
-                    change = {
-                        answers[index] = it
+            SentenceRow(
+                sentence = sentence,
+                answer = answers[index],
+                change = {
+                    answers[index] = it
+                    onAttemptChanged()
+                },
+                playCount = plays[index],
+                submitStep = submitStep,
+                firstOk = firstCorrect[index],
+                currentOk = isCorrectAnswer(answers[index], sentence.correctText),
+                hintCount = hints[index],
+                focus = focus[index],
+                play = {
+                    plays[index]++
+                    onAttemptChanged()
+                    play(index, sentence.startMs, sentence.endMs)
+                },
+                stop = {
+                    stop()
+                },
+                hint = {
+                    if (canUseHint(answers[index], plays[index], submitStep >= 1, hints[index], sentence.correctText)) {
+                        hints[index]++
+                        setReport(buildReport(score))
                         onAttemptChanged()
-                    },
-                    playCount = plays[index],
-                    submitStep = submitStep,
-                    firstOk = firstCorrect[index],
-                    currentOk = isCorrectAnswer(answers[index], sentence.correctText),
-                    hintCount = hints[index],
-                    focus = focus[index],
-                    play = {
-                        plays[index]++
-                        onAttemptChanged()
-                        play(index, sentence.startMs, sentence.endMs)
-                    },
-                    stop = {
-                        stop()
-                    },
-                    hint = {
-                        if (canUseHint(answers[index], plays[index], submitStep >= 1, hints[index], sentence.correctText)) {
-                            hints[index]++
-                            setReport(buildReport(score))
-                            onAttemptChanged()
-                        }
-                    },
-                    messageIndex = index
-                )
-            }
+                    }
+                },
+                messageIndex = index
+            )
 
             Spacer(Modifier.height(12.dp))
             i++
