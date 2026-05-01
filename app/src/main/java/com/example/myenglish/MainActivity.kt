@@ -1,5 +1,6 @@
 package com.example.myenglish
 
+import com.example.myenglish.components.SentenceRow
 import com.example.myenglish.screens.Home
 import com.example.myenglish.screens.Lesson
 import com.example.myenglish.components.StudentNameDialog
@@ -583,109 +584,5 @@ fun Homework(
             modifier = Modifier.fillMaxWidth(0.45f),
             backgroundResId = R.drawable.redbutton
         )
-    }
-}
-
-@Composable
-fun SentenceRow(
-    sentence: HomeworkSentence,
-    answer: String,
-    change: (String) -> Unit,
-    playCount: Int,
-    submitStep: Int,
-    firstOk: Boolean,
-    currentOk: Boolean,
-    hintCount: Int,
-    focus: FocusRequester,
-    play: () -> Unit,
-    stop: () -> Unit,
-    hint: () -> Unit
-) {
-    Card(
-        Modifier.fillMaxWidth(),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-    ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-        ) {
-            Row {
-                Text(
-                    text = sentence.label,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-
-                if (submitStep >= 1) {
-                    Text(
-                        text = if (submitStep == 2 || currentOk) "✓" else "✕",
-                        color = if (submitStep == 2 || currentOk) Color(0xFF2E7D32) else Color(0xFFC62828),
-                        fontSize = 64.sp
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            Row {
-                ArtButton(
-                    text = "▶",
-                    onClick = play,
-                    modifier = Modifier.width(90.dp),
-                    heightDp = 56,
-                    fontSize = 20
-                )
-
-                Spacer(Modifier.width(8.dp))
-
-                ArtButton(
-                    text = "Stop",
-                    onClick = stop,
-                    modifier = Modifier.width(112.dp),
-                    backgroundResId = R.drawable.redbutton,
-                    heightDp = 56,
-                    fontSize = 16
-                )
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            TextField(
-                value = answer,
-                onValueChange = change,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focus)
-            )
-
-            Spacer(Modifier.height(4.dp))
-
-            Text("Plays: $playCount")
-
-            if (submitStep >= 1) {
-                Text(if (firstOk) "First attempt: correct" else "First attempt: incorrect")
-
-                if (cleanAnswer(answer) == "") {
-                    Text("Type an answer before using hints.")
-                } else if (playCount < 5) {
-                    Text("Hint locked: listen ${5 - playCount} more time(s).")
-                } else if (submitStep < 2 && !currentOk) {
-                    ArtButton(
-                        text = "Reveal next word",
-                        onClick = hint,
-                        modifier = Modifier.fillMaxWidth(0.7f),
-                        backgroundResId = R.drawable.graybutton,
-                        heightDp = 56,
-                        fontSize = 16
-                    )
-                }
-
-                if (hintCount > 0) {
-                    Text("Hint: ${revealedHintText(sentence.correctText, hintCount)}")
-                    Text("Hints used: $hintCount")
-                }
-            }
-        }
     }
 }
