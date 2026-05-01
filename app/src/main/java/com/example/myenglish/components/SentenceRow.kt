@@ -22,7 +22,65 @@ import androidx.compose.ui.unit.sp
 import com.example.myenglish.R
 import com.example.myenglish.data.HomeworkSentence
 import com.example.myenglish.utils.cleanAnswer
+import com.example.myenglish.utils.countWords
 import com.example.myenglish.utils.revealedHintText
+
+private val correctMessages = arrayOf(
+    "Nailed it.",
+    "Grammar flex.",
+    "Chef's kiss.",
+    "Tiny genius.",
+    "Too smooth.",
+    "English unlocked.",
+    "Boom, correct.",
+    "Gold star energy.",
+    "Flawless victory.",
+    "Sentence approved.",
+    "The comma bows.",
+    "Teacher smiles.",
+    "Brain did magic.",
+    "No red X today.",
+    "Legend behavior."
+)
+
+private val incorrectMessages = arrayOf(
+    "Red X drama.",
+    "Sentence rebelled.",
+    "Almost, detective.",
+    "Try again, hero.",
+    "English said nope.",
+    "Close-ish chaos.",
+    "Comma is suspicious.",
+    "Tiny grammar goblin.",
+    "Not yet, champion.",
+    "The X has spoken.",
+    "Sentence needs snacks.",
+    "Oops parade.",
+    "Plot twist: no.",
+    "Grammar side-eye.",
+    "Rescue this one."
+)
+
+private val lockedHintMessages = arrayOf(
+    "Listen once more. The hint is stretching.",
+    "Two more. The hint is hiding behind the couch.",
+    "Three more. The hint has entered witness protection.",
+    "Four more. The hint is packing a suitcase.",
+    "Five listens first. The hint refuses to work overtime."
+)
+
+private val revealButtonMessages = arrayOf(
+    "Feed me a word",
+    "Summon tiny wisdom",
+    "Unleash word goblin",
+    "Bribe the sentence",
+    "Give me mercy",
+    "Call the clue fairy",
+    "Deploy spoiler cannon",
+    "Release the word",
+    "Consult grammar wizard",
+    "Open secret door"
+)
 
 @Composable
 fun SentenceRow(
@@ -38,7 +96,8 @@ fun SentenceRow(
     play: () -> Unit,
     stop: () -> Unit,
     hint: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    messageIndex: Int = 0
 ) {
     Card(
         modifier.fillMaxWidth(),
@@ -103,15 +162,25 @@ fun SentenceRow(
             Text("Plays: $playCount")
 
             if (submitStep >= 1) {
-                Text(if (firstOk) "First attempt: correct" else "First attempt: incorrect")
+                val attemptMessage = if (firstOk) {
+                    correctMessages[messageIndex % correctMessages.size]
+                } else {
+                    incorrectMessages[messageIndex % incorrectMessages.size]
+                }
+
+                Text(attemptMessage)
 
                 if (cleanAnswer(answer) == "") {
                     Text("Type an answer before using hints.")
                 } else if (playCount < 5) {
-                    Text("Hint locked: listen ${5 - playCount} more time(s).")
+                    val lockedIndex = playCount.coerceIn(0, 4)
+                    Text(lockedHintMessages[lockedIndex])
                 } else if (submitStep < 2 && !currentOk) {
+                    val wordCount = countWords(sentence.correctText)
+                    val buttonIndex = if (wordCount <= 0) 0 else (wordCount - 1) % revealButtonMessages.size
+
                     ArtButton(
-                        text = "Reveal next word",
+                        text = revealButtonMessages[buttonIndex],
                         onClick = hint,
                         modifier = Modifier.fillMaxWidth(0.7f),
                         backgroundResId = R.drawable.graybutton,
@@ -122,7 +191,7 @@ fun SentenceRow(
 
                 if (hintCount > 0) {
                     Text("Hint: ${revealedHintText(sentence.correctText, hintCount)}")
-                    Text("Hints used: $hintCount")
+                    Text("Spoilers used: $hintCount")
                 }
             }
         }
