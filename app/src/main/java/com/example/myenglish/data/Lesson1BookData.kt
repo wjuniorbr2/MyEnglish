@@ -18,8 +18,8 @@ object Lesson1BookData {
     val verbsTitle = BookAudioItem("VERBS", "", BOOK_AUDIO_RES_ID, 3354, 4184)
     val vocabularyTitle = BookAudioItem("VOCABULARY", "", BOOK_AUDIO_RES_ID, 14251, 15357)
     val expressionsTitle = BookAudioItem("EXPRESSIONS", "", BOOK_AUDIO_RES_ID, 64193, 65398)
-    val grammarTitle = BookAudioItem("GRAMMAR", "", BOOK_AUDIO_RES_ID, 78874, 79666)
-    val alphabetTitle = BookAudioItem("THE ALPHABET", "", ALPHABET_AUDIO_RES_ID, 741, 1845)
+    val grammarTitle = BookAudioItem("GRAMMAR", "", BOOK_AUDIO_RES_ID, 79528, 81068)
+    val alphabetTitle = BookAudioItem("THE ALPHABET", "", ALPHABET_AUDIO_RES_ID, 0, 3187)
 
     val verbs = arrayOf(
         BookAudioItem("to drink", "beber", BOOK_AUDIO_RES_ID, 5713, 6616),
@@ -50,48 +50,48 @@ object Lesson1BookData {
 
     val expressions = arrayOf(
         BookAudioItem("in the morning", "de manhã", BOOK_AUDIO_RES_ID, 66983, 68053),
-        BookAudioItem("in the afternoon", "à/de tarde", BOOK_AUDIO_RES_ID, 69717, 70805),
-        BookAudioItem("in the evening", "à/de noite (tardezinha)", BOOK_AUDIO_RES_ID, 72687, 73803),
+        BookAudioItem("in the afternoon", "à/de tarde", BOOK_AUDIO_RES_ID, 72687, 73803),
+        BookAudioItem("in the evening", "à/de noite (tardezinha)", BOOK_AUDIO_RES_ID, 69717, 70805),
         BookAudioItem("at night", "à/de noite (depois de escurecer)", BOOK_AUDIO_RES_ID, 75867, 76756)
     )
 
     val grammarSentences = arrayOf(
         BookAudioItem("I eat bread.", "Eu como pão.", BOOK_AUDIO_RES_ID, 81999, 83150),
-        BookAudioItem("You drink beer.", "Você bebe cerveja.", BOOK_AUDIO_RES_ID, 85417, 86545),
-        BookAudioItem("We don’t eat bread.", "Nós não comemos pão.", BOOK_AUDIO_RES_ID, 89084, 90350),
-        BookAudioItem("They don’t drink juice.", "Eles não bebem suco.", BOOK_AUDIO_RES_ID, 92239, 93559),
-        BookAudioItem("Do they eat bread?", "Eles comem pão?", BOOK_AUDIO_RES_ID, 95424, 96759),
-        BookAudioItem("Do I drink wine?", "Eu bebo vinho?", BOOK_AUDIO_RES_ID, 98834, 100438),
-        BookAudioItem("Don’t you eat bread?", "Você não come pão?", BOOK_AUDIO_RES_ID, 102324, 103702),
+        BookAudioItem("We don’t eat bread.", "Nós não comemos pão.", BOOK_AUDIO_RES_ID, 85417, 86545),
+        BookAudioItem("Do they eat bread?", "Eles comem pão?", BOOK_AUDIO_RES_ID, 89084, 90350),
+        BookAudioItem("Don’t you eat bread?", "Você não come pão?", BOOK_AUDIO_RES_ID, 92239, 93559),
+        BookAudioItem("You drink beer.", "Você bebe cerveja.", BOOK_AUDIO_RES_ID, 95424, 96759),
+        BookAudioItem("They don’t drink juice.", "Eles não bebem suco.", BOOK_AUDIO_RES_ID, 98834, 100438),
+        BookAudioItem("Do I drink wine?", "Eu bebo vinho?", BOOK_AUDIO_RES_ID, 102324, 103702),
         BookAudioItem("Don’t we drink juice?", "Nós não bebemos suco?", BOOK_AUDIO_RES_ID, 105744, 107307)
     )
 
     val alphabet = arrayOf(
-        BookAudioItem("A", "ei", ALPHABET_AUDIO_RES_ID, 4047, 4865),
-        BookAudioItem("B", "bi", ALPHABET_AUDIO_RES_ID, 6156, 6738),
-        BookAudioItem("C", "ci", ALPHABET_AUDIO_RES_ID, 8309, 9009),
-        BookAudioItem("D", "di", ALPHABET_AUDIO_RES_ID, 10593, 11326),
-        BookAudioItem("E", "i", ALPHABET_AUDIO_RES_ID, 12908, 13517),
-        BookAudioItem("F", "éf", ALPHABET_AUDIO_RES_ID, 15269, 15730),
-        BookAudioItem("G", "dji", ALPHABET_AUDIO_RES_ID, 17533, 18223),
-        BookAudioItem("H", "eitch", ALPHABET_AUDIO_RES_ID, 19897, 20734),
-        BookAudioItem("I", "ai", ALPHABET_AUDIO_RES_ID, 22187, 22888),
-        BookAudioItem("J", "djei", ALPHABET_AUDIO_RES_ID, 24615, 25312),
-        BookAudioItem("K", "kei", ALPHABET_AUDIO_RES_ID, 27026, 27696),
-        BookAudioItem("L", "él", ALPHABET_AUDIO_RES_ID, 29310, 30077),
-        BookAudioItem("M", "em", ALPHABET_AUDIO_RES_ID, 31492, 32195),
-        BookAudioItem("N", "en", ALPHABET_AUDIO_RES_ID, 33596, 34399),
-        BookAudioItem("O", "ou", ALPHABET_AUDIO_RES_ID, 35888, 36462),
-        BookAudioItem("P", "pi", ALPHABET_AUDIO_RES_ID, 38330, 38804),
-        BookAudioItem("Q", "quiu", ALPHABET_AUDIO_RES_ID, 40594, 41228),
-        BookAudioItem("R", "ar", ALPHABET_AUDIO_RES_ID, 43004, 43695),
-        BookAudioItem("S", "és", ALPHABET_AUDIO_RES_ID, 45268, 46098),
-        BookAudioItem("T", "ti", ALPHABET_AUDIO_RES_ID, 47682, 48315),
-        BookAudioItem("U", "iu", ALPHABET_AUDIO_RES_ID, 49880, 50549),
-        BookAudioItem("V", "vi", ALPHABET_AUDIO_RES_ID, 52286, 52966),
-        BookAudioItem("W", "dâbliu", ALPHABET_AUDIO_RES_ID, 54567, 55305),
-        BookAudioItem("X", "éx", ALPHABET_AUDIO_RES_ID, 56891, 57711),
-        BookAudioItem("Y", "uai", ALPHABET_AUDIO_RES_ID, 59195, 59954),
-        BookAudioItem("Z", "zi", ALPHABET_AUDIO_RES_ID, 61237, 62048)
+        BookAudioItem("A", "ei", ALPHABET_AUDIO_RES_ID, 3188, 4088),
+        BookAudioItem("B", "bi", ALPHABET_AUDIO_RES_ID, 4802, 6204),
+        BookAudioItem("C", "ci", ALPHABET_AUDIO_RES_ID, 6789, 8399),
+        BookAudioItem("D", "di", ALPHABET_AUDIO_RES_ID, 8954, 10701),
+        BookAudioItem("E", "i", ALPHABET_AUDIO_RES_ID, 11190, 13018),
+        BookAudioItem("F", "éf", ALPHABET_AUDIO_RES_ID, 13387, 15379),
+        BookAudioItem("G", "dji", ALPHABET_AUDIO_RES_ID, 15840, 17644),
+        BookAudioItem("H", "eitch", ALPHABET_AUDIO_RES_ID, 18122, 19995),
+        BookAudioItem("I", "ai", ALPHABET_AUDIO_RES_ID, 20608, 22221),
+        BookAudioItem("J", "djei", ALPHABET_AUDIO_RES_ID, 22764, 24567),
+        BookAudioItem("K", "kei", ALPHABET_AUDIO_RES_ID, 25216, 27123),
+        BookAudioItem("L", "él", ALPHABET_AUDIO_RES_ID, 27607, 29412),
+        BookAudioItem("M", "em", ALPHABET_AUDIO_RES_ID, 29969, 31596),
+        BookAudioItem("N", "en", ALPHABET_AUDIO_RES_ID, 32158, 33642),
+        BookAudioItem("O", "ou", ALPHABET_AUDIO_RES_ID, 34317, 36002),
+        BookAudioItem("P", "pi", ALPHABET_AUDIO_RES_ID, 36356, 38432),
+        BookAudioItem("Q", "quiu", ALPHABET_AUDIO_RES_ID, 38706, 40680),
+        BookAudioItem("R", "ar", ALPHABET_AUDIO_RES_ID, 41107, 43111),
+        BookAudioItem("S", "és", ALPHABET_AUDIO_RES_ID, 43574, 45380),
+        BookAudioItem("T", "ti", ALPHABET_AUDIO_RES_ID, 46087, 47778),
+        BookAudioItem("U", "iu", ALPHABET_AUDIO_RES_ID, 48202, 49985),
+        BookAudioItem("V", "vi", ALPHABET_AUDIO_RES_ID, 50417, 52368),
+        BookAudioItem("W", "dâbliu", ALPHABET_AUDIO_RES_ID, 52825, 54661),
+        BookAudioItem("X", "éx", ALPHABET_AUDIO_RES_ID, 55180, 56955),
+        BookAudioItem("Y", "uai", ALPHABET_AUDIO_RES_ID, 57573, 59305),
+        BookAudioItem("Z", "zi", ALPHABET_AUDIO_RES_ID, 59851, 61298)
     )
 }
