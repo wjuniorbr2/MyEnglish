@@ -154,13 +154,13 @@ private object HomeworkData {
         HomeworkSentence("Sentence 1", "You speak French.", 1060, 3990),
         HomeworkSentence("Sentence 2", "I don't want.", 5430, 8260),
         HomeworkSentence("Sentence 3", "We don’t want to speak french.", 10020, 14240),
-        HomeworkSentence("Sentence 4", "Do they want milk?", 15690, 19130),
-        HomeworkSentence("Sentence 5", "We wanna eat bread and ham", 20860, 25370),
-        HomeworkSentence("Sentence 6", "I want to study there.", 26670, 30490),
+        HomeworkSentence("Sentence 4", "Do they want milk?", 15690, 20000),
+        HomeworkSentence("Sentence 5", "We wanna eat bread and ham", 20860, 26000),
+        HomeworkSentence("Sentence 6", "I want to study there.", 26670, 31000),
         HomeworkSentence("Sentence 7", "I eat here in the morning.", 32000, 36140),
-        HomeworkSentence("Sentence 8", "You study here.", 37420, 40870),
+        HomeworkSentence("Sentence 8", "You study here.", 37420, 41500),
         HomeworkSentence("Sentence 9", "I study my small lesson.", 42390, 46470),
-        HomeworkSentence("Sentence 10", "I don't want.", 47980, 50700),
+        HomeworkSentence("Sentence 10", "I don't want.", 47980, 51200),
         HomeworkSentence("Sentence 11", "We don’t wanna drink.", 51930, 55280),
         HomeworkSentence("Sentence 12", "Do you want water?", 56670, 60140),
         HomeworkSentence("Sentence 13", "Do they study german?", 61410, 65050),
@@ -174,29 +174,36 @@ private object HomeworkData {
         HomeworkSentence("Sentence 21", "I don’t want to eat in the morning.", 102690, 107120),
         HomeworkSentence("Sentence 22", "I don’t speak German.", 108530, 112220),
         HomeworkSentence("Sentence 23", "We study Spanish with you.", 113360, 117870),
-        HomeworkSentence("Sentence 24", "Do you want to speak English?", 119090, 123090),
+        HomeworkSentence("Sentence 24", "Do you want to speak English?", 119090, 123600),
         HomeworkSentence("Sentence 25", "I don’t want to study math.", 124670, 128670),
         HomeworkSentence("Sentence 26", "They don’t speak with you.", 130120, 133980),
         HomeworkSentence("Sentence 27", "I study wine.", 135460, 139230),
         HomeworkSentence("Sentence 28", "Do you want music here?", 140980, 144810),
         HomeworkSentence("Sentence 29", "They want to drink at night.", 146460, 150650),
         HomeworkSentence("Sentence 30", "We don’t speak English in the morning.", 152010, 156480),
-        HomeworkSentence("Sentence 31", "I don’t speak Portuguese with you.", 157900, 162840),
-        HomeworkSentence("Sentence 32", "Do you wanna drink cold beer?", 164860, 169100)
+        HomeworkSentence("Sentence 31", "I don’t speak Portuguese with you.", 157900, 163500),
+        HomeworkSentence("Sentence 32", "Do you wanna drink cold beer?", 164860, 169500)
     )
 
     fun sentencesForLesson(lessonName: String): Array<HomeworkSentence> {
-        return if (lessonName == "Lesson 2") lesson2Sentences else lesson1Sentences
+        return if (lessonName == "Lesson 3") {
+            Lesson3Homework1Audio.sentences
+        } else if (lessonName == "Lesson 2") {
+            lesson2Sentences
+        } else {
+            lesson1Sentences
+        }
     }
 
     fun audioResIdForLesson(context: Context, lessonName: String): Int {
         if (lessonName == "Lesson 1") return LESSON_1_AUDIO_RES_ID
         if (lessonName == "Lesson 2") return context.resources.getIdentifier("lesson2", "raw", context.packageName)
+        if (lessonName == "Lesson 3") return Lesson3Homework1Audio.AUDIO_RES_ID
         return 0
     }
 
     fun hasListeningHomework(lessonName: String): Boolean {
-        return lessonName == "Lesson 1" || lessonName == "Lesson 2"
+        return lessonName == "Lesson 1" || lessonName == "Lesson 2" || lessonName == "Lesson 3"
     }
 }
 
@@ -1103,10 +1110,28 @@ fun Homework(
         }
 
         if (allCorrect) {
-            setStep(2)
-            setMsg("Submitted! All corrections are correct.")
-            setReport(buildReport(score, true))
-            done()
+            val finalReport = buildReport(score, true)
+
+            setMsg("Sending your lesson report to your teacher...")
+            setReport(finalReport)
+
+            sendHomeworkReportToTeacher(
+                studentName = studentName,
+                lessonName = "Lesson 3",
+                homeworkType = "Listening homework",
+                scoreText = "$score / ${sentences.size}",
+                report = finalReport
+            ) { success ->
+                Handler(Looper.getMainLooper()).post {
+                    if (success) {
+                        setStep(2)
+                        done()
+                        setMsg("Report sent successfully.")
+                    } else {
+                        setMsg("Failed to send report. Please try again.")
+                    }
+                }
+            }
         } else {
             setMsg("Some corrections are still incorrect. Please check the red X sentences.")
             setReport(buildReport(score, false))
