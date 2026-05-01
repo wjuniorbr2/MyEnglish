@@ -37,10 +37,11 @@ fun SentenceRow(
     focus: FocusRequester,
     play: () -> Unit,
     stop: () -> Unit,
-    hint: () -> Unit
+    hint: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        Modifier.fillMaxWidth(),
+        modifier.fillMaxWidth(),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Column(
