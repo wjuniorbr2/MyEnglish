@@ -49,6 +49,9 @@ import com.example.myenglish.components.ArtButton
 import com.example.myenglish.data.BookAudioItem
 import com.example.myenglish.data.Lesson1BookData
 
+private val frameOuterColor = Color(0xFF0D3D7A)
+private val frameInnerColor = Color(0xFF2E75C9)
+
 @Composable
 fun BookScreen(
     lessonName: String,
@@ -72,8 +75,8 @@ fun BookScreen(
         player = currentPlayer
         currentPlayer.setVolume(1f, 1f)
 
-        val bufferedStart = (item.startMs - 170).coerceAtLeast(0)
-        val duration = (item.endMs - item.startMs + 340).coerceAtLeast(250)
+        val bufferedStart = (item.startMs - 260).coerceAtLeast(0)
+        val duration = (item.endMs - item.startMs + 760).coerceAtLeast(350)
 
         currentPlayer.seekTo(bufferedStart)
         currentPlayer.start()
@@ -144,20 +147,18 @@ fun BookScreen(
             }
 
             FramedSection {
-                Box(Modifier.fillMaxWidth()) {
-                    SectionTitle(Lesson1BookData.grammarTitle) {
-                        playSegment(Lesson1BookData.grammarTitle)
-                        showGrammarInfo = true
-                    }
+                SectionTitle(Lesson1BookData.grammarTitle) {
+                    playSegment(Lesson1BookData.grammarTitle)
+                    showGrammarInfo = true
+                }
 
-                    if (showGrammarInfo) {
-                        GrammarBalloon(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .offset(x = 4.dp, y = 38.dp)
-                        ) {
-                            showGrammarInfo = false
-                        }
+                if (showGrammarInfo) {
+                    GrammarBalloon(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp)
+                    ) {
+                        showGrammarInfo = false
                     }
                 }
 
@@ -182,9 +183,9 @@ fun BookScreen(
                 Box(
                     modifier = Modifier
                         .background(Color(0xAA111111), RoundedCornerShape(12.dp))
-                        .border(4.dp, Color(0xFF5E0B0B), RoundedCornerShape(12.dp))
+                        .border(4.dp, frameOuterColor, RoundedCornerShape(12.dp))
                         .padding(3.dp)
-                        .border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(10.dp))
+                        .border(2.dp, frameInnerColor, RoundedCornerShape(10.dp))
                         .clickable { playSegment(Lesson1BookData.alphabetTitle) }
                         .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
@@ -224,9 +225,9 @@ private fun FramedSection(content: @Composable () -> Unit) {
             .fillMaxWidth()
             .padding(vertical = 5.dp)
             .background(Color(0xAA111111), RoundedCornerShape(14.dp))
-            .border(4.dp, Color(0xFF5E0B0B), RoundedCornerShape(14.dp))
+            .border(4.dp, frameOuterColor, RoundedCornerShape(14.dp))
             .padding(4.dp)
-            .border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(12.dp))
+            .border(2.dp, frameInnerColor, RoundedCornerShape(12.dp))
             .padding(7.dp)
     ) {
         Column {
@@ -238,9 +239,9 @@ private fun FramedSection(content: @Composable () -> Unit) {
 @Composable
 private fun GrammarBalloon(modifier: Modifier, close: () -> Unit) {
     Box(
-        modifier.width(315.dp)
+        modifier.height(128.dp)
     ) {
-        Canvas(Modifier.matchParentSize().height(128.dp)) {
+        Canvas(Modifier.matchParentSize()) {
             val path = Path().apply {
                 moveTo(18f, 18f)
                 quadraticTo(18f, 0f, 36f, 0f)
@@ -272,7 +273,7 @@ private fun GrammarBalloon(modifier: Modifier, close: () -> Unit) {
 
         Text(
             text = "OK",
-            color = Color(0xFF7A0000),
+            color = Color(0xFF0D3D7A),
             fontSize = 14.sp,
             fontWeight = FontWeight.Black,
             modifier = Modifier
@@ -288,9 +289,9 @@ private fun AudioTitle(item: BookAudioItem, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .background(Color(0xAA111111), RoundedCornerShape(12.dp))
-            .border(4.dp, Color(0xFF5E0B0B), RoundedCornerShape(12.dp))
+            .border(4.dp, frameOuterColor, RoundedCornerShape(12.dp))
             .padding(3.dp)
-            .border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(10.dp))
+            .border(2.dp, frameInnerColor, RoundedCornerShape(10.dp))
             .clickable { onClick() }
             .padding(horizontal = 12.dp, vertical = 5.dp)
     ) {
@@ -395,9 +396,9 @@ private fun AlphabetCell(item: BookAudioItem, play: (BookAudioItem) -> Unit) {
         modifier = Modifier
             .width(42.dp)
             .background(Color(0xAA111111), RoundedCornerShape(8.dp))
-            .border(3.dp, Color(0xFF5E0B0B), RoundedCornerShape(8.dp))
+            .border(3.dp, frameOuterColor, RoundedCornerShape(8.dp))
             .padding(2.dp)
-            .border(1.dp, Color(0xFF8B1E1E), RoundedCornerShape(6.dp))
+            .border(1.dp, frameInnerColor, RoundedCornerShape(6.dp))
             .padding(3.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
