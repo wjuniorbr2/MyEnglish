@@ -59,34 +59,37 @@ fun BookScreen(
 ) {
     val context = LocalContext.current
     val handler = remember { Handler(Looper.getMainLooper()) }
-    var player by remember { mutableStateOf<MediaPlayer?>(null) }
+    val playerRef = remember { arrayOf<MediaPlayer?>(null) }
     var showGrammarInfo by remember { mutableStateOf(false) }
 
     fun stop() {
         handler.removeCallbacksAndMessages(null)
-        try { player?.stop() } catch (_: Exception) { }
-        try { player?.release() } catch (_: Exception) { }
-        player = null
+        try { playerRef[0]?.stop() } catch (_: Exception) { }
+        try { playerRef[0]?.release() } catch (_: Exception) { }
+        playerRef[0] = null
     }
 
     fun playSegment(item: BookAudioItem) {
         stop()
         val currentPlayer = MediaPlayer.create(context, item.audioResId) ?: return
-        player = currentPlayer
+        playerRef[0] = currentPlayer
         currentPlayer.setVolume(1f, 1f)
 
-        val bufferedStart = (item.startMs - 260).coerceAtLeast(0)
-        val duration = (item.endMs - item.startMs + 760).coerceAtLeast(350)
+        val isAlphabetItem = item.audioResId == Lesson1BookData.ALPHABET_AUDIO_RES_ID && item.english != "THE ALPHABET"
+        val beforeBuffer = if (isAlphabetItem) 90 else 260
+        val afterBuffer = if (isAlphabetItem) 230 else 760
+        val bufferedStart = (item.startMs - beforeBuffer).coerceAtLeast(0)
+        val duration = (item.endMs - item.startMs + beforeBuffer + afterBuffer).coerceAtLeast(350)
 
         currentPlayer.seekTo(bufferedStart)
         currentPlayer.start()
-        handler.postDelayed({ if (player == currentPlayer) stop() }, duration.toLong())
+        handler.postDelayed({ if (playerRef[0] == currentPlayer) stop() }, duration.toLong())
     }
 
     fun playFull(resId: Int) {
         stop()
         val currentPlayer = MediaPlayer.create(context, resId) ?: return
-        player = currentPlayer
+        playerRef[0] = currentPlayer
         currentPlayer.setVolume(1f, 1f)
         currentPlayer.start()
         currentPlayer.setOnCompletionListener { stop() }
@@ -148,18 +151,8 @@ fun BookScreen(
 
             FramedSection {
                 SectionTitle(Lesson1BookData.grammarTitle) {
-                    playSegment(Lesson1BookData.grammarTitle)
                     showGrammarInfo = true
-                }
-
-                if (showGrammarInfo) {
-                    GrammarBalloon(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 6.dp)
-                    ) {
-                        showGrammarInfo = false
-                    }
+                    playSegment(Lesson1BookData.grammarTitle)
                 }
 
                 Text(
@@ -214,6 +207,16 @@ fun BookScreen(
                 backgroundResId = R.drawable.redbutton
             )
             Spacer(Modifier.height(18.dp))
+        }
+
+        if (showGrammarInfo) {
+            GrammarBalloon(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 230.dp, start = 14.dp, end = 14.dp)
+            ) {
+                showGrammarInfo = false
+            }
         }
     }
 }
