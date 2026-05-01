@@ -129,6 +129,8 @@ fun AppRoot() {
     BackHandler(enabled = screen != "home") {
         if (screen == "homework") {
             screen = "lesson"
+        } else if (screen == "book") {
+            screen = "lesson"
         } else if (screen == "lesson") {
             screen = "home"
         }
@@ -161,8 +163,16 @@ fun AppRoot() {
                 listeningDone = listeningDoneForLesson(selectedLesson),
                 showChoices = showChoices,
                 showHomework = { showChoices = true },
+                openBook = { screen = "book" },
                 openListening = { openListeningHomework() },
                 back = { screen = "home" }
+            )
+        }
+
+        "book" -> {
+            BookScreen(
+                lessonName = selectedLesson,
+                back = { screen = "lesson" }
             )
         }
 
