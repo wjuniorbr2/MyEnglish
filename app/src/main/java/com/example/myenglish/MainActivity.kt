@@ -1,5 +1,9 @@
 package com.example.myenglish
 
+import com.example.myenglish.components.StudentNameDialog
+import com.example.myenglish.screens.AppWithSplash
+import com.example.myenglish.components.Header
+import com.example.myenglish.components.StrokeGlowTitle
 import com.example.myenglish.components.StudentBadge
 import com.example.myenglish.components.ArtButton
 import com.example.myenglish.components.HomeworkIcon
@@ -83,104 +87,6 @@ class MainActivity : ComponentActivity() {
     override fun finish() {
         super.finish()
         overridePendingTransition(0, 0)
-    }
-}
-
-@Composable
-fun AppWithSplash(activity: Activity) {
-    var splashVisible by remember { mutableStateOf(true) }
-    var alphaTarget by remember { mutableStateOf(0f) }
-    val alpha by animateFloatAsState(alphaTarget, animationSpec = tween(950), label = "splashAlpha")
-
-    DisposableEffect(Unit) {
-        val handler = Handler(Looper.getMainLooper())
-        handler.postDelayed({ alphaTarget = 1f }, 420)
-        handler.postDelayed({ alphaTarget = 0f }, 2750)
-        handler.postDelayed({ splashVisible = false; restoreAppWindow(activity) }, 3950)
-        onDispose { handler.removeCallbacksAndMessages(null) }
-    }
-
-    if (splashVisible) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Image(
-                painter = painterResource(id = R.drawable.appsplash),
-                contentDescription = "My English splash",
-                modifier = Modifier.fillMaxWidth(0.92f).alpha(alpha),
-                contentScale = ContentScale.Fit
-            )
-        }
-    } else {
-        AppBackground {
-            AppRoot()
-        }
-    }
-}
-
-@Composable
-fun AppBackground(content: @Composable () -> Unit) {
-    Box(Modifier.fillMaxSize()) {
-        Image(
-            painter = painterResource(id = R.drawable.screenbg),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-        content()
-    }
-}
-
-@Composable
-fun Header(leftTitle: String, subtitle: String? = null) {
-    val context = LocalContext.current
-    val titleId = remember { context.resources.getIdentifier("title", "drawable", context.packageName) }
-
-    Box(Modifier.fillMaxWidth().height(128.dp)) {
-        Column(
-            Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 14.dp, top = if (subtitle == null) 30.dp else 22.dp)
-        ) {
-            StrokeGlowTitle(leftTitle)
-            if (subtitle != null) {
-                Spacer(Modifier.height(2.dp))
-                StrokeGlowTitle(subtitle, fontSize = 24)
-            }
-        }
-
-        if (titleId != 0) {
-            Image(
-                painter = painterResource(id = titleId),
-                contentDescription = "My English",
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = 18.dp)
-                    .width(306.dp)
-                    .height(127.dp),
-                contentScale = ContentScale.Fit
-            )
-        } else {
-            StrokeGlowTitle("My English", Modifier.align(Alignment.TopEnd).padding(top = 30.dp), 26)
-        }
-    }
-}
-
-@Composable
-fun StrokeGlowTitle(text: String, modifier: Modifier = Modifier, fontSize: Int = 28) {
-    Box(modifier.padding(top = 6.dp)) {
-        val style = LocalTextStyle.current.copy(
-            fontFamily = FontFamily.Serif,
-            shadow = Shadow(Color.White, Offset(0f, 0f), 13f)
-        )
-
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(3.dp, 3.dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset((-3).dp, 0.dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(3.dp, 0.dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(0.dp, (-3).dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(0.dp, 3.dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset((-2).dp, (-2).dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(2.dp, (-2).dp))
-        Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset((-2).dp, 2.dp))
-        Text(text, color = Color.White, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style)
     }
 }
 
@@ -406,34 +312,6 @@ fun AppRoot() {
             )
         }
     }
-}
-
-@Composable
-fun StudentNameDialog(currentName: String, onSave: (String) -> Unit) {
-    var nameText by remember { mutableStateOf(currentName) }
-
-    AlertDialog(
-        onDismissRequest = { },
-        title = { Text("Student name") },
-        text = {
-            TextField(
-                value = nameText,
-                onValueChange = { nameText = it },
-                label = { Text("First name and initial") }
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (cleanAnswer(nameText) != "") {
-                        onSave(nameText)
-                    }
-                }
-            ) {
-                Text("Save")
-            }
-        }
-    )
 }
 
 @Composable
