@@ -36,10 +36,12 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myenglish.R
@@ -69,9 +71,13 @@ fun BookScreen(
         val currentPlayer = MediaPlayer.create(context, item.audioResId) ?: return
         player = currentPlayer
         currentPlayer.setVolume(1f, 1f)
-        currentPlayer.seekTo(item.startMs)
+
+        val bufferedStart = (item.startMs - 170).coerceAtLeast(0)
+        val duration = (item.endMs - item.startMs + 340).coerceAtLeast(250)
+
+        currentPlayer.seekTo(bufferedStart)
         currentPlayer.start()
-        handler.postDelayed({ if (player == currentPlayer) stop() }, (item.endMs - item.startMs).toLong())
+        handler.postDelayed({ if (player == currentPlayer) stop() }, duration.toLong())
     }
 
     fun playFull(resId: Int) {
@@ -160,6 +166,7 @@ fun BookScreen(
                     color = Color.White,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 5.dp, bottom = 3.dp)
@@ -172,16 +179,22 @@ fun BookScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "ALPHABET",
-                    color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Black,
+                Box(
                     modifier = Modifier
-                        .background(Color(0x99000000), RoundedCornerShape(8.dp))
+                        .background(Color(0xAA111111), RoundedCornerShape(12.dp))
+                        .border(4.dp, Color(0xFF5E0B0B), RoundedCornerShape(12.dp))
+                        .padding(3.dp)
+                        .border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(10.dp))
                         .clickable { playSegment(Lesson1BookData.alphabetTitle) }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                ) {
+                    Text(
+                        text = "ALPHABET",
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
                 ArtButton(
                     text = "▶ ABC",
                     onClick = { playFull(Lesson1BookData.ALPHABET_AUDIO_RES_ID) },
@@ -206,44 +219,46 @@ fun BookScreen(
 
 @Composable
 private fun FramedSection(content: @Composable () -> Unit) {
-    Column(
+    Box(
         Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp)
-            .background(Color(0xAA111111), RoundedCornerShape(12.dp))
-            .border(BorderStroke(2.dp, Color(0xFF555555)), RoundedCornerShape(12.dp))
+            .background(Color(0xAA111111), RoundedCornerShape(14.dp))
+            .border(4.dp, Color(0xFF5E0B0B), RoundedCornerShape(14.dp))
+            .padding(4.dp)
+            .border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(12.dp))
             .padding(7.dp)
     ) {
-        content()
+        Column {
+            content()
+        }
     }
 }
 
 @Composable
 private fun GrammarBalloon(modifier: Modifier, close: () -> Unit) {
     Box(
-        modifier
-            .width(315.dp)
-            .clickable { close() }
+        modifier.width(315.dp)
     ) {
-        Canvas(Modifier.matchParentSize().height(120.dp)) {
+        Canvas(Modifier.matchParentSize().height(128.dp)) {
             val path = Path().apply {
                 moveTo(18f, 18f)
-                quadraticBezierTo(18f, 0f, 36f, 0f)
+                quadraticTo(18f, 0f, 36f, 0f)
                 lineTo(size.width - 18f, 0f)
-                quadraticBezierTo(size.width, 0f, size.width, 18f)
+                quadraticTo(size.width, 0f, size.width, 18f)
                 lineTo(size.width, 88f)
-                quadraticBezierTo(size.width, 106f, size.width - 18f, 106f)
+                quadraticTo(size.width, 106f, size.width - 18f, 106f)
                 lineTo(45f, 106f)
                 lineTo(18f, 128f)
                 lineTo(26f, 106f)
                 lineTo(18f, 106f)
-                quadraticBezierTo(0f, 106f, 0f, 88f)
+                quadraticTo(0f, 106f, 0f, 88f)
                 lineTo(0f, 18f)
-                quadraticBezierTo(0f, 0f, 18f, 0f)
+                quadraticTo(0f, 0f, 18f, 0f)
                 close()
             }
             drawPath(path, Color(0xFFF4F4F4))
-            drawPath(path, Color(0xFF555555), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3f))
+            drawPath(path, Color(0xFF555555), style = Stroke(width = 3f))
         }
 
         Text(
@@ -252,23 +267,40 @@ private fun GrammarBalloon(modifier: Modifier, close: () -> Unit) {
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             lineHeight = 17.sp,
-            modifier = Modifier.padding(start = 12.dp, top = 10.dp, end = 12.dp, bottom = 22.dp)
+            modifier = Modifier.padding(start = 12.dp, top = 10.dp, end = 12.dp, bottom = 28.dp)
+        )
+
+        Text(
+            text = "OK",
+            color = Color(0xFF7A0000),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Black,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 12.dp, bottom = 10.dp)
+                .clickable { close() }
         )
     }
 }
 
 @Composable
 private fun AudioTitle(item: BookAudioItem, onClick: () -> Unit) {
-    Text(
-        text = item.english,
-        color = Color.White,
-        fontSize = 24.sp,
-        fontWeight = FontWeight.Black,
+    Box(
         modifier = Modifier
-            .background(Color(0xAA000000), RoundedCornerShape(8.dp))
+            .background(Color(0xAA111111), RoundedCornerShape(12.dp))
+            .border(4.dp, Color(0xFF5E0B0B), RoundedCornerShape(12.dp))
+            .padding(3.dp)
+            .border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(10.dp))
             .clickable { onClick() }
             .padding(horizontal = 12.dp, vertical = 5.dp)
-    )
+    ) {
+        Text(
+            text = item.english,
+            color = Color.White,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Black
+        )
+    }
 }
 
 @Composable
@@ -278,6 +310,7 @@ private fun SectionTitle(item: BookAudioItem, modifier: Modifier = Modifier, onC
         color = Color.White,
         fontSize = 19.sp,
         fontWeight = FontWeight.Black,
+        textAlign = TextAlign.Center,
         modifier = modifier
             .fillMaxWidth()
             .padding(bottom = 4.dp)
@@ -310,18 +343,28 @@ private fun WordGrid(items: Array<BookAudioItem>, columns: Int, play: (BookAudio
 
 @Composable
 private fun WordCell(item: BookAudioItem, modifier: Modifier, play: (BookAudioItem) -> Unit) {
-    Box(
-        modifier
+    Column(
+        modifier = modifier
             .clickable { play(item) }
-            .padding(5.dp)
+            .padding(horizontal = 5.dp, vertical = 6.dp)
     ) {
         Text(
-            text = item.english + if (item.translation != "") " - " + item.translation else "",
+            text = item.english,
             color = Color.White,
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            lineHeight = 17.sp
+            lineHeight = 18.sp
         )
+
+        if (item.translation.isNotEmpty()) {
+            Text(
+                text = item.translation,
+                color = Color(0xFFE0E0E0),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Normal,
+                lineHeight = 13.sp
+            )
+        }
     }
 }
 
@@ -351,7 +394,10 @@ private fun AlphabetCell(item: BookAudioItem, play: (BookAudioItem) -> Unit) {
     Column(
         modifier = Modifier
             .width(42.dp)
-            .background(Color(0xAA000000), RoundedCornerShape(6.dp))
+            .background(Color(0xAA111111), RoundedCornerShape(8.dp))
+            .border(3.dp, Color(0xFF5E0B0B), RoundedCornerShape(8.dp))
+            .padding(2.dp)
+            .border(1.dp, Color(0xFF8B1E1E), RoundedCornerShape(6.dp))
             .padding(3.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -364,7 +410,7 @@ private fun AlphabetCell(item: BookAudioItem, play: (BookAudioItem) -> Unit) {
         )
         Text(
             text = item.translation,
-            color = Color.White,
+            color = Color(0xFFE0E0E0),
             fontSize = 9.sp
         )
     }
