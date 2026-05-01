@@ -12,11 +12,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.example.myenglish.components.StudentNameDialog
 import com.example.myenglish.data.HomeworkData
-import com.example.myenglish.utils.attemptPrefix
+import com.example.myenglish.utils.clearAttempt
 import com.example.myenglish.utils.displayStudentName
-import com.example.myenglish.utils.joinBooleans
-import com.example.myenglish.utils.joinInts
-import com.example.myenglish.utils.joinStrings
+import com.example.myenglish.utils.resetAttemptLists
+import com.example.myenglish.utils.restoreAttempt
+import com.example.myenglish.utils.saveAttempt
 
 @Composable
 fun AppRoot() {
@@ -43,73 +43,50 @@ fun AppRoot() {
     var report by remember { mutableStateOf("") }
 
     fun resetAttempt(sentenceCount: Int) {
-        answers.clear()
-        plays.clear()
-        hints.clear()
-        firstCorrect.clear()
-
-        var i = 0
-        while (i < sentenceCount) {
-            answers.add("")
-            plays.add(0)
-            hints.add(0)
-            firstCorrect.add(false)
-            i++
-        }
+        resetAttemptLists(
+            sentenceCount = sentenceCount,
+            answers = answers,
+            plays = plays,
+            hints = hints,
+            firstCorrect = firstCorrect
+        )
     }
 
-    fun saveAttempt() {
-        val prefix = attemptPrefix(activeHomeworkLesson)
-        prefs.edit()
-            .putBoolean(prefix + "in_progress", submitStep != 2)
-            .putString(prefix + "answers", joinStrings(answers))
-            .putString(prefix + "plays", joinInts(plays))
-            .putString(prefix + "hints", joinInts(hints))
-            .putString(prefix + "first_correct", joinBooleans(firstCorrect))
-            .putInt(prefix + "submit_step", submitStep)
-            .putInt(prefix + "score", score)
-            .putString(prefix + "message", message)
-            .apply()
+    fun saveCurrentAttempt() {
+        saveAttempt(
+            prefs = prefs,
+            lessonName = activeHomeworkLesson,
+            submitStep = submitStep,
+            score = score,
+            message = message,
+            answers = answers,
+            plays = plays,
+            hints = hints,
+            firstCorrect = firstCorrect
+        )
     }
 
-    fun clearAttempt(lessonName: String) {
-        val prefix = attemptPrefix(lessonName)
-        prefs.edit()
-            .remove(prefix + "in_progress")
-            .remove(prefix + "answers")
-            .remove(prefix + "plays")
-            .remove(prefix + "hints")
-            .remove(prefix + "first_correct")
-            .remove(prefix + "submit_step")
-            .remove(prefix + "score")
-            .remove(prefix + "message")
-            .apply()
+    fun clearCurrentAttempt(lessonName: String) {
+        clearAttempt(
+            prefs = prefs,
+            lessonName = lessonName
+        )
     }
 
-    fun restoreAttempt(lessonName: String, sentenceCount: Int): Boolean {
-        val prefix = attemptPrefix(lessonName)
-        if (!prefs.getBoolean(prefix + "in_progress", false)) return false
+    fun restoreCurrentAttempt(lessonName: String, sentenceCount: Int): Boolean {
+        val restoredAttempt = restoreAttempt(
+            prefs = prefs,
+            lessonName = lessonName,
+            sentenceCount = sentenceCount,
+            answers = answers,
+            plays = plays,
+            hints = hints,
+            firstCorrect = firstCorrect
+        ) ?: return false
 
-        resetAttempt(sentenceCount)
-
-        val savedAnswers = prefs.getString(prefix + "answers", "") ?: ""
-        val answerParts = if (savedAnswers == "") emptyList() else savedAnswers.split("<|>")
-        val playParts = (prefs.getString(prefix + "plays", "") ?: "").split(",")
-        val hintParts = (prefs.getString(prefix + "hints", "") ?: "").split(",")
-        val correctParts = (prefs.getString(prefix + "first_correct", "") ?: "").split(",")
-
-        var i = 0
-        while (i < sentenceCount) {
-            if (i < answerParts.size) answers[i] = answerParts[i]
-            if (i < playParts.size) plays[i] = playParts[i].toIntOrNull() ?: 0
-            if (i < hintParts.size) hints[i] = hintParts[i].toIntOrNull() ?: 0
-            if (i < correctParts.size) firstCorrect[i] = correctParts[i] == "1"
-            i++
-        }
-
-        submitStep = prefs.getInt(prefix + "submit_step", 0)
-        score = prefs.getInt(prefix + "score", 0)
-        message = prefs.getString(prefix + "message", "") ?: ""
+        submitStep = restoredAttempt.submitStep
+        score = restoredAttempt.score
+        message = restoredAttempt.message
 
         return true
     }
@@ -137,14 +114,14 @@ fun AppRoot() {
             prefs.edit().putBoolean("lesson2_listening_done", true).apply()
         }
 
-        clearAttempt(lessonName)
+        clearCurrentAttempt(lessonName)
     }
 
     fun openListeningHomework() {
         val sentences = HomeworkData.sentencesForLesson(selectedLesson)
         activeHomeworkLesson = selectedLesson
 
-        val restored = restoreAttempt(selectedLesson, sentences.size)
+        val restored = restoreCurrentAttempt(selectedLesson, sentences.size)
 
         if (!restored || submitStep == 2 || answers.size != sentences.size) {
             resetAttempt(sentences.size)
@@ -215,21 +192,21 @@ fun AppRoot() {
                 msg = message,
                 setScore = {
                     score = it
-                    saveAttempt()
+                    saveCurrentAttempt()
                 },
                 setStep = {
                     submitStep = it
-                    saveAttempt()
+                    saveCurrentAttempt()
                 },
                 setMsg = {
                     message = it
-                    saveAttempt()
+                    saveCurrentAttempt()
                 },
                 setReport = {
                     report = it
                 },
                 onAttemptChanged = {
-                    saveAttempt()
+                    saveCurrentAttempt()
                 },
                 done = {
                     markListeningDone(activeHomeworkLesson)
