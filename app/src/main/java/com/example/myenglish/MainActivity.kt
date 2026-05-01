@@ -1,10 +1,15 @@
 package com.example.myenglish
 
+import com.example.myenglish.utils.attemptPrefix
+import com.example.myenglish.utils.currentDateTimeText
+import com.example.myenglish.utils.displayStudentName
+import com.example.myenglish.utils.joinBooleans
+import com.example.myenglish.utils.joinInts
+import com.example.myenglish.utils.joinStrings
 import com.example.myenglish.utils.prepareSplashWindow
 import com.example.myenglish.utils.restoreAppWindow
 import com.example.myenglish.utils.canUseHint
 import com.example.myenglish.utils.cleanAnswer
-import com.example.myenglish.utils.countWords
 import com.example.myenglish.utils.isCorrectAnswer
 import com.example.myenglish.utils.revealedHintText
 import com.example.myenglish.data.HomeworkSentence
@@ -57,10 +62,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myenglish.ui.theme.MyEnglishTheme
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.StringTokenizer
+import com.example.myenglish.utils.countWords
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -184,64 +186,6 @@ private object HomeworkData {
     fun hasListeningHomework(lessonName: String): Boolean {
         return lessonName == "Lesson 1" || lessonName == "Lesson 2" || lessonName == "Lesson 3"
     }
-}
-
-fun currentDateTimeText(): String {
-    val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-    return formatter.format(Date())
-}
-
-fun displayStudentName(fullName: String): String {
-    val parts = StringTokenizer(fullName, " ")
-    if (!parts.hasMoreTokens()) return "Student"
-
-    val firstName = parts.nextToken()
-
-    if (parts.hasMoreTokens()) {
-        val secondName = parts.nextToken()
-        if (secondName.isNotEmpty()) {
-            return firstName + " " + Character.toUpperCase(secondName[0]) + "."
-        }
-    }
-
-    return firstName
-}
-
-fun attemptPrefix(lessonName: String): String {
-    return lessonName.lowercase(Locale.ROOT).replace(" ", "_") + "_listening_"
-}
-
-fun joinStrings(values: List<String>): String {
-    val builder = StringBuilder()
-    var i = 0
-    while (i < values.size) {
-        if (i > 0) builder.append("<|>")
-        builder.append(values[i].replace("<|>", " "))
-        i++
-    }
-    return builder.toString()
-}
-
-fun joinInts(values: List<Int>): String {
-    val builder = StringBuilder()
-    var i = 0
-    while (i < values.size) {
-        if (i > 0) builder.append(",")
-        builder.append(values[i])
-        i++
-    }
-    return builder.toString()
-}
-
-fun joinBooleans(values: List<Boolean>): String {
-    val builder = StringBuilder()
-    var i = 0
-    while (i < values.size) {
-        if (i > 0) builder.append(",")
-        builder.append(if (values[i]) "1" else "0")
-        i++
-    }
-    return builder.toString()
 }
 
 @Composable
