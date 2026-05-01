@@ -3,6 +3,7 @@ package com.example.myenglish.screens
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -76,6 +78,7 @@ fun Homework(
     val handler = remember { Handler(Looper.getMainLooper()) }
     var player by remember { mutableStateOf<MediaPlayer?>(null) }
     val focus = remember(sentences.size) { Array(sentences.size) { FocusRequester() } }
+    val rowPositions = remember(sentences.size) { IntArray(sentences.size) }
 
     LaunchedEffect(scroll.isScrollInProgress) {
         if (scroll.isScrollInProgress) focusManager.clearFocus()
@@ -99,8 +102,9 @@ fun Homework(
     }
 
     fun scrollSentenceToMiddle(index: Int) {
-        val estimatedRowHeightPx = 330
-        val target = (index * estimatedRowHeightPx - 260).coerceAtLeast(0)
+        val rowTop = rowPositions[index]
+        val viewportMiddle = scroll.viewportSize / 2
+        val target = (rowTop - viewportMiddle).coerceAtLeast(0)
         scrollScope.launch {
             scroll.animateScrollTo(target)
         }
@@ -259,35 +263,41 @@ fun Homework(
             val index = i
             val sentence = sentences[index]
 
-            SentenceRow(
-                sentence = sentence,
-                answer = answers[index],
-                change = {
-                    answers[index] = it
-                    onAttemptChanged()
-                },
-                playCount = plays[index],
-                submitStep = submitStep,
-                firstOk = firstCorrect[index],
-                currentOk = isCorrectAnswer(answers[index], sentence.correctText),
-                hintCount = hints[index],
-                focus = focus[index],
-                play = {
-                    plays[index]++
-                    onAttemptChanged()
-                    play(index, sentence.startMs, sentence.endMs)
-                },
-                stop = {
-                    stop()
-                },
-                hint = {
-                    if (canUseHint(answers[index], plays[index], submitStep >= 1, hints[index], sentence.correctText)) {
-                        hints[index]++
-                        setReport(buildReport(score))
-                        onAttemptChanged()
-                    }
+            Box(
+                modifier = Modifier.onGloballyPositioned { coordinates ->
+                    rowPositions[index] = coordinates.positionInParent().y.toInt()
                 }
-            )
+            ) {
+                SentenceRow(
+                    sentence = sentence,
+                    answer = answers[index],
+                    change = {
+                        answers[index] = it
+                        onAttemptChanged()
+                    },
+                    playCount = plays[index],
+                    submitStep = submitStep,
+                    firstOk = firstCorrect[index],
+                    currentOk = isCorrectAnswer(answers[index], sentence.correctText),
+                    hintCount = hints[index],
+                    focus = focus[index],
+                    play = {
+                        plays[index]++
+                        onAttemptChanged()
+                        play(index, sentence.startMs, sentence.endMs)
+                    },
+                    stop = {
+                        stop()
+                    },
+                    hint = {
+                        if (canUseHint(answers[index], plays[index], submitStep >= 1, hints[index], sentence.correctText)) {
+                            hints[index]++
+                            setReport(buildReport(score))
+                            onAttemptChanged()
+                        }
+                    }
+                )
+            }
 
             Spacer(Modifier.height(12.dp))
             i++
