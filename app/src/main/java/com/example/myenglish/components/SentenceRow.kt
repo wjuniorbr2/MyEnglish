@@ -13,6 +13,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -105,6 +109,8 @@ fun SentenceRow(
     modifier: Modifier = Modifier,
     messageIndex: Int = 0
 ) {
+    var correctionEdited by remember(submitStep) { mutableStateOf(false) }
+
     Card(
         modifier.fillMaxWidth(),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
@@ -157,9 +163,17 @@ fun SentenceRow(
 
             TextField(
                 value = answer,
-                onValueChange = change,
+                onValueChange = {
+                    if (submitStep == 1) {
+                        correctionEdited = true
+                    }
+                    change(it)
+                },
                 visualTransformation = if (submitStep == 1 && !currentOk) {
-                    CorrectionVisualTransformation(sentence.correctText)
+                    CorrectionVisualTransformation(
+                        correctText = sentence.correctText,
+                        includeOpenWord = !correctionEdited
+                    )
                 } else {
                     VisualTransformation.None
                 },
@@ -210,12 +224,13 @@ fun SentenceRow(
 }
 
 private class CorrectionVisualTransformation(
-    private val correctText: String
+    private val correctText: String,
+    private val includeOpenWord: Boolean
 ) : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         val rawText = text.text
         val correctedWords = cleanAnswer(correctText).split(" ").filter { it.isNotEmpty() }
-        val ranges = completedWordRanges(rawText)
+        val ranges = completedWordRanges(rawText, includeOpenWord)
 
         val annotated = buildAnnotatedString {
             append(rawText)
@@ -241,7 +256,7 @@ private class CorrectionVisualTransformation(
     }
 }
 
-private fun completedWordRanges(text: String): List<IntRange> {
+private fun completedWordRanges(text: String, includeOpenWord: Boolean): List<IntRange> {
     val ranges = mutableListOf<IntRange>()
     var wordStart = -1
     var i = 0
@@ -259,6 +274,10 @@ private fun completedWordRanges(text: String): List<IntRange> {
         }
 
         i++
+    }
+
+    if (includeOpenWord && wordStart != -1) {
+        ranges.add(IntRange(wordStart, text.length))
     }
 
     return ranges
