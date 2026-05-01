@@ -173,7 +173,7 @@ fun Homework(
 
         setScore(currentScore)
         setStep(1)
-        setMsg("First attempt score: $currentScore / ${sentences.size}")
+        setMsg("Pretty good! The commas are clapping. $currentScore / ${sentences.size}")
         setReport(buildReport(currentScore))
         onAttemptChanged()
         topReq++
@@ -194,7 +194,7 @@ fun Homework(
         if (allCorrect) {
             val finalReport = buildReport(score)
 
-            setMsg("Sending your lesson report to your teacher...")
+            setMsg("Delivering your masterpiece...")
             setReport(finalReport)
 
             sendHomeworkReportToTeacher(
@@ -208,14 +208,14 @@ fun Homework(
                     if (success) {
                         setStep(2)
                         done()
-                        setMsg("Report sent successfully.")
+                        setMsg("Boom! Your report has landed.")
                     } else {
                         setMsg("Failed to send report. Please try again.")
                     }
                 }
             }
         } else {
-            setMsg("Some corrections are still incorrect. Please check the red X sentences.")
+            setMsg("The red Xs are still causing drama. Mission: eliminate red Xs")
             setReport(buildReport(score))
             onAttemptChanged()
         }
@@ -240,10 +240,10 @@ fun Homework(
             Spacer(Modifier.height(8.dp))
             Text(
                 text = msg,
-                color = Color.White,
+                color = Color(0xFF555555),
                 fontWeight = FontWeight.Bold,
                 style = LocalTextStyle.current.copy(
-                    shadow = Shadow(Color.Black, Offset(1f, 1f), 5f)
+                    shadow = Shadow(Color.White, Offset(1f, 1f), 3f)
                 )
             )
         }
@@ -252,7 +252,7 @@ fun Homework(
             Spacer(Modifier.height(4.dp))
             Text(
                 text = "Audio file not found in res/raw.",
-                color = Color.White,
+                color = Color(0xFF555555),
                 fontWeight = FontWeight.Bold
             )
         }
@@ -296,7 +296,8 @@ fun Homework(
                             setReport(buildReport(score))
                             onAttemptChanged()
                         }
-                    }
+                    },
+                    messageIndex = index
                 )
             }
 
