@@ -1,6 +1,7 @@
 package com.example.myenglish.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +69,15 @@ fun Lesson(
             onClick = showHomework,
             heightDp = 78,
             content = {
+                if (listeningDone) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .padding(5.dp)
+                            .background(Color(0x5537D67A), RoundedCornerShape(16.dp))
+                    )
+                }
+
                 Text(
                     text = "Homework",
                     modifier = Modifier
