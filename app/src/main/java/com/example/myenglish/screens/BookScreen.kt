@@ -3,7 +3,11 @@ package com.example.myenglish.screens
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,14 +17,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -30,14 +33,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.Image
 import com.example.myenglish.R
 import com.example.myenglish.components.ArtButton
 import com.example.myenglish.data.BookAudioItem
@@ -83,19 +87,6 @@ fun BookScreen(
         onDispose { stop() }
     }
 
-    if (showGrammarInfo) {
-        AlertDialog(
-            onDismissRequest = { showGrammarInfo = false },
-            title = { Text("Grammar") },
-            text = { Text("Aqui estamos aprendendo o presente de algumas frases nas formas positiva, negativa, interrogativa e interrogativa negativa.") },
-            confirmButton = {
-                TextButton(onClick = { showGrammarInfo = false }) {
-                    Text("OK")
-                }
-            }
-        )
-    }
-
     Box(Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(id = R.drawable.screenbg),
@@ -131,38 +122,50 @@ fun BookScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            SectionTitle(Lesson1BookData.verbsTitle) { playSegment(Lesson1BookData.verbsTitle) }
-            WordGrid(Lesson1BookData.verbs, 3, ::playSegment)
-
-            SectionTitle(Lesson1BookData.vocabularyTitle) { playSegment(Lesson1BookData.vocabularyTitle) }
-            WordGrid(Lesson1BookData.vocabulary, 3, ::playSegment)
-
-            SectionTitle(Lesson1BookData.expressionsTitle) { playSegment(Lesson1BookData.expressionsTitle) }
-            WordGrid(Lesson1BookData.expressions, 2, ::playSegment)
-
-            Row(
-                Modifier.fillMaxWidth().padding(top = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SectionTitle(
-                    item = Lesson1BookData.grammarTitle,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    playSegment(Lesson1BookData.grammarTitle)
-                    showGrammarInfo = true
-                }
+            FramedSection {
+                SectionTitle(Lesson1BookData.verbsTitle) { playSegment(Lesson1BookData.verbsTitle) }
+                WordGrid(Lesson1BookData.verbs, 3, ::playSegment)
             }
-            Text(
-                text = "Presente nas formas + positiva, - negativa, ? interrogativa e ?- interrogativa negativa",
-                color = Color.White,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0x99000000), RoundedCornerShape(6.dp))
-                    .padding(6.dp)
-            )
-            WordGrid(Lesson1BookData.grammarSentences, 2, ::playSegment)
+
+            FramedSection {
+                SectionTitle(Lesson1BookData.vocabularyTitle) { playSegment(Lesson1BookData.vocabularyTitle) }
+                WordGrid(Lesson1BookData.vocabulary, 3, ::playSegment)
+            }
+
+            FramedSection {
+                SectionTitle(Lesson1BookData.expressionsTitle) { playSegment(Lesson1BookData.expressionsTitle) }
+                WordGrid(Lesson1BookData.expressions, 2, ::playSegment)
+            }
+
+            FramedSection {
+                Box(Modifier.fillMaxWidth()) {
+                    SectionTitle(Lesson1BookData.grammarTitle) {
+                        playSegment(Lesson1BookData.grammarTitle)
+                        showGrammarInfo = true
+                    }
+
+                    if (showGrammarInfo) {
+                        GrammarBalloon(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(x = 4.dp, y = 38.dp)
+                        ) {
+                            showGrammarInfo = false
+                        }
+                    }
+                }
+
+                Text(
+                    text = "Presente nas formas + positiva, - negativa, ? interrogativa e ?- interrogativa negativa",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 5.dp, bottom = 3.dp)
+                )
+                WordGrid(Lesson1BookData.grammarSentences, 2, ::playSegment)
+            }
 
             Row(
                 Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -176,6 +179,7 @@ fun BookScreen(
                     fontWeight = FontWeight.Black,
                     modifier = Modifier
                         .background(Color(0x99000000), RoundedCornerShape(8.dp))
+                        .clickable { playSegment(Lesson1BookData.alphabetTitle) }
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
                 ArtButton(
@@ -197,6 +201,59 @@ fun BookScreen(
             )
             Spacer(Modifier.height(18.dp))
         }
+    }
+}
+
+@Composable
+private fun FramedSection(content: @Composable () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp)
+            .background(Color(0xAA111111), RoundedCornerShape(12.dp))
+            .border(BorderStroke(2.dp, Color(0xFF555555)), RoundedCornerShape(12.dp))
+            .padding(7.dp)
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun GrammarBalloon(modifier: Modifier, close: () -> Unit) {
+    Box(
+        modifier
+            .width(315.dp)
+            .clickable { close() }
+    ) {
+        Canvas(Modifier.matchParentSize().height(120.dp)) {
+            val path = Path().apply {
+                moveTo(18f, 18f)
+                quadraticBezierTo(18f, 0f, 36f, 0f)
+                lineTo(size.width - 18f, 0f)
+                quadraticBezierTo(size.width, 0f, size.width, 18f)
+                lineTo(size.width, 88f)
+                quadraticBezierTo(size.width, 106f, size.width - 18f, 106f)
+                lineTo(45f, 106f)
+                lineTo(18f, 128f)
+                lineTo(26f, 106f)
+                lineTo(18f, 106f)
+                quadraticBezierTo(0f, 106f, 0f, 88f)
+                lineTo(0f, 18f)
+                quadraticBezierTo(0f, 0f, 18f, 0f)
+                close()
+            }
+            drawPath(path, Color(0xFFF4F4F4))
+            drawPath(path, Color(0xFF555555), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3f))
+        }
+
+        Text(
+            text = "Aqui estamos aprendendo o presente de algumas frases nas formas positiva, negativa, interrogativa e interrogativa negativa.",
+            color = Color.Black,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            lineHeight = 17.sp,
+            modifier = Modifier.padding(start = 12.dp, top = 10.dp, end = 12.dp, bottom = 22.dp)
+        )
     }
 }
 
@@ -223,10 +280,9 @@ private fun SectionTitle(item: BookAudioItem, modifier: Modifier = Modifier, onC
         fontWeight = FontWeight.Black,
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 4.dp)
-            .background(Color(0x99000000), RoundedCornerShape(8.dp))
+            .padding(bottom = 4.dp)
             .clickable { onClick() }
-            .padding(7.dp)
+            .padding(3.dp)
     )
 }
 
@@ -256,7 +312,6 @@ private fun WordGrid(items: Array<BookAudioItem>, columns: Int, play: (BookAudio
 private fun WordCell(item: BookAudioItem, modifier: Modifier, play: (BookAudioItem) -> Unit) {
     Box(
         modifier
-            .background(Color(0xDD1F1F1F))
             .clickable { play(item) }
             .padding(5.dp)
     ) {
