@@ -41,10 +41,12 @@ fun Lesson(
     listeningDone: Boolean,
     showChoices: Boolean,
     showHomework: () -> Unit,
+    openBook: () -> Unit,
     openListening: () -> Unit,
     back: () -> Unit
 ) {
     val listeningAvailable = HomeworkData.hasListeningHomework(name)
+    val bookAvailable = name == "Lesson 1"
 
     Column(
         Modifier
@@ -55,10 +57,11 @@ fun Lesson(
         Header(name)
         Spacer(Modifier.height(14.dp))
 
-        ArtButton("Vocabulary", { })
-        Spacer(Modifier.height(7.dp))
-
-        ArtButton("Grammar", { })
+        ArtButton(
+            text = if (bookAvailable) "Book" else "Book - coming soon",
+            onClick = openBook,
+            enabled = bookAvailable
+        )
         Spacer(Modifier.height(7.dp))
 
         ArtButton("Practice", { })
