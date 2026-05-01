@@ -1,5 +1,6 @@
 package com.example.myenglish
 
+import com.example.myenglish.components.StudentBadge
 import com.example.myenglish.components.ArtButton
 import com.example.myenglish.components.HomeworkIcon
 import com.example.myenglish.data.HomeworkData
@@ -180,31 +181,6 @@ fun StrokeGlowTitle(text: String, modifier: Modifier = Modifier, fontSize: Int =
         Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset(2.dp, (-2).dp))
         Text(text, color = Color.Black, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style, modifier = Modifier.offset((-2).dp, 2.dp))
         Text(text, color = Color.White, fontSize = fontSize.sp, fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, style = style)
-    }
-}
-
-@Composable
-fun StudentBadge(studentName: String, onChangeName: () -> Unit, modifier: Modifier) {
-    Box(
-        modifier
-            .shadow(10.dp, RoundedCornerShape(14.dp))
-            .background(Color.White, RoundedCornerShape(14.dp))
-            .border(1.dp, Color.White, RoundedCornerShape(14.dp))
-            .padding(2.dp)
-            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
-            .clickable { onChangeName() }
-            .padding(horizontal = 22.dp, vertical = 8.dp)
-    ) {
-        Text(
-            text = studentName,
-            color = Color.Black,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Black,
-            fontFamily = FontFamily.Cursive,
-            style = LocalTextStyle.current.copy(
-                shadow = Shadow(Color(0x99000000), Offset(1.7f, 1.7f), 2f)
-            )
-        )
     }
 }
 
