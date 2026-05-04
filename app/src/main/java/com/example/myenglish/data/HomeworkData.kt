@@ -24,6 +24,8 @@ object HomeworkData {
 
     fun spokenSentencesForLesson(lessonName: String): Array<SpokenHomeworkSentence> {
         return when (lessonName) {
+            "Lesson 1" -> Lesson1SpokenData.sentences
+            "Lesson 2" -> Lesson2SpokenData.sentences
             "Lesson 3" -> Lesson3SpokenData.sentences
             else -> emptyArray()
         }
@@ -36,6 +38,8 @@ object HomeworkData {
     }
 
     fun hasSpokenHomework(lessonName: String): Boolean {
-        return lessonName == "Lesson 3"
+        return lessonName == "Lesson 1" ||
+                lessonName == "Lesson 2" ||
+                lessonName == "Lesson 3"
     }
 }
