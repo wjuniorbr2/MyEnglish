@@ -12,7 +12,7 @@ object Lesson2BookData : BookLessonData {
     override val title = BookAudioItem("LESSON 2", "", BOOK_AUDIO_RES_ID, 0, 2595, true)
     override val verbsTitle = BookAudioItem("VERBS", "", BOOK_AUDIO_RES_ID, 2595, 5200, true)
     override val vocabularyTitle = BookAudioItem("VOCABULARY", "", BOOK_AUDIO_RES_ID, 13095, 16160, true)
-    override val expressionsTitle = BookAudioItem("EXPRESSIONS", "", BOOK_AUDIO_RES_ID, 66120, 68675, true)
+    override val expressionsTitle = BookAudioItem("EXPRESSIONS", "", BOOK_AUDIO_RES_ID, 68675, 71495, true)
     override val grammarTitle = BookAudioItem("GRAMMAR", "", BOOK_AUDIO_RES_ID, 95040, 97625, true)
     override val alphabetTitle = Lesson1BookData.alphabetTitle
 
@@ -43,7 +43,7 @@ object Lesson2BookData : BookLessonData {
         BookAudioItem("with me", "comigo", BOOK_AUDIO_RES_ID, 63320, 66120, true),
         BookAudioItem("Spanish", "espanhol", BOOK_AUDIO_RES_ID, 29350, 32195, true),
         BookAudioItem("bad", "ruim, mal, mau", BOOK_AUDIO_RES_ID, 48760, 51185, true),
-        BookAudioItem("a", "um, uma (artigo numeral)", BOOK_AUDIO_RES_ID, 68675, 71495, true),
+        BookAudioItem("a", "um, uma (artigo numeral)", BOOK_AUDIO_RES_ID, 66120, 68675, true),
         BookAudioItem("Portuguese", "português", BOOK_AUDIO_RES_ID, 32195, 35175, true),
         BookAudioItem("or", "ou", BOOK_AUDIO_RES_ID, 51185, 53530, true)
     )
