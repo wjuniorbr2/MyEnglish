@@ -37,9 +37,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -68,6 +74,8 @@ fun WrittenHomework(
     val prefs = remember { context.getSharedPreferences("my_english_prefs", android.content.Context.MODE_PRIVATE) }
     val key = remember(name) { "written_progress_" + name.lowercase().replace(" ", "_") }
     val scroll = rememberScrollState()
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
 
     val answers = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
     val firstAnswers = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
@@ -126,6 +134,13 @@ fun WrittenHomework(
                 firstAnswers[i] = prefs.getString("${key}_first_$i", "") ?: ""
                 hints[i] = prefs.getString("${key}_hint_$i", "") ?: ""
             }
+        }
+    }
+
+    LaunchedEffect(scroll.isScrollInProgress) {
+        if (scroll.isScrollInProgress) {
+            focusManager.clearFocus()
+            keyboard?.hide()
         }
     }
 
@@ -293,7 +308,13 @@ private fun WrittenCard(
                 if (step >= 1) Text(if (ok) "✓" else "✕", color = if (ok) writtenGreen else writtenRed, fontSize = 54.sp)
             }
             Spacer(Modifier.height(8.dp))
-            TextField(value = answer, onValueChange = change, enabled = !submitted, modifier = Modifier.fillMaxWidth())
+            TextField(
+                value = answer,
+                onValueChange = change,
+                enabled = !submitted,
+                visualTransformation = if (step >= 1 && !ok) WrittenCorrectionVisualTransformation(sentence.english) else VisualTransformation.None,
+                modifier = Modifier.fillMaxWidth()
+            )
             if (step >= 1) {
                 Spacer(Modifier.height(8.dp))
                 Text("Correction:", fontWeight = FontWeight.Bold, color = Color(0xFF555555))
@@ -328,6 +349,25 @@ private fun WrittenCard(
                 }
             }
         }
+    }
+}
+
+private class WrittenCorrectionVisualTransformation(private val correctText: String) : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val rawText = text.text
+        val expectedWords = cleanAnswer(correctText).split(" ").filter { it.isNotBlank() }
+        val ranges = wordRanges(rawText)
+        val annotated = buildAnnotatedString {
+            append(rawText)
+            for (i in ranges.indices) {
+                val studentWord = cleanAnswer(rawText.substring(ranges[i].first, ranges[i].last))
+                val expectedWord = if (i < expectedWords.size) expectedWords[i] else ""
+                if (studentWord.isNotBlank() && studentWord != expectedWord) {
+                    addStyle(SpanStyle(color = writtenRed), ranges[i].first, ranges[i].last)
+                }
+            }
+        }
+        return TransformedText(annotated, OffsetMapping.Identity)
     }
 }
 
