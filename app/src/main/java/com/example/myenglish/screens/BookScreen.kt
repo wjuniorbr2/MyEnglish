@@ -3,8 +3,6 @@ package com.example.myenglish.screens
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,10 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -44,14 +38,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.myenglish.R
 import com.example.myenglish.components.ArtButton
 import com.example.myenglish.data.BookAudioItem
 import com.example.myenglish.data.Lesson1BookData
 
-private val frameOuterColor = Color(0xFF0D3D7A)
-private val frameInnerColor = Color(0xFF2E75C9)
+private val frameOuterColor = androidx.compose.ui.graphics.Color(0xFF0D3D7A)
+private val frameInnerColor = androidx.compose.ui.graphics.Color(0xFF2E75C9)
+private val darkPanelColor = androidx.compose.ui.graphics.Color(0xAA111111)
 
 @Composable
 fun BookScreen(
@@ -158,7 +154,7 @@ fun BookScreen(
 
                 Text(
                     text = "Presente nas formas + positiva, - negativa, ? interrogativa e ?- interrogativa negativa",
-                    color = Color.White,
+                    color = androidx.compose.ui.graphics.Color.White,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -176,7 +172,7 @@ fun BookScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .background(Color(0xAA111111), RoundedCornerShape(12.dp))
+                        .background(darkPanelColor, RoundedCornerShape(12.dp))
                         .border(4.dp, frameOuterColor, RoundedCornerShape(12.dp))
                         .padding(3.dp)
                         .border(2.dp, frameInnerColor, RoundedCornerShape(10.dp))
@@ -185,7 +181,7 @@ fun BookScreen(
                 ) {
                     Text(
                         text = "ALPHABET",
-                        color = Color.White,
+                        color = androidx.compose.ui.graphics.Color.White,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Black
                     )
@@ -209,23 +205,12 @@ fun BookScreen(
             )
             Spacer(Modifier.height(18.dp))
         }
+    }
 
-        if (showGrammarInfo) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .zIndex(10f),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                GrammarBalloon(
-                    modifier = Modifier
-                        .padding(top = 230.dp, start = 14.dp, end = 14.dp)
-                        .fillMaxWidth()
-                ) {
-                    showGrammarInfo = false
-                }
-            }
-        }
+    if (showGrammarInfo) {
+        GrammarInfoDialog(
+            close = { showGrammarInfo = false }
+        )
     }
 }
 
@@ -235,7 +220,7 @@ private fun FramedSection(content: @Composable () -> Unit) {
         Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp)
-            .background(Color(0xAA111111), RoundedCornerShape(14.dp))
+            .background(darkPanelColor, RoundedCornerShape(14.dp))
             .border(4.dp, frameOuterColor, RoundedCornerShape(14.dp))
             .padding(4.dp)
             .border(2.dp, frameInnerColor, RoundedCornerShape(12.dp))
@@ -248,50 +233,61 @@ private fun FramedSection(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun GrammarBalloon(modifier: Modifier, close: () -> Unit) {
-    Box(
-        modifier.height(128.dp)
+private fun GrammarInfoDialog(close: () -> Unit) {
+    Dialog(
+        onDismissRequest = { },
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
+        )
     ) {
-        Canvas(Modifier.matchParentSize()) {
-            val path = Path().apply {
-                moveTo(18f, 18f)
-                quadraticTo(18f, 0f, 36f, 0f)
-                lineTo(size.width - 18f, 0f)
-                quadraticTo(size.width, 0f, size.width, 18f)
-                lineTo(size.width, 88f)
-                quadraticTo(size.width, 106f, size.width - 18f, 106f)
-                lineTo(45f, 106f)
-                lineTo(18f, 128f)
-                lineTo(26f, 106f)
-                lineTo(18f, 106f)
-                quadraticTo(0f, 106f, 0f, 88f)
-                lineTo(0f, 18f)
-                quadraticTo(0f, 0f, 18f, 0f)
-                close()
-            }
-            drawPath(path, Color(0xFFF4F4F4))
-            drawPath(path, Color(0xFF555555), style = Stroke(width = 3f))
-        }
-
-        Text(
-            text = "Aqui estamos aprendendo o presente de algumas frases nas formas positiva, negativa, interrogativa e interrogativa negativa.",
-            color = Color.Black,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 17.sp,
-            modifier = Modifier.padding(start = 12.dp, top = 10.dp, end = 12.dp, bottom = 28.dp)
-        )
-
-        Text(
-            text = "OK",
-            color = Color(0xFF0D3D7A),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Black,
+        Box(
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 12.dp, bottom = 10.dp)
-                .clickable { close() }
-        )
+                .fillMaxWidth()
+                .background(androidx.compose.ui.graphics.Color(0xFFF4F4F4), RoundedCornerShape(18.dp))
+                .border(4.dp, frameOuterColor, RoundedCornerShape(18.dp))
+                .padding(4.dp)
+                .border(2.dp, frameInnerColor, RoundedCornerShape(15.dp))
+                .padding(16.dp)
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "GRAMMAR",
+                    color = frameOuterColor,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                Text(
+                    text = "Aqui estamos aprendendo o presente de algumas frases nas formas positiva, negativa, interrogativa e interrogativa negativa.",
+                    color = androidx.compose.ui.graphics.Color.Black,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 20.sp,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                Box(
+                    modifier = Modifier
+                        .background(frameOuterColor, RoundedCornerShape(12.dp))
+                        .clickable { close() }
+                        .padding(horizontal = 28.dp, vertical = 10.dp)
+                ) {
+                    Text(
+                        text = "OK",
+                        color = androidx.compose.ui.graphics.Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -299,7 +295,7 @@ private fun GrammarBalloon(modifier: Modifier, close: () -> Unit) {
 private fun AudioTitle(item: BookAudioItem, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .background(Color(0xAA111111), RoundedCornerShape(12.dp))
+            .background(darkPanelColor, RoundedCornerShape(12.dp))
             .border(4.dp, frameOuterColor, RoundedCornerShape(12.dp))
             .padding(3.dp)
             .border(2.dp, frameInnerColor, RoundedCornerShape(10.dp))
@@ -308,7 +304,7 @@ private fun AudioTitle(item: BookAudioItem, onClick: () -> Unit) {
     ) {
         Text(
             text = item.english,
-            color = Color.White,
+            color = androidx.compose.ui.graphics.Color.White,
             fontSize = 24.sp,
             fontWeight = FontWeight.Black
         )
@@ -319,7 +315,7 @@ private fun AudioTitle(item: BookAudioItem, onClick: () -> Unit) {
 private fun SectionTitle(item: BookAudioItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Text(
         text = item.english,
-        color = Color.White,
+        color = androidx.compose.ui.graphics.Color.White,
         fontSize = 19.sp,
         fontWeight = FontWeight.Black,
         textAlign = TextAlign.Center,
@@ -362,7 +358,7 @@ private fun WordCell(item: BookAudioItem, modifier: Modifier, play: (BookAudioIt
     ) {
         Text(
             text = item.english,
-            color = Color.White,
+            color = androidx.compose.ui.graphics.Color.White,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             lineHeight = 18.sp
@@ -371,7 +367,7 @@ private fun WordCell(item: BookAudioItem, modifier: Modifier, play: (BookAudioIt
         if (item.translation.isNotEmpty()) {
             Text(
                 text = item.translation,
-                color = Color(0xFFE0E0E0),
+                color = androidx.compose.ui.graphics.Color(0xFFE0E0E0),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Normal,
                 lineHeight = 13.sp
@@ -403,10 +399,12 @@ private fun AlphabetGrid(items: Array<BookAudioItem>, play: (BookAudioItem) -> U
 
 @Composable
 private fun AlphabetCell(item: BookAudioItem, play: (BookAudioItem) -> Unit) {
+    val translationFontSize = if (item.english == "W") 7.sp else 9.sp
+
     Column(
         modifier = Modifier
             .width(42.dp)
-            .background(Color(0xAA111111), RoundedCornerShape(8.dp))
+            .background(darkPanelColor, RoundedCornerShape(8.dp))
             .border(3.dp, frameOuterColor, RoundedCornerShape(8.dp))
             .padding(2.dp)
             .border(1.dp, frameInnerColor, RoundedCornerShape(6.dp))
@@ -415,15 +413,19 @@ private fun AlphabetCell(item: BookAudioItem, play: (BookAudioItem) -> Unit) {
     ) {
         Text(
             text = item.english,
-            color = Color.White,
+            color = androidx.compose.ui.graphics.Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Black,
             modifier = Modifier.clickable { play(item) }
         )
         Text(
             text = item.translation,
-            color = Color(0xFFE0E0E0),
-            fontSize = 9.sp
+            color = androidx.compose.ui.graphics.Color(0xFFE0E0E0),
+            fontSize = translationFontSize,
+            maxLines = 1,
+            softWrap = false,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
