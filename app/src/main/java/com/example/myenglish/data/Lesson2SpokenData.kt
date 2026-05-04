@@ -14,7 +14,7 @@ object Lesson2SpokenData {
         SpokenHomeworkSentence("Você quer cerveja gelada?", "Do you want cold beer?"),
         SpokenHomeworkSentence("Nós queremos pão bom.", "We want good bread."),
         SpokenHomeworkSentence("Eles não querem suco ruim.", "They don’t want bad juice."),
-        SpokenHomeworkSentence("Eu quero uma aula pequena.", "I want a small lesson."),
+        SpokenHomeworkSentence("Eu quero uma lição pequena.", "I want a small lesson."),
         SpokenHomeworkSentence("Você quer um pão grande?", "Do you want a big bread?"),
         SpokenHomeworkSentence("Eu estudo música boa.", "I study good music."),
         SpokenHomeworkSentence("Eles bebem suco gelado.", "They drink cold juice."),
@@ -31,10 +31,10 @@ object Lesson2SpokenData {
         SpokenHomeworkSentence("Oi, olá.", "Hi, hello."),
         SpokenHomeworkSentence("Bom dia.", "Good morning."),
         SpokenHomeworkSentence("Boa tarde.", "Good afternoon."),
-        SpokenHomeworkSentence("Boa noite.", "Good evening."),
+        SpokenHomeworkSentence("Boa noite (quando você chega, dizendo oi).", "Good evening."),
         SpokenHomeworkSentence("Tchau.", "Bye."),
         SpokenHomeworkSentence("Até mais.", "See you."),
-        SpokenHomeworkSentence("Tudo bem?", "What’s up?"),
-        SpokenHomeworkSentence("Boa noite.", "Good night.")
+        SpokenHomeworkSentence("E aí, tudo beleza?", "What’s up?"),
+        SpokenHomeworkSentence("Boa noite (quando você sai, dizendo tchau).", "Good night.")
     )
 }
