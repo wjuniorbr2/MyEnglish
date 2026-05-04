@@ -98,15 +98,29 @@ fun AppRoot() {
         return lessonName.lowercase().replace(" ", "_") + "_listening_done"
     }
 
+    fun spokenDoneKey(lessonName: String): String {
+        return lessonName.lowercase().replace(" ", "_") + "_spoken_done"
+    }
+
     fun listeningDoneForLesson(lessonName: String): Boolean {
         doneVersion
         return prefs.getBoolean(listeningDoneKey(lessonName), false)
+    }
+
+    fun spokenDoneForLesson(lessonName: String): Boolean {
+        doneVersion
+        return prefs.getBoolean(spokenDoneKey(lessonName), false)
     }
 
     fun markListeningDone(lessonName: String) {
         prefs.edit().putBoolean(listeningDoneKey(lessonName), true).apply()
         doneVersion++
         clearCurrentAttempt(lessonName)
+    }
+
+    fun markSpokenDone(lessonName: String) {
+        prefs.edit().putBoolean(spokenDoneKey(lessonName), true).apply()
+        doneVersion++
     }
 
     fun openListeningHomework() {
@@ -126,8 +140,15 @@ fun AppRoot() {
         screen = "homework"
     }
 
+    fun openSpokenHomework() {
+        activeHomeworkLesson = selectedLesson
+        screen = "spokenHomework"
+    }
+
     BackHandler(enabled = screen != "home") {
         if (screen == "homework") {
+            screen = "lesson"
+        } else if (screen == "spokenHomework") {
             screen = "lesson"
         } else if (screen == "book") {
             screen = "lesson"
@@ -161,10 +182,12 @@ fun AppRoot() {
             Lesson(
                 name = selectedLesson,
                 listeningDone = listeningDoneForLesson(selectedLesson),
+                spokenDone = spokenDoneForLesson(selectedLesson),
                 showChoices = showChoices,
                 showHomework = { showChoices = true },
                 openBook = { screen = "book" },
                 openListening = { openListeningHomework() },
+                openSpoken = { openSpokenHomework() },
                 back = { screen = "home" }
             )
         }
@@ -212,6 +235,22 @@ fun AppRoot() {
                 },
                 done = {
                     markListeningDone(activeHomeworkLesson)
+                },
+                back = {
+                    screen = "lesson"
+                }
+            )
+        }
+
+        "spokenHomework" -> {
+            val spokenSentences = HomeworkData.spokenSentencesForLesson(activeHomeworkLesson)
+
+            SpokenHomework(
+                name = activeHomeworkLesson,
+                studentName = displayStudentName(studentName),
+                sentences = spokenSentences,
+                done = {
+                    markSpokenDone(activeHomeworkLesson)
                 },
                 back = {
                     screen = "lesson"
