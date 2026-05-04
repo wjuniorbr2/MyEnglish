@@ -475,7 +475,7 @@ private fun SpokenSentenceCard(
                     text = if (currentOk) {
                         spokenCorrectMessages[messageIndex % spokenCorrectMessages.size]
                     } else if (wordsCorrectButWrongOrder) {
-                        "The words are there, but the sentence order is doing cartwheels."
+                        "The order is incorrect."
                     } else {
                         spokenWrongMessages[messageIndex % spokenWrongMessages.size]
                     }
