@@ -59,7 +59,6 @@ import com.example.myenglish.utils.isCorrectAnswer
 
 private val writtenRed = Color(0xFFC62828)
 private val writtenGreen = Color(0xFF2E7D32)
-private const val TEMP_PREFILL_WRITTEN_LESSON_1_AND_2 = true
 
 @Composable
 fun WrittenHomework(
@@ -122,21 +121,6 @@ fun WrittenHomework(
         edit.apply()
     }
 
-    fun applyTemporaryPrefill() {
-        if (!TEMP_PREFILL_WRITTEN_LESSON_1_AND_2) return
-        if (name != "Lesson 1" && name != "Lesson 2") return
-        if (sentences.size < 3) return
-        for (i in sentences.indices) {
-            answers[i] = if (i >= sentences.size - 3) {
-                "wrong answer"
-            } else {
-                sentences[i].english
-            }
-        }
-        msg = "Temporary test mode: answers are prefilled, with the last 3 incorrect."
-        msgError = false
-    }
-
     LaunchedEffect(key, sentences.size) {
         if (prefs.getInt("${key}_count", -1) == sentences.size) {
             step = prefs.getInt("${key}_step", 0)
@@ -148,8 +132,6 @@ fun WrittenHomework(
                 firstAnswers[i] = prefs.getString("${key}_first_$i", "") ?: ""
                 hints[i] = prefs.getString("${key}_hint_$i", "") ?: ""
             }
-        } else {
-            applyTemporaryPrefill()
         }
     }
 
