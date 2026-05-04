@@ -7,10 +7,12 @@ import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +29,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,6 +47,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -55,10 +59,9 @@ import com.example.myenglish.components.Header
 import com.example.myenglish.data.SpokenHomeworkSentence
 import com.example.myenglish.sendHomeworkReportToTeacher
 import com.example.myenglish.utils.cleanAnswer
-import com.example.myenglish.utils.countWords
 import com.example.myenglish.utils.currentDateTimeText
 import com.example.myenglish.utils.isCorrectAnswer
-import com.example.myenglish.utils.revealedHintText
+import java.util.Locale
 
 private val spokenCorrectMessages = arrayOf(
     "Nailed it. The microphone is clapping.",
@@ -83,12 +86,12 @@ private val spokenWrongMessages = arrayOf(
 )
 
 private val spokenHintButtons = arrayOf(
-    "Feed me a word",
-    "Unlock tiny wisdom",
+    "Choose a spoiler word",
+    "Open clue slots",
+    "Summon word blanks",
+    "Deploy hint underlines",
     "Call the clue goblin",
-    "Release one spoiler",
-    "Give me mercy",
-    "Summon word magic"
+    "Unlock tiny mercy"
 )
 
 @Composable
@@ -105,13 +108,47 @@ fun SpokenHomework(
 
     val answers = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
     val attempts = remember(sentences.size) { mutableStateListOf<Int>().apply { repeat(sentences.size) { add(0) } } }
-    val hints = remember(sentences.size) { mutableStateListOf<Int>().apply { repeat(sentences.size) { add(0) } } }
+    val hintStates = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
 
     var activeIndex by remember { mutableIntStateOf(-1) }
     var msg by remember { mutableStateOf("") }
     var sending by remember { mutableStateOf(false) }
     var submitted by remember { mutableStateOf(false) }
     var showInstructions by remember { mutableStateOf(false) }
+    var scrollTopRequest by remember { mutableIntStateOf(0) }
+    var ttsReady by remember { mutableStateOf(false) }
+
+    val textToSpeech = remember {
+        TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                ttsReady = true
+            }
+        }
+    }
+
+    LaunchedEffect(ttsReady) {
+        if (ttsReady) {
+            textToSpeech.language = Locale.US
+            textToSpeech.setSpeechRate(0.85f)
+        }
+    }
+
+    LaunchedEffect(scrollTopRequest) {
+        if (scrollTopRequest > 0) scroll.animateScrollTo(0)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            textToSpeech.stop()
+            textToSpeech.shutdown()
+        }
+    }
+
+    fun speakHintWord(word: String) {
+        if (ttsReady && word.isNotBlank()) {
+            textToSpeech.speak(word, TextToSpeech.QUEUE_FLUSH, null, "hint_word_$word")
+        }
+    }
 
     val instructionsSeenKey = "spoken_homework_instructions_seen"
 
@@ -212,7 +249,7 @@ fun SpokenHomework(
             builder.append("Expected English: ").append(sentences[i].english).append("\n")
             builder.append("Recognized speech: ").append(answers[i]).append("\n")
             builder.append("Attempts: ").append(attempts[i]).append("\n")
-            builder.append("Hints used: ").append(hints[i]).append("\n\n")
+            builder.append("Hints used: ").append(selectedHintIndexes(hintStates[i]).size).append("\n\n")
             i++
         }
 
@@ -222,11 +259,13 @@ fun SpokenHomework(
     fun submit() {
         if (!allCorrect()) {
             msg = "The red words are still partying. Fix every sentence first."
+            scrollTopRequest++
             return
         }
 
         sending = true
         msg = "Sending your spoken masterpiece..."
+        scrollTopRequest++
         val report = buildReport()
 
         sendHomeworkReportToTeacher(
@@ -242,8 +281,10 @@ fun SpokenHomework(
                     submitted = true
                     done()
                     msg = "Boom! Your spoken masterpiece reached your teacher."
+                    scrollTopRequest++
                 } else {
                     msg = "Failed to send report. The internet gremlin might be hungry. Try again."
+                    scrollTopRequest++
                 }
             }
         }
@@ -301,14 +342,18 @@ fun SpokenHomework(
                 sentence = sentences[index],
                 answer = answers[index],
                 attempts = attempts[index],
-                hintCount = hints[index],
+                hintState = hintStates[index],
                 submitted = submitted,
                 speak = { startSpeaking(index) },
-                hint = {
-                    if (attempts[index] >= 5 && hints[index] < countWords(sentences[index].english)) {
-                        hints[index] = hints[index] + 1
+                openHints = {
+                    if (attempts[index] >= 5 && hintStates[index].isBlank()) {
+                        hintStates[index] = "open:"
                     }
                 },
+                chooseHintWord = { wordIndex ->
+                    hintStates[index] = addHintIndex(hintStates[index], wordIndex)
+                },
+                hearHintWord = { word -> speakHintWord(word) },
                 messageIndex = index
             )
             Spacer(Modifier.height(12.dp))
@@ -316,7 +361,7 @@ fun SpokenHomework(
         }
 
         ArtButton(
-            text = if (submitted) "Submitted" else if (sending) "Sending..." else "Send the voice victory",
+            text = if (submitted) "Submitted" else if (sending) "Sending..." else "Voice mission complete",
             onClick = { if (!sending && !submitted) submit() },
             enabled = !sending && !submitted,
             modifier = Modifier.fillMaxWidth(0.85f),
@@ -341,13 +386,17 @@ private fun SpokenSentenceCard(
     sentence: SpokenHomeworkSentence,
     answer: String,
     attempts: Int,
-    hintCount: Int,
+    hintState: String,
     submitted: Boolean,
     speak: () -> Unit,
-    hint: () -> Unit,
+    openHints: () -> Unit,
+    chooseHintWord: (Int) -> Unit,
+    hearHintWord: (String) -> Unit,
     messageIndex: Int
 ) {
     val currentOk = isCorrectAnswer(answer, sentence.english)
+    val selectedHints = selectedHintIndexes(hintState)
+    val hintWords = cleanAnswer(sentence.english).split(" ").filter { it.isNotBlank() }
 
     Card(
         Modifier.fillMaxWidth(),
@@ -423,11 +472,11 @@ private fun SpokenSentenceCard(
                 )
             }
 
-            if (!currentOk && attempts >= 5 && !submitted) {
+            if (!currentOk && attempts >= 5 && !submitted && hintState.isBlank()) {
                 Spacer(Modifier.height(6.dp))
                 ArtButton(
                     text = spokenHintButtons[messageIndex % spokenHintButtons.size],
-                    onClick = hint,
+                    onClick = openHints,
                     modifier = Modifier.fillMaxWidth(0.75f),
                     backgroundResId = R.drawable.graybutton,
                     heightDp = 52,
@@ -437,9 +486,38 @@ private fun SpokenSentenceCard(
                 Text("Speak ${5 - attempts} more time(s) to unlock the clue goblin.")
             }
 
-            if (hintCount > 0) {
-                Text("Hint: ${revealedHintText(sentence.english, hintCount)}")
-                Text("Spoilers used: $hintCount")
+            if (hintState.startsWith("open:")) {
+                Spacer(Modifier.height(8.dp))
+                Text("Choose a word to reveal. Tap revealed words to hear them.")
+                Spacer(Modifier.height(5.dp))
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    var i = 0
+                    while (i < hintWords.size) {
+                        val wordIndex = i
+                        val word = hintWords[wordIndex]
+                        val revealed = selectedHints.contains(wordIndex)
+                        Text(
+                            text = if (revealed) word else "____",
+                            color = if (revealed) Color(0xFF0D3D7A) else Color(0xFF555555),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Black,
+                            textDecoration = TextDecoration.Underline,
+                            modifier = Modifier
+                                .padding(end = 8.dp, bottom = 4.dp)
+                                .clickable {
+                                    if (revealed) {
+                                        hearHintWord(word)
+                                    } else {
+                                        chooseHintWord(wordIndex)
+                                    }
+                                }
+                        )
+                        i++
+                    }
+                }
+
+                Text("Spoilers used: ${selectedHints.size}")
             }
         }
     }
@@ -477,8 +555,8 @@ private fun SpokenInstructionsDialog(close: () -> Unit) {
                         "3. O aplicativo vai escrever o que entendeu, mas você não poderá digitar a resposta.\n\n" +
                         "4. As palavras corretas ficam em preto. As palavras incorretas aparecem em vermelho.\n\n" +
                         "5. Pontuação e letras maiúsculas são ajustadas automaticamente pelo aplicativo.\n\n" +
-                        "6. Depois de 5 tentativas, o botão de dica aparece. Cada dica revela uma palavra da resposta.\n\n" +
-                        "Importante: esta tarefa usa reconhecimento de voz em inglês. Fale em inglês, de preferência perto do microfone, e faça a atividade com internet.",
+                        "6. Depois de 5 tentativas, o botão de dica aparece. Você escolhe qual palavra quer revelar. Depois, pode tocar na palavra revelada para ouvir a pronúncia.\n\n" +
+                        "Importante: faça a atividade em um lugar silencioso, sem TV, música, conversa ou barulho de fundo. Esta tarefa usa reconhecimento de voz em inglês. Fale em inglês, de preferência perto do microfone, e faça a atividade com internet.",
                 color = Color.Black,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
@@ -516,15 +594,16 @@ private fun coloredAnswer(answer: String, expected: String) = buildAnnotatedStri
     append(answer)
 
     val expectedWords = cleanAnswer(expected).split(" ").filter { it.isNotBlank() }
-    val ranges = wordRanges(answer)
+    val studentRanges = wordRanges(answer)
+    val studentWords = studentRanges.map { cleanAnswer(answer.substring(it.first, it.last)) }
+    val matchedStudentIndexes = matchingStudentWordIndexes(studentWords, expectedWords)
 
     var i = 0
-    while (i < ranges.size) {
-        val range = ranges[i]
-        val studentWord = cleanAnswer(answer.substring(range.first, range.last))
-        val expectedWord = if (i < expectedWords.size) expectedWords[i] else ""
+    while (i < studentRanges.size) {
+        val range = studentRanges[i]
+        val studentWord = studentWords[i]
 
-        if (studentWord.isNotBlank() && studentWord != expectedWord) {
+        if (studentWord.isNotBlank() && !matchedStudentIndexes.contains(i)) {
             addStyle(
                 style = SpanStyle(color = Color(0xFFC62828)),
                 start = range.first,
@@ -533,6 +612,47 @@ private fun coloredAnswer(answer: String, expected: String) = buildAnnotatedStri
         }
         i++
     }
+}
+
+private fun matchingStudentWordIndexes(studentWords: List<String>, expectedWords: List<String>): Set<Int> {
+    val result = mutableSetOf<Int>()
+    val usedExpectedIndexes = mutableSetOf<Int>()
+
+    var i = 0
+    while (i < studentWords.size) {
+        var found = -1
+        var j = 0
+        while (j < expectedWords.size && found == -1) {
+            if (!usedExpectedIndexes.contains(j) && studentWords[i] == expectedWords[j]) {
+                found = j
+            }
+            j++
+        }
+
+        if (found != -1) {
+            result.add(i)
+            usedExpectedIndexes.add(found)
+        }
+        i++
+    }
+
+    return result
+}
+
+private fun selectedHintIndexes(state: String): Set<Int> {
+    if (!state.startsWith("open:")) return emptySet()
+    val raw = state.removePrefix("open:")
+    if (raw.isBlank()) return emptySet()
+
+    return raw.split(",")
+        .mapNotNull { it.toIntOrNull() }
+        .toSet()
+}
+
+private fun addHintIndex(state: String, index: Int): String {
+    val selected = selectedHintIndexes(state).toMutableSet()
+    selected.add(index)
+    return "open:" + selected.sorted().joinToString(",")
 }
 
 private fun wordRanges(text: String): List<IntRange> {
