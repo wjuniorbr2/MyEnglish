@@ -7,27 +7,52 @@ data class BookAudioItem(
     val translation: String,
     val audioResId: Int,
     val startMs: Int,
-    val endMs: Int
+    val endMs: Int,
+    val useExactTiming: Boolean = false
 )
 
-object Lesson1BookData {
+interface BookLessonData {
+    val bookAudioResId: Int
+    val alphabetAudioResId: Int
+    val title: BookAudioItem
+    val verbsTitle: BookAudioItem
+    val vocabularyTitle: BookAudioItem
+    val expressionsTitle: BookAudioItem
+    val grammarTitle: BookAudioItem
+    val alphabetTitle: BookAudioItem
+    val verbs: Array<BookAudioItem>
+    val vocabulary: Array<BookAudioItem>
+    val expressions: Array<BookAudioItem>
+    val grammarSentences: Array<BookAudioItem>
+    val alphabet: Array<BookAudioItem>
+    val grammarNoteText: String
+    val grammarInfoText: String
+}
+
+object Lesson1BookData : BookLessonData {
     val BOOK_AUDIO_RES_ID = R.raw.booklesson1
     val ALPHABET_AUDIO_RES_ID = R.raw.alphabet
 
-    val title = BookAudioItem("LESSON 1", "", BOOK_AUDIO_RES_ID, 790, 1847)
-    val verbsTitle = BookAudioItem("VERBS", "", BOOK_AUDIO_RES_ID, 3354, 4184)
-    val vocabularyTitle = BookAudioItem("VOCABULARY", "", BOOK_AUDIO_RES_ID, 14251, 15357)
-    val expressionsTitle = BookAudioItem("EXPRESSIONS", "", BOOK_AUDIO_RES_ID, 64193, 65398)
-    val grammarTitle = BookAudioItem("GRAMMAR", "", BOOK_AUDIO_RES_ID, 79528, 81068)
-    val alphabetTitle = BookAudioItem("THE ALPHABET", "", ALPHABET_AUDIO_RES_ID, 645, 2928)
+    override val bookAudioResId = BOOK_AUDIO_RES_ID
+    override val alphabetAudioResId = ALPHABET_AUDIO_RES_ID
 
-    val verbs = arrayOf(
+    override val title = BookAudioItem("LESSON 1", "", BOOK_AUDIO_RES_ID, 790, 1847)
+    override val verbsTitle = BookAudioItem("VERBS", "", BOOK_AUDIO_RES_ID, 3354, 4184)
+    override val vocabularyTitle = BookAudioItem("VOCABULARY", "", BOOK_AUDIO_RES_ID, 14251, 15357)
+    override val expressionsTitle = BookAudioItem("EXPRESSIONS", "", BOOK_AUDIO_RES_ID, 64193, 65398)
+    override val grammarTitle = BookAudioItem("GRAMMAR", "", BOOK_AUDIO_RES_ID, 79528, 81068)
+    override val alphabetTitle = BookAudioItem("THE ALPHABET", "", ALPHABET_AUDIO_RES_ID, 645, 2928)
+
+    override val grammarNoteText = "Presente nas formas + positiva, - negativa, ? interrogativa e ?- interrogativa negativa"
+    override val grammarInfoText = "Aqui estamos aprendendo o presente de algumas frases nas formas positiva, negativa, interrogativa e interrogativa negativa."
+
+    override val verbs = arrayOf(
         BookAudioItem("to drink", "beber", BOOK_AUDIO_RES_ID, 5713, 6616),
         BookAudioItem("to eat", "comer", BOOK_AUDIO_RES_ID, 8551, 9423),
         BookAudioItem("to like", "gostar de", BOOK_AUDIO_RES_ID, 11304, 12245)
     )
 
-    val vocabulary = arrayOf(
+    override val vocabulary = arrayOf(
         BookAudioItem("I", "eu", BOOK_AUDIO_RES_ID, 17047, 17694),
         BookAudioItem("you", "você, vocês", BOOK_AUDIO_RES_ID, 19049, 19825),
         BookAudioItem("they", "eles, elas", BOOK_AUDIO_RES_ID, 21252, 21979),
@@ -48,14 +73,14 @@ object Lesson1BookData {
         BookAudioItem("with", "com", BOOK_AUDIO_RES_ID, 62076, 62961)
     )
 
-    val expressions = arrayOf(
+    override val expressions = arrayOf(
         BookAudioItem("in the morning", "de manhã", BOOK_AUDIO_RES_ID, 66983, 68053),
         BookAudioItem("in the afternoon", "à/de tarde", BOOK_AUDIO_RES_ID, 72687, 73803),
         BookAudioItem("in the evening", "à/de noite (tardezinha)", BOOK_AUDIO_RES_ID, 69717, 70805),
         BookAudioItem("at night", "à/de noite (depois de escurecer)", BOOK_AUDIO_RES_ID, 75867, 76756)
     )
 
-    val grammarSentences = arrayOf(
+    override val grammarSentences = arrayOf(
         BookAudioItem("I eat bread.", "Eu como pão.", BOOK_AUDIO_RES_ID, 81999, 83150),
         BookAudioItem("We don’t eat bread.", "Nós não comemos pão.", BOOK_AUDIO_RES_ID, 85417, 86545),
         BookAudioItem("Do they eat bread?", "Eles comem pão?", BOOK_AUDIO_RES_ID, 89084, 90350),
@@ -66,7 +91,7 @@ object Lesson1BookData {
         BookAudioItem("Don’t we drink juice?", "Nós não bebemos suco?", BOOK_AUDIO_RES_ID, 105744, 107307)
     )
 
-    val alphabet = arrayOf(
+    override val alphabet = arrayOf(
         BookAudioItem("A", "ei", ALPHABET_AUDIO_RES_ID, 2928, 5515),
         BookAudioItem("B", "bi", ALPHABET_AUDIO_RES_ID, 5515, 7592),
         BookAudioItem("C", "ci", ALPHABET_AUDIO_RES_ID, 7592, 9820),
