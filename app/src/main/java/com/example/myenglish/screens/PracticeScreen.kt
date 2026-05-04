@@ -345,12 +345,12 @@ fun PracticeScreen(
         Spacer(Modifier.height(8.dp))
 
         ArtButton(
-            text = if (sending) "Sending..." else "Finish practice",
+            text = if (sending) "Sending..." else "Your teacher will be proud!",
             onClick = { finishPractice() },
             modifier = Modifier.fillMaxWidth(0.85f),
             backgroundResId = R.drawable.redbutton,
             enabled = !sending && !activeListening,
-            fontSize = 16
+            fontSize = 15
         )
 
         Spacer(Modifier.height(14.dp))
@@ -402,15 +402,15 @@ private fun PracticeCard(
                 ArtButton(
                     text = "",
                     onClick = playAnswer,
-                    modifier = Modifier.weight(0.9f),
+                    modifier = Modifier.weight(0.45f),
                     backgroundResId = R.drawable.whitebutton,
-                    heightDp = 54,
-                    fontSize = 15,
+                    heightDp = 42,
+                    fontSize = 12,
                     content = {
                         Text(
                             text = "🔊 Answer",
                             color = practiceBlue,
-                            fontSize = 15.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Black,
                             textAlign = TextAlign.Center,
                             style = LocalTextStyle.current.copy(
