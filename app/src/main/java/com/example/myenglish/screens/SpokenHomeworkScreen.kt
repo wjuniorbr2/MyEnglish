@@ -644,7 +644,7 @@ private fun coloredAnswer(answer: String, expected: String) = buildAnnotatedStri
         val expectedIndex = matchMap[i]
 
         if (expectedIndex != null && expectedIndex >= expectedCursor) {
-            while (expectedCursor < expectedIndex) {
+            while (expectedCursor < expectedIndex && noWrongWordCanFillExpectedSlot(i, expectedIndex, matchMap)) {
                 appendMissingUnderline()
                 expectedCursor++
             }
@@ -660,6 +660,9 @@ private fun coloredAnswer(answer: String, expected: String) = buildAnnotatedStri
                 start = start,
                 end = end
             )
+            if (expectedCursor < expectedWords.size) {
+                expectedCursor++
+            }
         }
 
         append(" ")
@@ -673,6 +676,21 @@ private fun coloredAnswer(answer: String, expected: String) = buildAnnotatedStri
         appendMissingUnderline()
         expectedCursor++
     }
+}
+
+private fun noWrongWordCanFillExpectedSlot(
+    currentStudentIndex: Int,
+    matchedExpectedIndex: Int,
+    matchMap: Map<Int, Int>
+): Boolean {
+    var i = currentStudentIndex - 1
+    while (i >= 0) {
+        if (!matchMap.containsKey(i)) return false
+        val previousExpectedIndex = matchMap[i] ?: -1
+        if (previousExpectedIndex < matchedExpectedIndex) return true
+        i--
+    }
+    return true
 }
 
 private fun androidx.compose.ui.text.AnnotatedString.Builder.appendMissingUnderline() {
