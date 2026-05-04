@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.example.myenglish.components.StudentNameDialog
 import com.example.myenglish.data.HomeworkData
+import com.example.myenglish.data.PracticeData
 import com.example.myenglish.utils.clearAttempt
 import com.example.myenglish.utils.displayStudentName
 import com.example.myenglish.utils.resetAttemptLists
@@ -164,12 +165,19 @@ fun AppRoot() {
         screen = "spokenHomework"
     }
 
+    fun openPractice() {
+        activeHomeworkLesson = selectedLesson
+        screen = "practice"
+    }
+
     BackHandler(enabled = screen != "home") {
         if (screen == "homework") {
             screen = "lesson"
         } else if (screen == "writtenHomework") {
             screen = "lesson"
         } else if (screen == "spokenHomework") {
+            screen = "lesson"
+        } else if (screen == "practice") {
             screen = "lesson"
         } else if (screen == "book") {
             screen = "lesson"
@@ -208,6 +216,7 @@ fun AppRoot() {
                 showChoices = showChoices,
                 showHomework = { showChoices = true },
                 openBook = { screen = "book" },
+                openPractice = { openPractice() },
                 openListening = { openListeningHomework() },
                 openWritten = { openWrittenHomework() },
                 openSpoken = { openSpokenHomework() },
@@ -291,6 +300,17 @@ fun AppRoot() {
                 done = {
                     markSpokenDone(activeHomeworkLesson)
                 },
+                back = {
+                    screen = "lesson"
+                }
+            )
+        }
+
+        "practice" -> {
+            PracticeScreen(
+                name = activeHomeworkLesson,
+                studentName = displayStudentName(studentName),
+                sentences = PracticeData.sentencesForLesson(activeHomeworkLesson),
                 back = {
                     screen = "lesson"
                 }
