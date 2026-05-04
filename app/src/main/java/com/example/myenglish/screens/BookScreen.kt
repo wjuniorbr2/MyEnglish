@@ -168,16 +168,19 @@ fun BookScreen(
                     playSegment(bookData.grammarTitle)
                 }
 
-                Text(
-                    text = bookData.grammarNoteText,
-                    color = Color.White,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 5.dp, bottom = 3.dp)
-                )
+                if (bookData.grammarNoteText.isNotBlank()) {
+                    Text(
+                        text = bookData.grammarNoteText,
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 5.dp, bottom = 3.dp)
+                    )
+                }
+
                 WordGrid(bookData.grammarSentences, 2, ::playSegment)
             }
 
