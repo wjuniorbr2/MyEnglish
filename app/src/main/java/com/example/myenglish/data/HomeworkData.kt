@@ -22,9 +22,20 @@ object HomeworkData {
         }
     }
 
+    fun spokenSentencesForLesson(lessonName: String): Array<SpokenHomeworkSentence> {
+        return when (lessonName) {
+            "Lesson 3" -> Lesson3SpokenData.sentences
+            else -> emptyArray()
+        }
+    }
+
     fun hasListeningHomework(lessonName: String): Boolean {
         return lessonName == "Lesson 1" ||
                 lessonName == "Lesson 2" ||
                 lessonName == "Lesson 3"
+    }
+
+    fun hasSpokenHomework(lessonName: String): Boolean {
+        return lessonName == "Lesson 3"
     }
 }
