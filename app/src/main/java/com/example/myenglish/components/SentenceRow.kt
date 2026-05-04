@@ -106,7 +106,7 @@ fun SentenceRow(
     focus: FocusRequester,
     play: () -> Unit,
     stop: () -> Unit,
-    hint: () -> Unit,
+    hint: (Int?) -> Unit,
     modifier: Modifier = Modifier,
     messageIndex: Int = 0
 ) {
@@ -214,7 +214,7 @@ fun SentenceRow(
 
                     ArtButton(
                         text = revealButtonMessages[buttonIndex],
-                        onClick = hint,
+                        onClick = { hint(null) },
                         modifier = Modifier.fillMaxWidth(0.7f),
                         backgroundResId = R.drawable.graybutton,
                         heightDp = 56,
@@ -242,7 +242,7 @@ fun SentenceRow(
                                 modifier = Modifier
                                     .padding(end = 8.dp, bottom = 4.dp)
                                     .clickable {
-                                        if (!revealed) hint()
+                                        if (!revealed) hint(wordIndex)
                                     }
                             )
                             i++
@@ -258,13 +258,6 @@ fun SentenceRow(
 
 fun openListeningHintState(state: Int): Int {
     return state or HINT_OPEN_FLAG
-}
-
-fun addNextListeningHintIndex(state: Int): Int {
-    val cleanState = state or HINT_OPEN_FLAG
-    val selected = selectedHintIndexes(cleanState)
-    val next = 0
-    return if (!selected.contains(next)) cleanState or (1 shl next) else cleanState
 }
 
 fun addListeningHintIndex(state: Int, index: Int): Int {
