@@ -51,7 +51,7 @@ object Lesson3BookData : BookLessonData {
 
     override val expressions = arrayOf(
         BookAudioItem("take your time", "leve o tempo que precisar", BOOK_AUDIO_RES_ID, 74120, 76605, true),
-        BookAudioItem("hey", "i, e á", BOOK_AUDIO_RES_ID, 81525, 83780, true),
+        BookAudioItem("hey", "oi, olá", BOOK_AUDIO_RES_ID, 81525, 83780, true),
         BookAudioItem("that’s it", "é isso aí, basta", BOOK_AUDIO_RES_ID, 76605, 79050, true),
         BookAudioItem("wow", "uau, nossa!", BOOK_AUDIO_RES_ID, 83780, 86165, true),
         BookAudioItem("never mind", "esquece, deixa pra lá", BOOK_AUDIO_RES_ID, 79050, 81525, true),
