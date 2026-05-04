@@ -34,6 +34,7 @@ import com.example.myenglish.components.Header
 import com.example.myenglish.components.HomeworkIcon
 import com.example.myenglish.components.StrokeGlowTitle
 import com.example.myenglish.data.HomeworkData
+import com.example.myenglish.data.PracticeData
 
 @Composable
 fun Lesson(
@@ -44,6 +45,7 @@ fun Lesson(
     showChoices: Boolean,
     showHomework: () -> Unit,
     openBook: () -> Unit,
+    openPractice: () -> Unit,
     openListening: () -> Unit,
     openWritten: () -> Unit,
     openSpoken: () -> Unit,
@@ -52,6 +54,7 @@ fun Lesson(
     val listeningAvailable = HomeworkData.hasListeningHomework(name)
     val writtenAvailable = HomeworkData.hasWrittenHomework(name)
     val spokenAvailable = HomeworkData.hasSpokenHomework(name)
+    val practiceAvailable = PracticeData.hasPractice(name)
     val bookAvailable = name == "Lesson 1" || name == "Lesson 2" || name == "Lesson 3"
 
     Column(
@@ -70,7 +73,11 @@ fun Lesson(
         )
         Spacer(Modifier.height(7.dp))
 
-        ArtButton("Practice", { })
+        ArtButton(
+            text = if (practiceAvailable) "Practice" else "Practice - coming soon",
+            onClick = openPractice,
+            enabled = practiceAvailable
+        )
         Spacer(Modifier.height(7.dp))
 
         ArtButton(
