@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -111,6 +110,7 @@ fun SpokenHomework(
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("my_english_prefs", android.content.Context.MODE_PRIVATE) }
     val scroll = rememberScrollState()
+    val progressKey = remember(name) { "spoken_progress_" + name.lowercase().replace(" ", "_") }
 
     val answers = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
     val attempts = remember(sentences.size) { mutableStateListOf<Int>().apply { repeat(sentences.size) { add(0) } } }
@@ -118,17 +118,76 @@ fun SpokenHomework(
 
     var activeIndex by remember { mutableIntStateOf(-1) }
     var msg by remember { mutableStateOf("") }
+    var msgIsError by remember { mutableStateOf(false) }
     var sending by remember { mutableStateOf(false) }
     var submitted by remember { mutableStateOf(false) }
     var showInstructions by remember { mutableStateOf(false) }
     var scrollTopRequest by remember { mutableIntStateOf(0) }
     var ttsReady by remember { mutableStateOf(false) }
 
+    fun saveProgress() {
+        val editor = prefs.edit()
+        editor.putInt("${progressKey}_count", sentences.size)
+        editor.putString("${progressKey}_msg", msg)
+        editor.putBoolean("${progressKey}_msg_error", msgIsError)
+        var i = 0
+        while (i < sentences.size) {
+            editor.putString("${progressKey}_answer_$i", answers[i])
+            editor.putInt("${progressKey}_attempts_$i", attempts[i])
+            editor.putString("${progressKey}_hints_$i", hintStates[i])
+            i++
+        }
+        editor.apply()
+    }
+
+    fun clearProgress() {
+        val editor = prefs.edit()
+        val count = prefs.getInt("${progressKey}_count", sentences.size)
+        editor.remove("${progressKey}_count")
+        editor.remove("${progressKey}_msg")
+        editor.remove("${progressKey}_msg_error")
+        var i = 0
+        while (i < count) {
+            editor.remove("${progressKey}_answer_$i")
+            editor.remove("${progressKey}_attempts_$i")
+            editor.remove("${progressKey}_hints_$i")
+            i++
+        }
+        editor.apply()
+    }
+
+    fun setTopMessage(text: String, isError: Boolean) {
+        msg = text
+        msgIsError = isError
+    }
+
+    fun allCorrect(): Boolean {
+        if (sentences.isEmpty()) return false
+        var i = 0
+        while (i < sentences.size) {
+            if (!isCorrectAnswer(answers[i], sentences[i].english)) return false
+            i++
+        }
+        return true
+    }
+
+    LaunchedEffect(progressKey, sentences.size) {
+        if (prefs.getInt("${progressKey}_count", -1) == sentences.size) {
+            var i = 0
+            while (i < sentences.size) {
+                answers[i] = prefs.getString("${progressKey}_answer_$i", "") ?: ""
+                attempts[i] = prefs.getInt("${progressKey}_attempts_$i", 0)
+                hintStates[i] = prefs.getString("${progressKey}_hints_$i", "") ?: ""
+                i++
+            }
+            msg = prefs.getString("${progressKey}_msg", "") ?: ""
+            msgIsError = prefs.getBoolean("${progressKey}_msg_error", false)
+        }
+    }
+
     val textToSpeech = remember {
         TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                ttsReady = true
-            }
+            if (status == TextToSpeech.SUCCESS) ttsReady = true
         }
     }
 
@@ -146,6 +205,7 @@ fun SpokenHomework(
 
     DisposableEffect(Unit) {
         onDispose {
+            saveProgress()
             textToSpeech.stop()
             textToSpeech.shutdown()
         }
@@ -155,7 +215,8 @@ fun SpokenHomework(
         if (ttsReady && word.isNotBlank()) {
             textToSpeech.speak(word, TextToSpeech.QUEUE_FLUSH, null, "hint_word_$word")
         } else {
-            msg = "This phone is not ready to pronounce English yet. The tiny speaker needs English magic installed."
+            setTopMessage("This phone is not ready to pronounce English yet. The tiny speaker needs English magic installed.", true)
+            saveProgress()
             scrollTopRequest++
         }
     }
@@ -163,9 +224,7 @@ fun SpokenHomework(
     val instructionsSeenKey = "spoken_homework_instructions_seen"
 
     LaunchedEffect(Unit) {
-        if (!prefs.getBoolean(instructionsSeenKey, false)) {
-            showInstructions = true
-        }
+        if (!prefs.getBoolean(instructionsSeenKey, false)) showInstructions = true
     }
 
     val speechLauncher = rememberLauncherForActivityResult(
@@ -187,16 +246,19 @@ fun SpokenHomework(
                 attempts[index] = attempts[index] + 1
                 answers[index] = applyExpectedPunctuation(spokenText, sentences[index].english)
 
-                msg = if (isCorrectAnswer(answers[index], sentences[index].english)) {
-                    spokenCorrectMessages[index % spokenCorrectMessages.size]
+                if (isCorrectAnswer(answers[index], sentences[index].english)) {
+                    setTopMessage(spokenCorrectMessages[index % spokenCorrectMessages.size], false)
                 } else {
-                    spokenWrongMessages[index % spokenWrongMessages.size]
+                    setTopMessage(spokenWrongMessages[index % spokenWrongMessages.size], true)
                 }
+                saveProgress()
             } else {
-                msg = "The microphone heard mysterious silence. Try again."
+                setTopMessage("The microphone heard mysterious silence. Try again.", true)
+                saveProgress()
             }
         } else {
-            msg = "The robot ear gave up too early. Try again."
+            setTopMessage("The robot ear gave up too early. Try again.", true)
+            saveProgress()
         }
     }
 
@@ -218,7 +280,8 @@ fun SpokenHomework(
             launchSpeech(index)
         } else {
             activeIndex = -1
-            msg = "Microphone permission is needed. The robot ear cannot work without ears."
+            setTopMessage("Microphone permission is needed. The robot ear cannot work without ears.", true)
+            saveProgress()
         }
     }
 
@@ -229,21 +292,7 @@ fun SpokenHomework(
             Manifest.permission.RECORD_AUDIO
         ) == PackageManager.PERMISSION_GRANTED
 
-        if (hasPermission) {
-            launchSpeech(index)
-        } else {
-            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-        }
-    }
-
-    fun allCorrect(): Boolean {
-        if (sentences.isEmpty()) return false
-        var i = 0
-        while (i < sentences.size) {
-            if (!isCorrectAnswer(answers[i], sentences[i].english)) return false
-            i++
-        }
-        return true
+        if (hasPermission) launchSpeech(index) else permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
     }
 
     fun buildReport(): String {
@@ -268,32 +317,35 @@ fun SpokenHomework(
 
     fun submit() {
         if (!allCorrect()) {
-            msg = "The red words are still partying. Fix every sentence first."
+            setTopMessage("The red words are still partying. Fix every sentence first.", true)
+            saveProgress()
             scrollTopRequest++
             return
         }
 
         sending = true
-        msg = "Sending your spoken masterpiece..."
+        setTopMessage("Sending your spoken masterpiece...", false)
+        saveProgress()
         scrollTopRequest++
-        val report = buildReport()
 
         sendHomeworkReportToTeacher(
             studentName = studentName,
             lessonName = name,
             homeworkType = "Spoken homework",
             scoreText = "${sentences.size} / ${sentences.size}",
-            report = report
+            report = buildReport()
         ) { success ->
             Handler(Looper.getMainLooper()).post {
                 sending = false
                 if (success) {
                     submitted = true
+                    setTopMessage("Boom! Your spoken masterpiece reached your teacher.", false)
+                    clearProgress()
                     done()
-                    msg = "Boom! Your spoken masterpiece reached your teacher."
                     scrollTopRequest++
                 } else {
-                    msg = "Failed to send report. The internet gremlin might be hungry. Try again."
+                    setTopMessage("Failed to send report. Please try again when the internet goblin behaves.", true)
+                    saveProgress()
                     scrollTopRequest++
                 }
             }
@@ -308,15 +360,6 @@ fun SpokenHomework(
             }
         )
     }
-
-    val topMessageIsError = msg.isNotBlank() && !allCorrect() && (
-        msg.contains("Fix", ignoreCase = true) ||
-                msg.contains("Failed", ignoreCase = true) ||
-                msg.contains("not ready", ignoreCase = true) ||
-                msg.contains("permission", ignoreCase = true) ||
-                msg.contains("silence", ignoreCase = true) ||
-                msg.contains("Try again", ignoreCase = true)
-    )
 
     Column(
         Modifier
@@ -342,12 +385,10 @@ fun SpokenHomework(
             Spacer(Modifier.height(8.dp))
             Text(
                 text = msg,
-                color = if (topMessageIsError) errorRed else Color(0xFF555555),
+                color = if (msgIsError) errorRed else successGreen,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                style = LocalTextStyle.current.copy(
-                    shadow = Shadow(Color.White, Offset(1f, 1f), 3f)
-                )
+                style = LocalTextStyle.current.copy(shadow = Shadow(Color.White, Offset(1f, 1f), 3f))
             )
         }
 
@@ -367,10 +408,12 @@ fun SpokenHomework(
                 openHints = {
                     if (attempts[index] >= 5 && hintStates[index].isBlank()) {
                         hintStates[index] = "open:"
+                        saveProgress()
                     }
                 },
                 chooseHintWord = { wordIndex ->
                     hintStates[index] = addHintIndex(hintStates[index], wordIndex)
+                    saveProgress()
                 },
                 hearHintWord = { word -> speakHintWord(word) },
                 messageIndex = index
@@ -392,7 +435,10 @@ fun SpokenHomework(
 
         ArtButton(
             text = "Back",
-            onClick = back,
+            onClick = {
+                saveProgress()
+                back()
+            },
             modifier = Modifier.fillMaxWidth(0.45f),
             backgroundResId = R.drawable.redbutton
         )
@@ -418,15 +464,8 @@ private fun SpokenSentenceCard(
     val hintTokens = expectedDisplayTokens(sentence.english)
     val wordsCorrectButWrongOrder = answer.isNotBlank() && !currentOk && sameCleanWordsDifferentOrder(answer, sentence.english)
 
-    Card(
-        Modifier.fillMaxWidth(),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-    ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-        ) {
+    Card(Modifier.fillMaxWidth(), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
+        Column(Modifier.fillMaxWidth().padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "$number. ${sentence.portuguese}",
@@ -456,26 +495,14 @@ private fun SpokenSentenceCard(
 
             Spacer(Modifier.height(8.dp))
 
-            Text(
-                text = "Android heard:",
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF555555)
-            )
-
+            Text("Android heard:", fontWeight = FontWeight.Bold, color = Color(0xFF555555))
             Spacer(Modifier.height(4.dp))
 
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFF4F4F4), MaterialTheme.shapes.small)
-                    .padding(10.dp)
+                modifier = Modifier.fillMaxWidth().background(Color(0xFFF4F4F4), MaterialTheme.shapes.small).padding(10.dp)
             ) {
                 if (answer.isNotBlank()) {
-                    Text(
-                        text = coloredAnswer(answer, sentence.english),
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(text = coloredAnswer(answer, sentence.english), fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -534,11 +561,7 @@ private fun SpokenSentenceCard(
                             modifier = Modifier
                                 .padding(end = 8.dp, bottom = 4.dp)
                                 .clickable {
-                                    if (revealed) {
-                                        hearHintWord(cleanAnswer(token))
-                                    } else {
-                                        chooseHintWord(wordIndex)
-                                    }
+                                    if (revealed) hearHintWord(cleanAnswer(token)) else chooseHintWord(wordIndex)
                                 }
                         )
                         i++
@@ -559,10 +582,7 @@ private fun SpokenInstructionsDialog(close: () -> Unit) {
 
     Dialog(
         onDismissRequest = close,
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = false
-        )
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false)
     ) {
         Column(
             modifier = Modifier
@@ -582,11 +602,7 @@ private fun SpokenInstructionsDialog(close: () -> Unit) {
 
             Spacer(Modifier.height(10.dp))
 
-            Box(
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .fillMaxWidth()
-            ) {
+            Box(modifier = Modifier.weight(1f, fill = false).fillMaxWidth()) {
                 Text(
                     text = "1. Leia a frase em português.\n\n" +
                             "2. Toque no microfone e fale a resposta em inglês.\n\n" +
@@ -600,10 +616,7 @@ private fun SpokenInstructionsDialog(close: () -> Unit) {
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 17.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 20.dp)
-                        .verticalScroll(instructionScroll)
+                    modifier = Modifier.fillMaxWidth().padding(end = 20.dp).verticalScroll(instructionScroll)
                 )
 
                 Text(
@@ -673,20 +686,12 @@ private fun coloredAnswer(answer: String, expected: String) = buildAnnotatedStri
         val end = length
 
         if (studentWord.isNotBlank() && expectedIndex == null) {
-            addStyle(
-                style = SpanStyle(color = errorRed),
-                start = start,
-                end = end
-            )
-            if (expectedCursor < expectedWords.size) {
-                expectedCursor++
-            }
+            addStyle(SpanStyle(color = errorRed), start, end)
+            if (expectedCursor < expectedWords.size) expectedCursor++
         }
 
         append(" ")
-        if (expectedIndex != null && expectedIndex >= expectedCursor) {
-            expectedCursor = expectedIndex + 1
-        }
+        if (expectedIndex != null && expectedIndex >= expectedCursor) expectedCursor = expectedIndex + 1
         i++
     }
 
@@ -715,14 +720,7 @@ private fun androidx.compose.ui.text.AnnotatedString.Builder.appendMissingUnderl
     val start = length
     append("____ ")
     val end = length
-    addStyle(
-        style = SpanStyle(
-            color = errorRed,
-            textDecoration = TextDecoration.Underline
-        ),
-        start = start,
-        end = end
-    )
+    addStyle(SpanStyle(color = errorRed, textDecoration = TextDecoration.Underline), start, end)
 }
 
 private fun matchingStudentToExpected(studentWords: List<String>, expectedWords: List<String>): Map<Int, Int> {
@@ -734,12 +732,9 @@ private fun matchingStudentToExpected(studentWords: List<String>, expectedWords:
         var found = -1
         var j = 0
         while (j < expectedWords.size && found == -1) {
-            if (!usedExpectedIndexes.contains(j) && studentWords[i] == expectedWords[j]) {
-                found = j
-            }
+            if (!usedExpectedIndexes.contains(j) && studentWords[i] == expectedWords[j]) found = j
             j++
         }
-
         if (found != -1) {
             result[i] = found
             usedExpectedIndexes.add(found)
@@ -764,9 +759,7 @@ private fun selectedHintIndexes(state: String): Set<Int> {
     val raw = state.removePrefix("open:")
     if (raw.isBlank()) return emptySet()
 
-    return raw.split(",")
-        .mapNotNull { it.toIntOrNull() }
-        .toSet()
+    return raw.split(",").mapNotNull { it.toIntOrNull() }.toSet()
 }
 
 private fun addHintIndex(state: String, index: Int): String {
@@ -791,7 +784,6 @@ private fun wordRanges(text: String): List<IntRange> {
 
     while (i < text.length) {
         val isWordChar = text[i].isLetterOrDigit() || text[i] == '’' || text[i] == '\''
-
         if (isWordChar && start == -1) start = i
         if (!isWordChar && start != -1) {
             ranges.add(IntRange(start, i))
