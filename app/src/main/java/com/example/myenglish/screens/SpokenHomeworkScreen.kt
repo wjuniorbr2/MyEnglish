@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -127,6 +129,8 @@ fun SpokenHomework(
     var ttsReady by remember { mutableStateOf(false) }
 
     fun saveProgress() {
+        if (submitted) return
+
         val editor = prefs.edit()
         editor.putInt("${progressKey}_count", sentences.size)
         editor.putString("${progressKey}_msg", msg)
@@ -250,6 +254,7 @@ fun SpokenHomework(
                 attempts[index] = attempts[index] + 1
                 val formattedAnswer = applyExpectedPunctuation(spokenText, sentences[index].english)
                 answers[index] = formattedAnswer
+
                 if (firstAnswers[index].isBlank()) {
                     firstAnswers[index] = formattedAnswer
                 }
@@ -312,8 +317,10 @@ fun SpokenHomework(
 
         var i = 0
         while (i < sentences.size) {
+            val firstTry = if (firstAnswers[i].isNotBlank()) firstAnswers[i] else answers[i]
+
             builder.append(i + 1).append(". Expected English: ").append(sentences[i].english).append("\n")
-            builder.append("First recognized speech: ").append(firstAnswers[i]).append("\n")
+            builder.append("First recognized speech: ").append(firstTry).append("\n")
             builder.append("Attempts: ").append(attempts[i]).append("\n")
             builder.append("Hints used: ").append(selectedHintIndexes(hintStates[i]).size).append("\n\n")
             i++
@@ -323,6 +330,8 @@ fun SpokenHomework(
     }
 
     fun submit() {
+        if (submitted) return
+
         if (!allCorrect()) {
             setTopMessage("The red words are still partying. Fix every sentence first.", true)
             saveProgress()
@@ -334,13 +343,14 @@ fun SpokenHomework(
         setTopMessage("Sending your spoken masterpiece...", false)
         saveProgress()
         scrollTopRequest++
+        val finalReport = buildReport()
 
         sendHomeworkReportToTeacher(
             studentName = studentName,
             lessonName = name,
             homeworkType = "Spoken homework",
             scoreText = "${sentences.size} / ${sentences.size}",
-            report = buildReport()
+            report = finalReport
         ) { success ->
             Handler(Looper.getMainLooper()).post {
                 sending = false
@@ -413,14 +423,16 @@ fun SpokenHomework(
                 submitted = submitted,
                 speak = { startSpeaking(index) },
                 openHints = {
-                    if (attempts[index] >= 5 && hintStates[index].isBlank()) {
+                    if (!submitted && attempts[index] >= 5 && hintStates[index].isBlank()) {
                         hintStates[index] = "open:"
                         saveProgress()
                     }
                 },
                 chooseHintWord = { wordIndex ->
-                    hintStates[index] = addHintIndex(hintStates[index], wordIndex)
-                    saveProgress()
+                    if (!submitted) {
+                        hintStates[index] = addHintIndex(hintStates[index], wordIndex)
+                        saveProgress()
+                    }
                 },
                 hearHintWord = { word -> speakHintWord(word) },
                 messageIndex = index
@@ -429,21 +441,35 @@ fun SpokenHomework(
             i++
         }
 
-        ArtButton(
-            text = if (submitted) "Submitted" else if (sending) "Sending..." else "Voice mission complete",
-            onClick = { if (!sending && !submitted) submit() },
-            enabled = !sending && !submitted,
-            modifier = Modifier.fillMaxWidth(0.85f),
-            backgroundResId = R.drawable.graybutton,
-            fontSize = 16
-        )
+        if (submitted) {
+            Button(
+                onClick = { },
+                enabled = false,
+                modifier = Modifier.fillMaxWidth(0.85f),
+                colors = ButtonDefaults.buttonColors(
+                    disabledContainerColor = successGreen,
+                    disabledContentColor = Color.White
+                )
+            ) {
+                Text("Voice mission complete")
+            }
+        } else {
+            ArtButton(
+                text = if (sending) "Sending..." else "Voice mission complete",
+                onClick = { if (!sending) submit() },
+                enabled = !sending,
+                modifier = Modifier.fillMaxWidth(0.85f),
+                backgroundResId = R.drawable.graybutton,
+                fontSize = 16
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
 
         ArtButton(
             text = "Back",
             onClick = {
-                saveProgress()
+                if (submitted) clearProgress() else saveProgress()
                 back()
             },
             modifier = Modifier.fillMaxWidth(0.45f),
