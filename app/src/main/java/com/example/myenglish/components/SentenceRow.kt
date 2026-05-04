@@ -1,6 +1,7 @@
 package com.example.myenglish.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,16 +25,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myenglish.R
 import com.example.myenglish.data.HomeworkSentence
 import com.example.myenglish.utils.cleanAnswer
-import com.example.myenglish.utils.countWords
-import com.example.myenglish.utils.revealedHintText
+
+private const val HINT_OPEN_FLAG = 1 shl 30
 
 private val correctMessages = arrayOf(
     "Nailed it.",
@@ -80,15 +83,13 @@ private val lockedHintMessages = arrayOf(
 )
 
 private val revealButtonMessages = arrayOf(
-    "Feed me a word",
-    "Summon tiny wisdom",
-    "Unleash word goblin",
+    "Choose a spoiler word",
+    "Open clue slots",
+    "Summon word blanks",
+    "Deploy hint underlines",
+    "Call the clue goblin",
+    "Unlock tiny mercy",
     "Bribe the sentence",
-    "Give me mercy",
-    "Call the clue fairy",
-    "Deploy spoiler cannon",
-    "Release the word",
-    "Consult grammar wizard",
     "Open secret door"
 )
 
@@ -110,6 +111,9 @@ fun SentenceRow(
     messageIndex: Int = 0
 ) {
     var correctionEdited by remember(submitStep) { mutableStateOf(false) }
+    val hintOpen = isHintOpen(hintCount)
+    val selectedHints = selectedHintIndexes(hintCount)
+    val hintTokens = expectedDisplayTokens(sentence.correctText)
 
     Card(
         modifier.fillMaxWidth(),
@@ -193,15 +197,19 @@ fun SentenceRow(
                     incorrectMessages[messageIndex % incorrectMessages.size]
                 }
 
-                Text(attemptMessage)
+                Text(
+                    text = attemptMessage,
+                    color = if (firstOk) Color(0xFF2E7D32) else Color(0xFFC62828),
+                    fontWeight = FontWeight.Bold
+                )
 
                 if (cleanAnswer(answer) == "") {
                     Text("Type first, beg later.")
                 } else if (playCount < 5) {
                     val lockedIndex = playCount.coerceIn(0, 4)
                     Text(lockedHintMessages[lockedIndex])
-                } else if (submitStep < 2 && !currentOk) {
-                    val wordCount = countWords(sentence.correctText)
+                } else if (submitStep < 2 && !currentOk && !hintOpen) {
+                    val wordCount = hintTokens.size
                     val buttonIndex = if (wordCount <= 0) 0 else (wordCount - 1) % revealButtonMessages.size
 
                     ArtButton(
@@ -214,13 +222,81 @@ fun SentenceRow(
                     )
                 }
 
-                if (hintCount > 0) {
-                    Text("Hint: ${revealedHintText(sentence.correctText, hintCount)}")
-                    Text("Spoilers used: $hintCount")
+                if (hintOpen) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("Choose a word to reveal.")
+                    Spacer(Modifier.height(5.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        var i = 0
+                        while (i < hintTokens.size) {
+                            val wordIndex = i
+                            val token = hintTokens[wordIndex]
+                            val revealed = selectedHints.contains(wordIndex)
+                            Text(
+                                text = if (revealed) token else underlineToken(token),
+                                color = if (revealed) Color(0xFF0D3D7A) else Color(0xFF555555),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Black,
+                                textDecoration = TextDecoration.Underline,
+                                modifier = Modifier
+                                    .padding(end = 8.dp, bottom = 4.dp)
+                                    .clickable {
+                                        if (!revealed) hint()
+                                    }
+                            )
+                            i++
+                        }
+                    }
+
+                    Text("Spoilers used: ${selectedHints.size}")
                 }
             }
         }
     }
+}
+
+fun openListeningHintState(state: Int): Int {
+    return state or HINT_OPEN_FLAG
+}
+
+fun addNextListeningHintIndex(state: Int): Int {
+    val cleanState = state or HINT_OPEN_FLAG
+    val selected = selectedHintIndexes(cleanState)
+    val next = 0
+    return if (!selected.contains(next)) cleanState or (1 shl next) else cleanState
+}
+
+fun addListeningHintIndex(state: Int, index: Int): Int {
+    return (state or HINT_OPEN_FLAG) or (1 shl index)
+}
+
+fun selectedListeningHintCount(state: Int): Int {
+    return Integer.bitCount(state and HINT_OPEN_FLAG.inv())
+}
+
+private fun isHintOpen(state: Int): Boolean {
+    return (state and HINT_OPEN_FLAG) != 0
+}
+
+private fun selectedHintIndexes(state: Int): Set<Int> {
+    val selected = mutableSetOf<Int>()
+    val cleanState = state and HINT_OPEN_FLAG.inv()
+    var i = 0
+    while (i < 30) {
+        if ((cleanState and (1 shl i)) != 0) selected.add(i)
+        i++
+    }
+    return selected
+}
+
+private fun expectedDisplayTokens(text: String): List<String> {
+    return text.trim().split(" ").filter { it.isNotBlank() }
+}
+
+private fun underlineToken(token: String): String {
+    val punctuation = token.takeLastWhile { !it.isLetterOrDigit() }
+    return "____$punctuation"
 }
 
 private class CorrectionVisualTransformation(
