@@ -1,0 +1,40 @@
+package com.example.myenglish.data
+
+object Lesson2SpokenData {
+    val sentences = arrayOf(
+        SpokenHomeworkSentence("Eu estudo inglês.", "I study English."),
+        SpokenHomeworkSentence("Você estuda francês?", "Do you study French?"),
+        SpokenHomeworkSentence("Nós estudamos matemática.", "We study math."),
+        SpokenHomeworkSentence("Eles estudam espanhol.", "They study Spanish."),
+        SpokenHomeworkSentence("Eu falo português.", "I speak Portuguese."),
+        SpokenHomeworkSentence("Você fala alemão?", "Do you speak German?"),
+        SpokenHomeworkSentence("Nós falamos inglês.", "We speak English."),
+        SpokenHomeworkSentence("Eles não falam francês.", "They don’t speak French."),
+        SpokenHomeworkSentence("Eu quero leite quente.", "I want hot milk."),
+        SpokenHomeworkSentence("Você quer cerveja gelada?", "Do you want cold beer?"),
+        SpokenHomeworkSentence("Nós queremos pão bom.", "We want good bread."),
+        SpokenHomeworkSentence("Eles não querem suco ruim.", "They don’t want bad juice."),
+        SpokenHomeworkSentence("Eu quero uma aula pequena.", "I want a small lesson."),
+        SpokenHomeworkSentence("Você quer um pão grande?", "Do you want a big bread?"),
+        SpokenHomeworkSentence("Eu estudo música boa.", "I study good music."),
+        SpokenHomeworkSentence("Eles bebem suco gelado.", "They drink cold juice."),
+        SpokenHomeworkSentence("Você come queijo pequeno?", "Do you eat small cheese?"),
+        SpokenHomeworkSentence("Eu não falo bom inglês.", "I don’t speak good English."),
+        SpokenHomeworkSentence("Nós não queremos leite quente.", "We don’t want hot milk."),
+        SpokenHomeworkSentence("Você quer estudar aqui?", "Do you want to study here?"),
+        SpokenHomeworkSentence("Eu quero comer ali.", "I want to eat there."),
+        SpokenHomeworkSentence("Nós queremos falar com você.", "We want to speak with you."),
+        SpokenHomeworkSentence("Eles não querem beber comigo.", "They don’t want to drink with me."),
+        SpokenHomeworkSentence("Eu estudo aqui de manhã.", "I study here in the morning."),
+        SpokenHomeworkSentence("Nós bebemos leite à tarde.", "We drink milk in the afternoon."),
+        SpokenHomeworkSentence("Eles estudam à noite.", "They study at night."),
+        SpokenHomeworkSentence("Oi, olá.", "Hi, hello."),
+        SpokenHomeworkSentence("Bom dia.", "Good morning."),
+        SpokenHomeworkSentence("Boa tarde.", "Good afternoon."),
+        SpokenHomeworkSentence("Boa noite.", "Good evening."),
+        SpokenHomeworkSentence("Tchau.", "Bye."),
+        SpokenHomeworkSentence("Até mais.", "See you."),
+        SpokenHomeworkSentence("Tudo bem?", "What’s up?"),
+        SpokenHomeworkSentence("Boa noite.", "Good night.")
+    )
+}
