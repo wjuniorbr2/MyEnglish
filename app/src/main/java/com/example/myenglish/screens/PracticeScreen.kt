@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -25,6 +27,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -37,10 +40,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -54,10 +57,11 @@ import com.example.myenglish.sendHomeworkReportToTeacher
 import com.example.myenglish.utils.cleanAnswer
 import com.example.myenglish.utils.currentDateTimeText
 import com.example.myenglish.utils.isCorrectAnswer
-import kotlin.random.Random
+import java.util.Locale
 
 private val practiceRed = Color(0xFFC62828)
 private val practiceGreen = Color(0xFF2E7D32)
+private val practiceBlue = Color(0xFF0D3D7A)
 
 private data class PracticeResult(
     val number: Int,
@@ -94,6 +98,28 @@ fun PracticeScreen(
     var sending by remember { mutableStateOf(false) }
     var startedAtMillis by remember { mutableStateOf(System.currentTimeMillis()) }
     var startedAtText by remember { mutableStateOf(currentDateTimeText()) }
+    var ttsReady by remember { mutableStateOf(false) }
+
+    val textToSpeech = remember {
+        TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) ttsReady = true
+        }
+    }
+
+    LaunchedEffect(ttsReady) {
+        if (ttsReady) {
+            val result = textToSpeech.setLanguage(Locale.US)
+            ttsReady = result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED
+            textToSpeech.setSpeechRate(0.85f)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            textToSpeech.stop()
+            textToSpeech.shutdown()
+        }
+    }
 
     fun setTop(text: String, error: Boolean) {
         msg = text
@@ -102,6 +128,15 @@ fun PracticeScreen(
 
     fun currentSentence(): SpokenHomeworkSentence? {
         return if (currentIndex in sentences.indices) sentences[currentIndex] else null
+    }
+
+    fun playAnswer() {
+        val sentence = currentSentence() ?: return
+        if (ttsReady) {
+            textToSpeech.speak(sentence.english, TextToSpeech.QUEUE_FLUSH, null, "practice_answer_${sentence.english}")
+        } else {
+            setTop("This phone is not ready to pronounce English yet.", true)
+        }
     }
 
     fun recordCurrentIfNeeded() {
@@ -290,6 +325,7 @@ fun PracticeScreen(
                 attempts = attempts,
                 hintState = hintState,
                 speak = { startSpeaking() },
+                playAnswer = { playAnswer() },
                 openHints = { if (hintState.isBlank()) hintState = "open:" },
                 chooseHintWord = { index -> hintState = addHintIndex(hintState, index) }
             )
@@ -320,11 +356,11 @@ fun PracticeScreen(
         Spacer(Modifier.height(14.dp))
 
         ArtButton(
-            text = "Back",
-            onClick = back,
+            text = if (sending) "Sending..." else "Back",
+            onClick = { finishPractice() },
             modifier = Modifier.fillMaxWidth(0.45f),
             backgroundResId = R.drawable.redbutton,
-            enabled = !sending
+            enabled = !sending && !activeListening
         )
     }
 }
@@ -337,6 +373,7 @@ private fun PracticeCard(
     attempts: Int,
     hintState: String,
     speak: () -> Unit,
+    playAnswer: () -> Unit,
     openHints: () -> Unit,
     chooseHintWord: (Int) -> Unit
 ) {
@@ -359,7 +396,30 @@ private fun PracticeCard(
 
             Spacer(Modifier.height(8.dp))
 
-            ArtButton("🎙 Speak", speak, Modifier.fillMaxWidth(0.55f), heightDp = 54, fontSize = 17)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ArtButton("🎙 Speak", speak, Modifier.weight(1f), heightDp = 54, fontSize = 16)
+                Spacer(Modifier.width(8.dp))
+                ArtButton(
+                    text = "",
+                    onClick = playAnswer,
+                    modifier = Modifier.weight(0.9f),
+                    backgroundResId = R.drawable.whitebutton,
+                    heightDp = 54,
+                    fontSize = 15,
+                    content = {
+                        Text(
+                            text = "🔊 Answer",
+                            color = practiceBlue,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Black,
+                            textAlign = TextAlign.Center,
+                            style = LocalTextStyle.current.copy(
+                                shadow = Shadow(Color.White, Offset(1f, 1f), 2f)
+                            )
+                        )
+                    }
+                )
+            }
 
             Spacer(Modifier.height(8.dp))
             Text("Android heard:", fontWeight = FontWeight.Bold, color = Color(0xFF555555))
