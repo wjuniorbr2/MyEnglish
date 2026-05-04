@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -33,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -256,50 +259,57 @@ private fun FramedSection(content: @Composable () -> Unit) {
 
 @Composable
 private fun GrammarInfoDialog(text: String, close: () -> Unit) {
+    val configuration = LocalConfiguration.current
+    val maxDialogHeight = (configuration.screenHeightDp * 0.86f).dp
+
     Dialog(
-        onDismissRequest = { },
+        onDismissRequest = close,
         properties = DialogProperties(
-            dismissOnBackPress = false,
+            dismissOnBackPress = true,
             dismissOnClickOutside = false
         )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = maxDialogHeight)
                 .background(Color(0xFFF4F4F4), RoundedCornerShape(18.dp))
                 .border(4.dp, frameOuterColor, RoundedCornerShape(18.dp))
                 .padding(4.dp)
                 .border(2.dp, frameInnerColor, RoundedCornerShape(15.dp))
-                .padding(16.dp)
+                .padding(14.dp)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "GRAMMAR",
                     color = frameOuterColor,
-                    fontSize = 22.sp,
+                    fontSize = 21.sp,
                     fontWeight = FontWeight.Black,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(8.dp))
 
                 Text(
                     text = text,
                     color = Color.Black,
-                    fontSize = 16.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    lineHeight = 20.sp,
-                    textAlign = TextAlign.Center
+                    lineHeight = 16.sp,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState())
                 )
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
 
                 Box(
                     modifier = Modifier
                         .background(frameOuterColor, RoundedCornerShape(12.dp))
                         .clickable { close() }
-                        .padding(horizontal = 28.dp, vertical = 10.dp)
+                        .padding(horizontal = 30.dp, vertical = 9.dp)
                 ) {
                     Text(
                         text = "OK",
