@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -261,6 +260,8 @@ private fun FramedSection(content: @Composable () -> Unit) {
 private fun GrammarInfoDialog(text: String, close: () -> Unit) {
     val configuration = LocalConfiguration.current
     val maxDialogHeight = (configuration.screenHeightDp * 0.86f).dp
+    val textScrollState = rememberScrollState()
+    val showScrollHint = text.length > 320
 
     Dialog(
         onDismissRequest = close,
@@ -291,17 +292,39 @@ private fun GrammarInfoDialog(text: String, close: () -> Unit) {
 
                 Spacer(Modifier.height(8.dp))
 
-                Text(
-                    text = text,
-                    color = Color.Black,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 16.sp,
-                    textAlign = TextAlign.Start,
+                Box(
                     modifier = Modifier
                         .weight(1f, fill = false)
-                        .verticalScroll(rememberScrollState())
-                )
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = text,
+                        color = Color.Black,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 16.sp,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = if (showScrollHint) 20.dp else 0.dp)
+                            .verticalScroll(textScrollState)
+                    )
+
+                    if (showScrollHint) {
+                        Text(
+                            text = "▲\n│\n│\n▼",
+                            color = frameOuterColor,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Black,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 14.sp,
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .background(Color(0xCCF4F4F4), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 3.dp, vertical = 5.dp)
+                        )
+                    }
+                }
 
                 Spacer(Modifier.height(10.dp))
 
