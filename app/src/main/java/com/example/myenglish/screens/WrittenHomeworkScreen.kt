@@ -3,9 +3,7 @@ package com.example.myenglish.screens
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,11 +23,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -166,7 +164,7 @@ fun WrittenHomework(
         builder.append("Original score: ").append(firstScore).append(" / ").append(sentences.size).append("\n\n")
         for (i in sentences.indices) {
             builder.append(i + 1).append(". Expected English: ").append(sentences[i].english).append("\n")
-            builder.append("First written answer: ").append(if (firstAnswers[i].isBlank()) answers[i] else firstAnswers[i]).append("\n")
+            builder.append("First written answer: ").append(firstAnswers[i]).append("\n")
             builder.append("Hints used: ").append(selectedHintIndexes(hints[i]).size).append("\n\n")
         }
         return builder.toString()
@@ -175,7 +173,7 @@ fun WrittenHomework(
     fun checkFirstTry() {
         var score = 0
         for (i in sentences.indices) {
-            if (firstAnswers[i].isBlank()) firstAnswers[i] = answers[i]
+            firstAnswers[i] = answers[i]
             if (isCorrectAnswer(firstAnswers[i], sentences[i].english)) score++
         }
         firstScore = score
@@ -316,11 +314,6 @@ private fun WrittenCard(
                 modifier = Modifier.fillMaxWidth()
             )
             if (step >= 1) {
-                Spacer(Modifier.height(8.dp))
-                Text("Correction:", fontWeight = FontWeight.Bold, color = Color(0xFF555555))
-                Box(Modifier.fillMaxWidth().background(Color(0xFFF4F4F4), MaterialTheme.shapes.small).padding(10.dp)) {
-                    Text(coloredAnswer(answer, sentence.english), fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                }
                 Spacer(Modifier.height(4.dp))
                 Text(if (ok) "Perfect. Translation unlocked." else "Red words detected. Fix the sentence.", color = if (ok) writtenGreen else writtenRed, fontWeight = FontWeight.Bold)
                 if (!ok && !submitted && hintState.isBlank()) {
@@ -369,69 +362,6 @@ private class WrittenCorrectionVisualTransformation(private val correctText: Str
         }
         return TransformedText(annotated, OffsetMapping.Identity)
     }
-}
-
-private fun coloredAnswer(answer: String, expected: String) = buildAnnotatedString {
-    val expectedWords = cleanAnswer(expected).split(" ").filter { it.isNotBlank() }
-    val ranges = wordRanges(answer)
-    val studentWords = ranges.map { cleanAnswer(answer.substring(it.first, it.last)) }
-    val matchMap = matchingStudentToExpected(studentWords, expectedWords)
-    var expectedCursor = 0
-    for (i in ranges.indices) {
-        val expectedIndex = matchMap[i]
-        if (expectedIndex != null && expectedIndex >= expectedCursor) {
-            while (expectedCursor < expectedIndex && noWrongWordCanFillExpectedSlot(i, expectedIndex, matchMap)) {
-                appendMissingUnderline()
-                expectedCursor++
-            }
-        }
-        val start = length
-        append(answer.substring(ranges[i].first, ranges[i].last))
-        val end = length
-        if (studentWords[i].isNotBlank() && expectedIndex == null) {
-            addStyle(SpanStyle(color = writtenRed), start, end)
-            if (expectedCursor < expectedWords.size) expectedCursor++
-        }
-        append(" ")
-        if (expectedIndex != null && expectedIndex >= expectedCursor) expectedCursor = expectedIndex + 1
-    }
-    while (expectedCursor < expectedWords.size) {
-        appendMissingUnderline()
-        expectedCursor++
-    }
-}
-
-private fun androidx.compose.ui.text.AnnotatedString.Builder.appendMissingUnderline() {
-    val start = length
-    append("____ ")
-    addStyle(SpanStyle(color = writtenRed, textDecoration = TextDecoration.Underline), start, length)
-}
-
-private fun matchingStudentToExpected(studentWords: List<String>, expectedWords: List<String>): Map<Int, Int> {
-    val result = mutableMapOf<Int, Int>()
-    val used = mutableSetOf<Int>()
-    for (i in studentWords.indices) {
-        var found = -1
-        for (j in expectedWords.indices) {
-            if (found == -1 && !used.contains(j) && studentWords[i] == expectedWords[j]) found = j
-        }
-        if (found != -1) {
-            result[i] = found
-            used.add(found)
-        }
-    }
-    return result
-}
-
-private fun noWrongWordCanFillExpectedSlot(currentStudentIndex: Int, matchedExpectedIndex: Int, matchMap: Map<Int, Int>): Boolean {
-    var i = currentStudentIndex - 1
-    while (i >= 0) {
-        if (!matchMap.containsKey(i)) return false
-        val previous = matchMap[i] ?: -1
-        if (previous < matchedExpectedIndex) return true
-        i--
-    }
-    return true
 }
 
 private fun selectedHintIndexes(state: String): Set<Int> {
