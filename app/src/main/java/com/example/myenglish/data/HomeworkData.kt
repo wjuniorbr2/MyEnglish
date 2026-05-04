@@ -31,6 +31,15 @@ object HomeworkData {
         }
     }
 
+    fun writtenSentencesForLesson(lessonName: String): Array<WrittenHomeworkSentence> {
+        return when (lessonName) {
+            "Lesson 1" -> Lesson1WrittenData.sentences
+            "Lesson 2" -> Lesson2WrittenData.sentences
+            "Lesson 3" -> Lesson3WrittenData.sentences
+            else -> emptyArray()
+        }
+    }
+
     fun hasListeningHomework(lessonName: String): Boolean {
         return lessonName == "Lesson 1" ||
                 lessonName == "Lesson 2" ||
@@ -38,6 +47,12 @@ object HomeworkData {
     }
 
     fun hasSpokenHomework(lessonName: String): Boolean {
+        return lessonName == "Lesson 1" ||
+                lessonName == "Lesson 2" ||
+                lessonName == "Lesson 3"
+    }
+
+    fun hasWrittenHomework(lessonName: String): Boolean {
         return lessonName == "Lesson 1" ||
                 lessonName == "Lesson 2" ||
                 lessonName == "Lesson 3"
