@@ -39,13 +39,16 @@ import com.example.myenglish.data.HomeworkData
 fun Lesson(
     name: String,
     listeningDone: Boolean,
+    spokenDone: Boolean,
     showChoices: Boolean,
     showHomework: () -> Unit,
     openBook: () -> Unit,
     openListening: () -> Unit,
+    openSpoken: () -> Unit,
     back: () -> Unit
 ) {
     val listeningAvailable = HomeworkData.hasListeningHomework(name)
+    val spokenAvailable = HomeworkData.hasSpokenHomework(name)
     val bookAvailable = name == "Lesson 1" || name == "Lesson 2" || name == "Lesson 3"
 
     Column(
@@ -96,7 +99,7 @@ fun Lesson(
                     Spacer(Modifier.width(5.dp))
                     HomeworkIconSpot(1, false)
                     Spacer(Modifier.width(5.dp))
-                    HomeworkIconSpot(2, false)
+                    HomeworkIconSpot(2, spokenDone)
                 }
             }
         )
@@ -141,13 +144,27 @@ fun Lesson(
 
             Spacer(Modifier.height(7.dp))
 
-            ArtButton(
-                text = "Spoken homework",
-                onClick = { },
-                backgroundResId = R.drawable.graybutton,
-                enabled = false,
-                fontSize = 17
-            )
+            Box(contentAlignment = Alignment.Center) {
+                ArtButton(
+                    text = if (spokenAvailable) "Spoken homework" else "Spoken homework - coming soon",
+                    onClick = openSpoken,
+                    backgroundResId = if (spokenAvailable) R.drawable.bluebutton else R.drawable.graybutton,
+                    enabled = spokenAvailable,
+                    fontSize = 17
+                )
+
+                if (spokenDone) {
+                    Image(
+                        painter = painterResource(id = R.drawable.donestamp),
+                        contentDescription = "Done",
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .offset(x = -88.dp, y = (-16).dp)
+                            .size(80.dp)
+                            .rotate(-25f)
+                    )
+                }
+            }
         }
 
         Spacer(Modifier.height(16.dp))
