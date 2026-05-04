@@ -46,7 +46,7 @@ fun Lesson(
     back: () -> Unit
 ) {
     val listeningAvailable = HomeworkData.hasListeningHomework(name)
-    val bookAvailable = name == "Lesson 1"
+    val bookAvailable = name == "Lesson 1" || name == "Lesson 2"
 
     Column(
         Modifier
