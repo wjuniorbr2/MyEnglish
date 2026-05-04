@@ -47,6 +47,7 @@ import com.example.myenglish.data.BookAudioItem
 import com.example.myenglish.data.BookLessonData
 import com.example.myenglish.data.Lesson1BookData
 import com.example.myenglish.data.Lesson2BookData
+import com.example.myenglish.data.Lesson3BookData
 
 private val frameOuterColor = Color(0xFF0D3D7A)
 private val frameInnerColor = Color(0xFF2E75C9)
@@ -59,6 +60,7 @@ fun BookScreen(
 ) {
     val bookData: BookLessonData = when (lessonName) {
         "Lesson 2" -> Lesson2BookData
+        "Lesson 3" -> Lesson3BookData
         else -> Lesson1BookData
     }
 
