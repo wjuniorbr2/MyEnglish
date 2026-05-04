@@ -6,7 +6,7 @@ import java.net.URL
 import java.net.URLEncoder
 
 private const val HOMEWORK_REPORT_BASE_URL = "https://script.google.com/macros/s/"
-private const val HOMEWORK_REPORT_DEPLOYMENT_ID = "AKfycbw--Xnm_BzbTrC6cyzYuXfSgBnE6CziowCywmClgDqT3hDglNNwOTDRGdVLVNXJiyB6"
+private const val HOMEWORK_REPORT_DEPLOYMENT_ID = "AKfycbyG9fut3IKKvAbyWM07XEtYc-vtmjKHBTOxGNQyHAqCOlXNVHeO8XNSE8JWVboI9QIP"
 private const val HOMEWORK_REPORT_URL = HOMEWORK_REPORT_BASE_URL + HOMEWORK_REPORT_DEPLOYMENT_ID + "/exec"
 
 fun sendHomeworkReportToTeacher(
