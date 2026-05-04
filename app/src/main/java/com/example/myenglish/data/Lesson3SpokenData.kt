@@ -31,6 +31,7 @@ object Lesson3SpokenData {
         SpokenHomeworkSentence("Que livro você quer?", "What book do you want?"),
         SpokenHomeworkSentence("Oi, leve o tempo que precisar.", "Hey, take your time."),
         SpokenHomeworkSentence("É isso aí, deixa pra lá.", "That’s it, never mind."),
-        SpokenHomeworkSentence("Uau, meu Deus!", "Wow, my God!")
+        SpokenHomeworkSentence("Uau, meu Deus!", "Wow, my God!"),
+        SpokenHomeworkSentence("Eu estudo no carro.", "I study in the car.")
     )
 }
