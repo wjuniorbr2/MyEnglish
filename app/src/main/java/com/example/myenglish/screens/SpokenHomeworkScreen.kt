@@ -295,20 +295,21 @@ fun SpokenHomework(
 
         var i = 0
         while (i < sentences.size) {
+            val index = i
             SpokenSentenceCard(
-                number = i + 1,
-                sentence = sentences[i],
-                answer = answers[i],
-                attempts = attempts[i],
-                hintCount = hints[i],
+                number = index + 1,
+                sentence = sentences[index],
+                answer = answers[index],
+                attempts = attempts[index],
+                hintCount = hints[index],
                 submitted = submitted,
-                speak = { startSpeaking(i) },
+                speak = { startSpeaking(index) },
                 hint = {
-                    if (attempts[i] >= 5 && hints[i] < countWords(sentences[i].english)) {
-                        hints[i] = hints[i] + 1
+                    if (attempts[index] >= 5 && hints[index] < countWords(sentences[index].english)) {
+                        hints[index] = hints[index] + 1
                     }
                 },
-                messageIndex = i
+                messageIndex = index
             )
             Spacer(Modifier.height(12.dp))
             i++
@@ -400,11 +401,13 @@ private fun SpokenSentenceCard(
                     .background(Color(0xFFF4F4F4), MaterialTheme.shapes.small)
                     .padding(10.dp)
             ) {
-                Text(
-                    text = coloredAnswer(answer, sentence.english),
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                if (answer.isNotBlank()) {
+                    Text(
+                        text = coloredAnswer(answer, sentence.english),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(Modifier.height(4.dp))
@@ -510,11 +513,6 @@ private fun applyExpectedPunctuation(raw: String, expected: String): String {
 }
 
 private fun coloredAnswer(answer: String, expected: String) = buildAnnotatedString {
-    if (answer.isBlank()) {
-        append("The microphone is waiting for your English magic.")
-        return@buildAnnotatedString
-    }
-
     append(answer)
 
     val expectedWords = cleanAnswer(expected).split(" ").filter { it.isNotBlank() }
