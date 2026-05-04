@@ -66,6 +66,9 @@ import com.example.myenglish.utils.currentDateTimeText
 import com.example.myenglish.utils.isCorrectAnswer
 import java.util.Locale
 
+private val errorRed = Color(0xFFC62828)
+private val successGreen = Color(0xFF2E7D32)
+
 private val spokenCorrectMessages = arrayOf(
     "Nailed it. The microphone is clapping.",
     "English escaped your mouth perfectly.",
@@ -306,6 +309,15 @@ fun SpokenHomework(
         )
     }
 
+    val topMessageIsError = msg.isNotBlank() && !allCorrect() && (
+        msg.contains("Fix", ignoreCase = true) ||
+                msg.contains("Failed", ignoreCase = true) ||
+                msg.contains("not ready", ignoreCase = true) ||
+                msg.contains("permission", ignoreCase = true) ||
+                msg.contains("silence", ignoreCase = true) ||
+                msg.contains("Try again", ignoreCase = true)
+    )
+
     Column(
         Modifier
             .fillMaxSize()
@@ -330,7 +342,7 @@ fun SpokenHomework(
             Spacer(Modifier.height(8.dp))
             Text(
                 text = msg,
-                color = Color(0xFF555555),
+                color = if (topMessageIsError) errorRed else Color(0xFF555555),
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 style = LocalTextStyle.current.copy(
@@ -425,7 +437,7 @@ private fun SpokenSentenceCard(
                 if (answer.isNotBlank()) {
                     Text(
                         text = if (currentOk) "✓" else "✕",
-                        color = if (currentOk) Color(0xFF2E7D32) else Color(0xFFC62828),
+                        color = if (currentOk) successGreen else errorRed,
                         fontSize = 54.sp
                     )
                 }
@@ -478,7 +490,9 @@ private fun SpokenSentenceCard(
                         "The order is incorrect."
                     } else {
                         spokenWrongMessages[messageIndex % spokenWrongMessages.size]
-                    }
+                    },
+                    color = if (currentOk) successGreen else errorRed,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
@@ -493,7 +507,11 @@ private fun SpokenSentenceCard(
                     fontSize = 15
                 )
             } else if (!currentOk && attempts in 1..4) {
-                Text("Speak ${5 - attempts} more time(s) to unlock the clue goblin.")
+                Text(
+                    text = "Speak ${5 - attempts} more time(s) to unlock the clue goblin.",
+                    color = errorRed,
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             if (hintState.startsWith("open:")) {
@@ -656,7 +674,7 @@ private fun coloredAnswer(answer: String, expected: String) = buildAnnotatedStri
 
         if (studentWord.isNotBlank() && expectedIndex == null) {
             addStyle(
-                style = SpanStyle(color = Color(0xFFC62828)),
+                style = SpanStyle(color = errorRed),
                 start = start,
                 end = end
             )
@@ -699,7 +717,7 @@ private fun androidx.compose.ui.text.AnnotatedString.Builder.appendMissingUnderl
     val end = length
     addStyle(
         style = SpanStyle(
-            color = Color(0xFFC62828),
+            color = errorRed,
             textDecoration = TextDecoration.Underline
         ),
         start = start,
