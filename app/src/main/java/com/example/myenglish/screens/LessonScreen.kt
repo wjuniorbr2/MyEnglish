@@ -39,15 +39,18 @@ import com.example.myenglish.data.HomeworkData
 fun Lesson(
     name: String,
     listeningDone: Boolean,
+    writtenDone: Boolean,
     spokenDone: Boolean,
     showChoices: Boolean,
     showHomework: () -> Unit,
     openBook: () -> Unit,
     openListening: () -> Unit,
+    openWritten: () -> Unit,
     openSpoken: () -> Unit,
     back: () -> Unit
 ) {
     val listeningAvailable = HomeworkData.hasListeningHomework(name)
+    val writtenAvailable = HomeworkData.hasWrittenHomework(name)
     val spokenAvailable = HomeworkData.hasSpokenHomework(name)
     val bookAvailable = name == "Lesson 1" || name == "Lesson 2" || name == "Lesson 3"
 
@@ -97,7 +100,7 @@ fun Lesson(
                 ) {
                     HomeworkIconSpot(0, listeningDone)
                     Spacer(Modifier.width(5.dp))
-                    HomeworkIconSpot(1, false)
+                    HomeworkIconSpot(1, writtenDone)
                     Spacer(Modifier.width(5.dp))
                     HomeworkIconSpot(2, spokenDone)
                 }
@@ -134,13 +137,27 @@ fun Lesson(
 
             Spacer(Modifier.height(7.dp))
 
-            ArtButton(
-                text = "Written homework",
-                onClick = { },
-                backgroundResId = R.drawable.graybutton,
-                enabled = false,
-                fontSize = 17
-            )
+            Box(contentAlignment = Alignment.Center) {
+                ArtButton(
+                    text = if (writtenAvailable) "Written homework" else "Written homework - coming soon",
+                    onClick = openWritten,
+                    backgroundResId = if (writtenAvailable) R.drawable.bluebutton else R.drawable.graybutton,
+                    enabled = writtenAvailable,
+                    fontSize = 17
+                )
+
+                if (writtenDone) {
+                    Image(
+                        painter = painterResource(id = R.drawable.donestamp),
+                        contentDescription = "Done",
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .offset(x = -88.dp, y = (-16).dp)
+                            .size(80.dp)
+                            .rotate(-25f)
+                    )
+                }
+            }
 
             Spacer(Modifier.height(7.dp))
 
