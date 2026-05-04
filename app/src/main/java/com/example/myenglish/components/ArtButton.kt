@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
@@ -43,17 +42,18 @@ fun ArtButton(
     fontSize: Int = 19,
     content: (@Composable BoxScope.() -> Unit)? = null
 ) {
+    val actualBackgroundResId = if (enabled) backgroundResId else R.drawable.graybutton
+
     Box(
         modifier
             .height(heightDp.dp)
             .shadow(7.dp, RoundedCornerShape(18.dp))
-            .alpha(if (enabled) 1f else 0.58f)
             .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Box(Modifier.matchParentSize().clip(RoundedCornerShape(18.dp))) {
             Image(
-                painter = painterResource(id = backgroundResId),
+                painter = painterResource(id = actualBackgroundResId),
                 contentDescription = null,
                 modifier = Modifier.matchParentSize().graphicsLayer(scaleX = 1.42f, scaleY = 2.80f),
                 contentScale = ContentScale.Crop
