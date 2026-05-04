@@ -20,9 +20,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.LocalTextStyle
@@ -42,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -128,7 +131,8 @@ fun SpokenHomework(
 
     LaunchedEffect(ttsReady) {
         if (ttsReady) {
-            textToSpeech.language = Locale.US
+            val result = textToSpeech.setLanguage(Locale.US)
+            ttsReady = result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED
             textToSpeech.setSpeechRate(0.85f)
         }
     }
@@ -147,6 +151,9 @@ fun SpokenHomework(
     fun speakHintWord(word: String) {
         if (ttsReady && word.isNotBlank()) {
             textToSpeech.speak(word, TextToSpeech.QUEUE_FLUSH, null, "hint_word_$word")
+        } else {
+            msg = "This phone is not ready to pronounce English yet. The tiny speaker needs English magic installed."
+            scrollTopRequest++
         }
     }
 
@@ -396,7 +403,8 @@ private fun SpokenSentenceCard(
 ) {
     val currentOk = isCorrectAnswer(answer, sentence.english)
     val selectedHints = selectedHintIndexes(hintState)
-    val hintWords = cleanAnswer(sentence.english).split(" ").filter { it.isNotBlank() }
+    val hintTokens = expectedDisplayTokens(sentence.english)
+    val wordsCorrectButWrongOrder = answer.isNotBlank() && !currentOk && sameCleanWordsDifferentOrder(answer, sentence.english)
 
     Card(
         Modifier.fillMaxWidth(),
@@ -466,6 +474,8 @@ private fun SpokenSentenceCard(
                 Text(
                     text = if (currentOk) {
                         spokenCorrectMessages[messageIndex % spokenCorrectMessages.size]
+                    } else if (wordsCorrectButWrongOrder) {
+                        "The words are there, but the sentence order is doing cartwheels."
                     } else {
                         spokenWrongMessages[messageIndex % spokenWrongMessages.size]
                     }
@@ -493,12 +503,12 @@ private fun SpokenSentenceCard(
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     var i = 0
-                    while (i < hintWords.size) {
+                    while (i < hintTokens.size) {
                         val wordIndex = i
-                        val word = hintWords[wordIndex]
+                        val token = hintTokens[wordIndex]
                         val revealed = selectedHints.contains(wordIndex)
                         Text(
-                            text = if (revealed) word else "____",
+                            text = if (revealed) token else underlineToken(token),
                             color = if (revealed) Color(0xFF0D3D7A) else Color(0xFF555555),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Black,
@@ -507,7 +517,7 @@ private fun SpokenSentenceCard(
                                 .padding(end = 8.dp, bottom = 4.dp)
                                 .clickable {
                                     if (revealed) {
-                                        hearHintWord(word)
+                                        hearHintWord(cleanAnswer(token))
                                     } else {
                                         chooseHintWord(wordIndex)
                                     }
@@ -525,6 +535,10 @@ private fun SpokenSentenceCard(
 
 @Composable
 private fun SpokenInstructionsDialog(close: () -> Unit) {
+    val configuration = LocalConfiguration.current
+    val maxDialogHeight = (configuration.screenHeightDp * 0.86f).dp
+    val instructionScroll = rememberScrollState()
+
     Dialog(
         onDismissRequest = close,
         properties = DialogProperties(
@@ -535,6 +549,7 @@ private fun SpokenInstructionsDialog(close: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = maxDialogHeight)
                 .background(Color(0xFFF4F4F4), MaterialTheme.shapes.large)
                 .padding(18.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -549,19 +564,43 @@ private fun SpokenInstructionsDialog(close: () -> Unit) {
 
             Spacer(Modifier.height(10.dp))
 
-            Text(
-                text = "1. Leia a frase em português.\n\n" +
-                        "2. Toque no microfone e fale a resposta em inglês.\n\n" +
-                        "3. O aplicativo vai escrever o que entendeu, mas você não poderá digitar a resposta.\n\n" +
-                        "4. As palavras corretas ficam em preto. As palavras incorretas aparecem em vermelho.\n\n" +
-                        "5. Pontuação e letras maiúsculas são ajustadas automaticamente pelo aplicativo.\n\n" +
-                        "6. Depois de 5 tentativas, o botão de dica aparece. Você escolhe qual palavra quer revelar. Depois, pode tocar na palavra revelada para ouvir a pronúncia.\n\n" +
-                        "Importante: faça a atividade em um lugar silencioso, sem TV, música, conversa ou barulho de fundo. Esta tarefa usa reconhecimento de voz em inglês. Fale em inglês, de preferência perto do microfone, e faça a atividade com internet.",
-                color = Color.Black,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 17.sp
-            )
+            Box(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "1. Leia a frase em português.\n\n" +
+                            "2. Toque no microfone e fale a resposta em inglês.\n\n" +
+                            "3. O aplicativo vai escrever o que entendeu, mas você não poderá digitar a resposta.\n\n" +
+                            "4. As palavras corretas ficam em preto. As palavras incorretas aparecem em vermelho.\n\n" +
+                            "5. Se faltar uma palavra, o aplicativo mostra um espaço sublinhado em vermelho no lugar dela.\n\n" +
+                            "6. Pontuação e letras maiúsculas são ajustadas automaticamente pelo aplicativo.\n\n" +
+                            "7. Depois de 5 tentativas, o botão de dica aparece. Você escolhe qual palavra quer revelar. Depois, pode tocar na palavra revelada para ouvir a pronúncia.\n\n" +
+                            "Importante: faça a atividade em um lugar silencioso, sem TV, música, conversa ou barulho de fundo. Esta tarefa usa reconhecimento de voz em inglês. Fale em inglês, de preferência perto do microfone, e faça a atividade com internet.",
+                    color = Color.Black,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 17.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 20.dp)
+                        .verticalScroll(instructionScroll)
+                )
+
+                Text(
+                    text = "▲\n│\n│\n▼",
+                    color = Color(0xFF0D3D7A),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 14.sp,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .background(Color(0xCCF4F4F4), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 3.dp, vertical = 5.dp)
+                )
+            }
 
             Spacer(Modifier.height(14.dp))
 
@@ -591,31 +630,67 @@ private fun applyExpectedPunctuation(raw: String, expected: String): String {
 }
 
 private fun coloredAnswer(answer: String, expected: String) = buildAnnotatedString {
-    append(answer)
-
     val expectedWords = cleanAnswer(expected).split(" ").filter { it.isNotBlank() }
     val studentRanges = wordRanges(answer)
     val studentWords = studentRanges.map { cleanAnswer(answer.substring(it.first, it.last)) }
-    val matchedStudentIndexes = matchingStudentWordIndexes(studentWords, expectedWords)
+    val matchMap = matchingStudentToExpected(studentWords, expectedWords)
 
+    var expectedCursor = 0
     var i = 0
+
     while (i < studentRanges.size) {
         val range = studentRanges[i]
         val studentWord = studentWords[i]
+        val expectedIndex = matchMap[i]
 
-        if (studentWord.isNotBlank() && !matchedStudentIndexes.contains(i)) {
+        if (expectedIndex != null && expectedIndex >= expectedCursor) {
+            while (expectedCursor < expectedIndex) {
+                appendMissingUnderline()
+                expectedCursor++
+            }
+        }
+
+        val start = length
+        append(answer.substring(range.first, range.last))
+        val end = length
+
+        if (studentWord.isNotBlank() && expectedIndex == null) {
             addStyle(
                 style = SpanStyle(color = Color(0xFFC62828)),
-                start = range.first,
-                end = range.last
+                start = start,
+                end = end
             )
+        }
+
+        append(" ")
+        if (expectedIndex != null && expectedIndex >= expectedCursor) {
+            expectedCursor = expectedIndex + 1
         }
         i++
     }
+
+    while (expectedCursor < expectedWords.size) {
+        appendMissingUnderline()
+        expectedCursor++
+    }
 }
 
-private fun matchingStudentWordIndexes(studentWords: List<String>, expectedWords: List<String>): Set<Int> {
-    val result = mutableSetOf<Int>()
+private fun androidx.compose.ui.text.AnnotatedString.Builder.appendMissingUnderline() {
+    val start = length
+    append("____ ")
+    val end = length
+    addStyle(
+        style = SpanStyle(
+            color = Color(0xFFC62828),
+            textDecoration = TextDecoration.Underline
+        ),
+        start = start,
+        end = end
+    )
+}
+
+private fun matchingStudentToExpected(studentWords: List<String>, expectedWords: List<String>): Map<Int, Int> {
+    val result = mutableMapOf<Int, Int>()
     val usedExpectedIndexes = mutableSetOf<Int>()
 
     var i = 0
@@ -630,13 +705,22 @@ private fun matchingStudentWordIndexes(studentWords: List<String>, expectedWords
         }
 
         if (found != -1) {
-            result.add(i)
+            result[i] = found
             usedExpectedIndexes.add(found)
         }
         i++
     }
 
     return result
+}
+
+private fun sameCleanWordsDifferentOrder(answer: String, expected: String): Boolean {
+    val answerWords = cleanAnswer(answer).split(" ").filter { it.isNotBlank() }
+    val expectedWords = cleanAnswer(expected).split(" ").filter { it.isNotBlank() }
+
+    if (answerWords.size != expectedWords.size) return false
+    if (answerWords == expectedWords) return false
+    return answerWords.sorted() == expectedWords.sorted()
 }
 
 private fun selectedHintIndexes(state: String): Set<Int> {
@@ -653,6 +737,15 @@ private fun addHintIndex(state: String, index: Int): String {
     val selected = selectedHintIndexes(state).toMutableSet()
     selected.add(index)
     return "open:" + selected.sorted().joinToString(",")
+}
+
+private fun expectedDisplayTokens(text: String): List<String> {
+    return text.trim().split(" ").filter { it.isNotBlank() }
+}
+
+private fun underlineToken(token: String): String {
+    val punctuation = token.takeLastWhile { !it.isLetterOrDigit() }
+    return "____$punctuation"
 }
 
 private fun wordRanges(text: String): List<IntRange> {
