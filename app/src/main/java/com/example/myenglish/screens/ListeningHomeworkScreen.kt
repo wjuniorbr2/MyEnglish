@@ -38,9 +38,11 @@ import com.example.myenglish.R
 import com.example.myenglish.components.ArtButton
 import com.example.myenglish.components.Header
 import com.example.myenglish.components.SentenceRow
+import com.example.myenglish.components.addListeningHintIndex
+import com.example.myenglish.components.openListeningHintState
+import com.example.myenglish.components.selectedListeningHintCount
 import com.example.myenglish.data.HomeworkSentence
 import com.example.myenglish.sendHomeworkReportToTeacher
-import com.example.myenglish.utils.canUseHint
 import com.example.myenglish.utils.currentDateTimeText
 import com.example.myenglish.utils.isCorrectAnswer
 
@@ -84,14 +86,8 @@ fun Homework(
 
     fun stop() {
         handler.removeCallbacksAndMessages(null)
-        try {
-            player?.stop()
-        } catch (_: Exception) {
-        }
-        try {
-            player?.release()
-        } catch (_: Exception) {
-        }
+        try { player?.stop() } catch (_: Exception) { }
+        try { player?.release() } catch (_: Exception) { }
         player = null
     }
 
@@ -132,7 +128,7 @@ fun Homework(
             builder.append(": plays = ")
             builder.append(plays[i])
             builder.append(", hints = ")
-            builder.append(hints[i])
+            builder.append(selectedListeningHintCount(hints[i]))
             builder.append("\n")
             i++
         }
@@ -265,12 +261,14 @@ fun Homework(
                     onAttemptChanged()
                     play(index, sentence.startMs, sentence.endMs)
                 },
-                stop = {
-                    stop()
-                },
-                hint = {
-                    if (canUseHint(answers[index], plays[index], submitStep >= 1, hints[index], sentence.correctText)) {
-                        hints[index]++
+                stop = { stop() },
+                hint = { wordIndex ->
+                    if (answers[index].isNotBlank() && plays[index] >= 5 && submitStep >= 1 && submitStep < 2) {
+                        hints[index] = if (wordIndex == null) {
+                            openListeningHintState(hints[index])
+                        } else {
+                            addListeningHintIndex(hints[index], wordIndex)
+                        }
                         setReport(buildReport(score))
                         onAttemptChanged()
                     }
