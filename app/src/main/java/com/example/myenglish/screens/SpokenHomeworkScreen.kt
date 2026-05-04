@@ -113,6 +113,7 @@ fun SpokenHomework(
     val progressKey = remember(name) { "spoken_progress_" + name.lowercase().replace(" ", "_") }
 
     val answers = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
+    val firstAnswers = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
     val attempts = remember(sentences.size) { mutableStateListOf<Int>().apply { repeat(sentences.size) { add(0) } } }
     val hintStates = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
 
@@ -133,6 +134,7 @@ fun SpokenHomework(
         var i = 0
         while (i < sentences.size) {
             editor.putString("${progressKey}_answer_$i", answers[i])
+            editor.putString("${progressKey}_first_answer_$i", firstAnswers[i])
             editor.putInt("${progressKey}_attempts_$i", attempts[i])
             editor.putString("${progressKey}_hints_$i", hintStates[i])
             i++
@@ -149,6 +151,7 @@ fun SpokenHomework(
         var i = 0
         while (i < count) {
             editor.remove("${progressKey}_answer_$i")
+            editor.remove("${progressKey}_first_answer_$i")
             editor.remove("${progressKey}_attempts_$i")
             editor.remove("${progressKey}_hints_$i")
             i++
@@ -176,6 +179,7 @@ fun SpokenHomework(
             var i = 0
             while (i < sentences.size) {
                 answers[i] = prefs.getString("${progressKey}_answer_$i", "") ?: ""
+                firstAnswers[i] = prefs.getString("${progressKey}_first_answer_$i", "") ?: ""
                 attempts[i] = prefs.getInt("${progressKey}_attempts_$i", 0)
                 hintStates[i] = prefs.getString("${progressKey}_hints_$i", "") ?: ""
                 i++
@@ -244,7 +248,11 @@ fun SpokenHomework(
 
             if (spokenText.isNotBlank()) {
                 attempts[index] = attempts[index] + 1
-                answers[index] = applyExpectedPunctuation(spokenText, sentences[index].english)
+                val formattedAnswer = applyExpectedPunctuation(spokenText, sentences[index].english)
+                answers[index] = formattedAnswer
+                if (firstAnswers[index].isBlank()) {
+                    firstAnswers[index] = formattedAnswer
+                }
 
                 if (isCorrectAnswer(answers[index], sentences[index].english)) {
                     setTopMessage(spokenCorrectMessages[index % spokenCorrectMessages.size], false)
@@ -304,9 +312,8 @@ fun SpokenHomework(
 
         var i = 0
         while (i < sentences.size) {
-            builder.append(i + 1).append(". Portuguese: ").append(sentences[i].portuguese).append("\n")
-            builder.append("Expected English: ").append(sentences[i].english).append("\n")
-            builder.append("Recognized speech: ").append(answers[i]).append("\n")
+            builder.append(i + 1).append(". Expected English: ").append(sentences[i].english).append("\n")
+            builder.append("First recognized speech: ").append(firstAnswers[i]).append("\n")
             builder.append("Attempts: ").append(attempts[i]).append("\n")
             builder.append("Hints used: ").append(selectedHintIndexes(hintStates[i]).size).append("\n\n")
             i++
