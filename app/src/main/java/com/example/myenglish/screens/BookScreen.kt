@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -43,21 +44,28 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.myenglish.R
 import com.example.myenglish.components.ArtButton
 import com.example.myenglish.data.BookAudioItem
+import com.example.myenglish.data.BookLessonData
 import com.example.myenglish.data.Lesson1BookData
+import com.example.myenglish.data.Lesson2BookData
 
-private val frameOuterColor = androidx.compose.ui.graphics.Color(0xFF0D3D7A)
-private val frameInnerColor = androidx.compose.ui.graphics.Color(0xFF2E75C9)
-private val darkPanelColor = androidx.compose.ui.graphics.Color(0xAA111111)
+private val frameOuterColor = Color(0xFF0D3D7A)
+private val frameInnerColor = Color(0xFF2E75C9)
+private val darkPanelColor = Color(0xAA111111)
 
 @Composable
 fun BookScreen(
     lessonName: String,
     back: () -> Unit
 ) {
+    val bookData: BookLessonData = when (lessonName) {
+        "Lesson 2" -> Lesson2BookData
+        else -> Lesson1BookData
+    }
+
     val context = LocalContext.current
     val handler = remember { Handler(Looper.getMainLooper()) }
     val playerRef = remember { arrayOf<MediaPlayer?>(null) }
-    var showGrammarInfo by rememberSaveable { mutableStateOf(false) }
+    var showGrammarInfo by rememberSaveable(lessonName) { mutableStateOf(false) }
 
     fun stop() {
         handler.removeCallbacksAndMessages(null)
@@ -72,9 +80,17 @@ fun BookScreen(
         playerRef[0] = currentPlayer
         currentPlayer.setVolume(1f, 1f)
 
-        val isAlphabetItem = item.audioResId == Lesson1BookData.ALPHABET_AUDIO_RES_ID && item.english != "THE ALPHABET"
-        val beforeBuffer = if (isAlphabetItem) 90 else 260
-        val afterBuffer = if (isAlphabetItem) 230 else 760
+        val isAlphabetItem = item.audioResId == bookData.alphabetAudioResId && item.english != "THE ALPHABET"
+        val beforeBuffer = when {
+            item.useExactTiming -> 0
+            isAlphabetItem -> 90
+            else -> 260
+        }
+        val afterBuffer = when {
+            item.useExactTiming -> 0
+            isAlphabetItem -> 230
+            else -> 760
+        }
         val bufferedStart = (item.startMs - beforeBuffer).coerceAtLeast(0)
         val duration = (item.endMs - item.startMs + beforeBuffer + afterBuffer).coerceAtLeast(350)
 
@@ -119,10 +135,10 @@ fun BookScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Spacer(Modifier.width(68.dp))
-                AudioTitle(Lesson1BookData.title) { playSegment(Lesson1BookData.title) }
+                AudioTitle(bookData.title) { playSegment(bookData.title) }
                 ArtButton(
                     text = "▶ All",
-                    onClick = { playFull(Lesson1BookData.BOOK_AUDIO_RES_ID) },
+                    onClick = { playFull(bookData.bookAudioResId) },
                     modifier = Modifier.width(86.dp),
                     heightDp = 46,
                     fontSize = 14
@@ -132,29 +148,29 @@ fun BookScreen(
             Spacer(Modifier.height(10.dp))
 
             FramedSection {
-                SectionTitle(Lesson1BookData.verbsTitle) { playSegment(Lesson1BookData.verbsTitle) }
-                WordGrid(Lesson1BookData.verbs, 3, ::playSegment)
+                SectionTitle(bookData.verbsTitle) { playSegment(bookData.verbsTitle) }
+                WordGrid(bookData.verbs, 3, ::playSegment)
             }
 
             FramedSection {
-                SectionTitle(Lesson1BookData.vocabularyTitle) { playSegment(Lesson1BookData.vocabularyTitle) }
-                WordGrid(Lesson1BookData.vocabulary, 3, ::playSegment)
+                SectionTitle(bookData.vocabularyTitle) { playSegment(bookData.vocabularyTitle) }
+                WordGrid(bookData.vocabulary, 3, ::playSegment)
             }
 
             FramedSection {
-                SectionTitle(Lesson1BookData.expressionsTitle) { playSegment(Lesson1BookData.expressionsTitle) }
-                WordGrid(Lesson1BookData.expressions, 2, ::playSegment)
+                SectionTitle(bookData.expressionsTitle) { playSegment(bookData.expressionsTitle) }
+                WordGrid(bookData.expressions, 2, ::playSegment)
             }
 
             FramedSection {
-                SectionTitle(Lesson1BookData.grammarTitle) {
+                SectionTitle(bookData.grammarTitle) {
                     showGrammarInfo = true
-                    playSegment(Lesson1BookData.grammarTitle)
+                    playSegment(bookData.grammarTitle)
                 }
 
                 Text(
-                    text = "Presente nas formas + positiva, - negativa, ? interrogativa e ?- interrogativa negativa",
-                    color = androidx.compose.ui.graphics.Color.White,
+                    text = bookData.grammarNoteText,
+                    color = Color.White,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -162,7 +178,7 @@ fun BookScreen(
                         .fillMaxWidth()
                         .padding(top = 5.dp, bottom = 3.dp)
                 )
-                WordGrid(Lesson1BookData.grammarSentences, 2, ::playSegment)
+                WordGrid(bookData.grammarSentences, 2, ::playSegment)
             }
 
             Row(
@@ -176,25 +192,25 @@ fun BookScreen(
                         .border(4.dp, frameOuterColor, RoundedCornerShape(12.dp))
                         .padding(3.dp)
                         .border(2.dp, frameInnerColor, RoundedCornerShape(10.dp))
-                        .clickable { playSegment(Lesson1BookData.alphabetTitle) }
+                        .clickable { playSegment(bookData.alphabetTitle) }
                         .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Text(
                         text = "ALPHABET",
-                        color = androidx.compose.ui.graphics.Color.White,
+                        color = Color.White,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Black
                     )
                 }
                 ArtButton(
                     text = "▶ ABC",
-                    onClick = { playFull(Lesson1BookData.ALPHABET_AUDIO_RES_ID) },
+                    onClick = { playFull(bookData.alphabetAudioResId) },
                     modifier = Modifier.width(95.dp),
                     heightDp = 46,
                     fontSize = 14
                 )
             }
-            AlphabetGrid(Lesson1BookData.alphabet, ::playSegment)
+            AlphabetGrid(bookData.alphabet, ::playSegment)
 
             Spacer(Modifier.height(14.dp))
             ArtButton(
@@ -209,6 +225,7 @@ fun BookScreen(
 
     if (showGrammarInfo) {
         GrammarInfoDialog(
+            text = bookData.grammarInfoText,
             close = { showGrammarInfo = false }
         )
     }
@@ -233,7 +250,7 @@ private fun FramedSection(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun GrammarInfoDialog(close: () -> Unit) {
+private fun GrammarInfoDialog(text: String, close: () -> Unit) {
     Dialog(
         onDismissRequest = { },
         properties = DialogProperties(
@@ -244,7 +261,7 @@ private fun GrammarInfoDialog(close: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(androidx.compose.ui.graphics.Color(0xFFF4F4F4), RoundedCornerShape(18.dp))
+                .background(Color(0xFFF4F4F4), RoundedCornerShape(18.dp))
                 .border(4.dp, frameOuterColor, RoundedCornerShape(18.dp))
                 .padding(4.dp)
                 .border(2.dp, frameInnerColor, RoundedCornerShape(15.dp))
@@ -263,8 +280,8 @@ private fun GrammarInfoDialog(close: () -> Unit) {
                 Spacer(Modifier.height(10.dp))
 
                 Text(
-                    text = "Aqui estamos aprendendo o presente de algumas frases nas formas positiva, negativa, interrogativa e interrogativa negativa.",
-                    color = androidx.compose.ui.graphics.Color.Black,
+                    text = text,
+                    color = Color.Black,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 20.sp,
@@ -281,7 +298,7 @@ private fun GrammarInfoDialog(close: () -> Unit) {
                 ) {
                     Text(
                         text = "OK",
-                        color = androidx.compose.ui.graphics.Color.White,
+                        color = Color.White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Black
                     )
@@ -304,7 +321,7 @@ private fun AudioTitle(item: BookAudioItem, onClick: () -> Unit) {
     ) {
         Text(
             text = item.english,
-            color = androidx.compose.ui.graphics.Color.White,
+            color = Color.White,
             fontSize = 24.sp,
             fontWeight = FontWeight.Black
         )
@@ -315,7 +332,7 @@ private fun AudioTitle(item: BookAudioItem, onClick: () -> Unit) {
 private fun SectionTitle(item: BookAudioItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Text(
         text = item.english,
-        color = androidx.compose.ui.graphics.Color.White,
+        color = Color.White,
         fontSize = 19.sp,
         fontWeight = FontWeight.Black,
         textAlign = TextAlign.Center,
@@ -358,7 +375,7 @@ private fun WordCell(item: BookAudioItem, modifier: Modifier, play: (BookAudioIt
     ) {
         Text(
             text = item.english,
-            color = androidx.compose.ui.graphics.Color.White,
+            color = Color.White,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             lineHeight = 18.sp
@@ -367,7 +384,7 @@ private fun WordCell(item: BookAudioItem, modifier: Modifier, play: (BookAudioIt
         if (item.translation.isNotEmpty()) {
             Text(
                 text = item.translation,
-                color = androidx.compose.ui.graphics.Color(0xFFE0E0E0),
+                color = Color(0xFFE0E0E0),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Normal,
                 lineHeight = 13.sp
@@ -413,14 +430,14 @@ private fun AlphabetCell(item: BookAudioItem, play: (BookAudioItem) -> Unit) {
     ) {
         Text(
             text = item.english,
-            color = androidx.compose.ui.graphics.Color.White,
+            color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Black,
             modifier = Modifier.clickable { play(item) }
         )
         Text(
             text = item.translation,
-            color = androidx.compose.ui.graphics.Color(0xFFE0E0E0),
+            color = Color(0xFFE0E0E0),
             fontSize = translationFontSize,
             maxLines = 1,
             softWrap = false,
