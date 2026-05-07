@@ -51,11 +51,11 @@ fun BugReportOverlay(
 
     Box(
         modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.TopEnd
+        contentAlignment = Alignment.TopStart
     ) {
         Box(
             modifier = Modifier
-                .offset(x = (-12).dp, y = 0.dp)
+                .offset(x = 12.dp, y = (-4).dp)
                 .width(58.dp)
                 .height(58.dp)
                 .shadow(
