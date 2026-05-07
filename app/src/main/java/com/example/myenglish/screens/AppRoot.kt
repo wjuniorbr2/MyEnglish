@@ -1,6 +1,8 @@
 package com.example.myenglish.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -9,7 +11,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.example.myenglish.components.BugReportOverlay
 import com.example.myenglish.components.StudentNameDialog
 import com.example.myenglish.data.HomeworkData
 import com.example.myenglish.data.PracticeData
@@ -186,135 +190,143 @@ fun AppRoot() {
         }
     }
 
-    if (showNameDialog) {
-        StudentNameDialog(studentName) { newName ->
-            studentName = newName
-            prefs.edit().putString("student_name", newName).apply()
-            showNameDialog = false
-        }
-    }
-
-    when (screen) {
-        "home" -> {
-            Home(
-                studentName = displayStudentName(studentName),
-                onChangeName = { showNameDialog = true },
-                openLesson = { lesson ->
-                    selectedLesson = lesson
-                    showChoices = false
-                    screen = "lesson"
-                }
-            )
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (showNameDialog) {
+            StudentNameDialog(studentName) { newName ->
+                studentName = newName
+                prefs.edit().putString("student_name", newName).apply()
+                showNameDialog = false
+            }
         }
 
-        "lesson" -> {
-            Lesson(
-                name = selectedLesson,
-                listeningDone = listeningDoneForLesson(selectedLesson),
-                writtenDone = writtenDoneForLesson(selectedLesson),
-                spokenDone = spokenDoneForLesson(selectedLesson),
-                showChoices = showChoices,
-                showHomework = { showChoices = true },
-                openBook = { screen = "book" },
-                openPractice = { openPractice() },
-                openListening = { openListeningHomework() },
-                openWritten = { openWrittenHomework() },
-                openSpoken = { openSpokenHomework() },
-                back = { screen = "home" }
-            )
+        when (screen) {
+            "home" -> {
+                Home(
+                    studentName = displayStudentName(studentName),
+                    onChangeName = { showNameDialog = true },
+                    openLesson = { lesson ->
+                        selectedLesson = lesson
+                        showChoices = false
+                        screen = "lesson"
+                    }
+                )
+            }
+
+            "lesson" -> {
+                Lesson(
+                    name = selectedLesson,
+                    listeningDone = listeningDoneForLesson(selectedLesson),
+                    writtenDone = writtenDoneForLesson(selectedLesson),
+                    spokenDone = spokenDoneForLesson(selectedLesson),
+                    showChoices = showChoices,
+                    showHomework = { showChoices = true },
+                    openBook = { screen = "book" },
+                    openPractice = { openPractice() },
+                    openListening = { openListeningHomework() },
+                    openWritten = { openWrittenHomework() },
+                    openSpoken = { openSpokenHomework() },
+                    back = { screen = "home" }
+                )
+            }
+
+            "book" -> {
+                BookScreen(
+                    lessonName = selectedLesson,
+                    back = { screen = "lesson" }
+                )
+            }
+
+            "homework" -> {
+                val sentences = HomeworkData.sentencesForLesson(activeHomeworkLesson)
+                val audioResId = HomeworkData.audioResIdForLesson(context, activeHomeworkLesson)
+
+                Homework(
+                    name = activeHomeworkLesson,
+                    studentName = displayStudentName(studentName),
+                    sentences = sentences,
+                    audioResId = audioResId,
+                    answers = answers,
+                    plays = plays,
+                    hints = hints,
+                    firstCorrect = firstCorrect,
+                    submitStep = submitStep,
+                    score = score,
+                    msg = message,
+                    setScore = {
+                        score = it
+                        saveCurrentAttempt()
+                    },
+                    setStep = {
+                        submitStep = it
+                        saveCurrentAttempt()
+                    },
+                    setMsg = {
+                        message = it
+                        saveCurrentAttempt()
+                    },
+                    setReport = {
+                        report = it
+                    },
+                    onAttemptChanged = {
+                        saveCurrentAttempt()
+                    },
+                    done = {
+                        markListeningDone(activeHomeworkLesson)
+                    },
+                    back = {
+                        screen = "lesson"
+                    }
+                )
+            }
+
+            "writtenHomework" -> {
+                val writtenSentences = HomeworkData.writtenSentencesForLesson(activeHomeworkLesson)
+
+                WrittenHomework(
+                    name = activeHomeworkLesson,
+                    studentName = displayStudentName(studentName),
+                    sentences = writtenSentences,
+                    done = {
+                        markWrittenDone(activeHomeworkLesson)
+                    },
+                    back = {
+                        screen = "lesson"
+                    }
+                )
+            }
+
+            "spokenHomework" -> {
+                val spokenSentences = HomeworkData.spokenSentencesForLesson(activeHomeworkLesson)
+
+                SpokenHomework(
+                    name = activeHomeworkLesson,
+                    studentName = displayStudentName(studentName),
+                    sentences = spokenSentences,
+                    done = {
+                        markSpokenDone(activeHomeworkLesson)
+                    },
+                    back = {
+                        screen = "lesson"
+                    }
+                )
+            }
+
+            "practice" -> {
+                PracticeScreen(
+                    name = activeHomeworkLesson,
+                    studentName = displayStudentName(studentName),
+                    sentences = PracticeData.sentencesForLesson(activeHomeworkLesson),
+                    back = {
+                        screen = "lesson"
+                    }
+                )
+            }
         }
 
-        "book" -> {
-            BookScreen(
-                lessonName = selectedLesson,
-                back = { screen = "lesson" }
-            )
-        }
-
-        "homework" -> {
-            val sentences = HomeworkData.sentencesForLesson(activeHomeworkLesson)
-            val audioResId = HomeworkData.audioResIdForLesson(context, activeHomeworkLesson)
-
-            Homework(
-                name = activeHomeworkLesson,
-                studentName = displayStudentName(studentName),
-                sentences = sentences,
-                audioResId = audioResId,
-                answers = answers,
-                plays = plays,
-                hints = hints,
-                firstCorrect = firstCorrect,
-                submitStep = submitStep,
-                score = score,
-                msg = message,
-                setScore = {
-                    score = it
-                    saveCurrentAttempt()
-                },
-                setStep = {
-                    submitStep = it
-                    saveCurrentAttempt()
-                },
-                setMsg = {
-                    message = it
-                    saveCurrentAttempt()
-                },
-                setReport = {
-                    report = it
-                },
-                onAttemptChanged = {
-                    saveCurrentAttempt()
-                },
-                done = {
-                    markListeningDone(activeHomeworkLesson)
-                },
-                back = {
-                    screen = "lesson"
-                }
-            )
-        }
-
-        "writtenHomework" -> {
-            val writtenSentences = HomeworkData.writtenSentencesForLesson(activeHomeworkLesson)
-
-            WrittenHomework(
-                name = activeHomeworkLesson,
-                studentName = displayStudentName(studentName),
-                sentences = writtenSentences,
-                done = {
-                    markWrittenDone(activeHomeworkLesson)
-                },
-                back = {
-                    screen = "lesson"
-                }
-            )
-        }
-
-        "spokenHomework" -> {
-            val spokenSentences = HomeworkData.spokenSentencesForLesson(activeHomeworkLesson)
-
-            SpokenHomework(
-                name = activeHomeworkLesson,
-                studentName = displayStudentName(studentName),
-                sentences = spokenSentences,
-                done = {
-                    markSpokenDone(activeHomeworkLesson)
-                },
-                back = {
-                    screen = "lesson"
-                }
-            )
-        }
-
-        "practice" -> {
-            PracticeScreen(
-                name = activeHomeworkLesson,
-                studentName = displayStudentName(studentName),
-                sentences = PracticeData.sentencesForLesson(activeHomeworkLesson),
-                back = {
-                    screen = "lesson"
-                }
-            )
-        }
+        BugReportOverlay(
+            studentName = displayStudentName(studentName),
+            lessonName = if (screen == "home") "" else activeHomeworkLesson,
+            currentScreen = screen
+        )
     }
 }
