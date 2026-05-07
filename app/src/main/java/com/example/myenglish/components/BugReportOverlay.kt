@@ -2,7 +2,6 @@ package com.example.myenglish.components
 
 import android.os.Handler
 import android.os.Looper
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -26,10 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -56,15 +52,15 @@ fun BugReportOverlay(
         Box(
             modifier = Modifier
                 .offset(x = 10.dp, y = (-14).dp)
-                .width(62.dp)
-                .height(62.dp)
+                .width(53.dp)
+                .height(53.dp)
                 .shadow(
                     elevation = 8.dp,
                     shape = RoundedCornerShape(
                         topStart = 0.dp,
                         topEnd = 0.dp,
-                        bottomStart = 18.dp,
-                        bottomEnd = 18.dp
+                        bottomStart = 16.dp,
+                        bottomEnd = 16.dp
                     ),
                     clip = false
                 )
@@ -73,14 +69,21 @@ fun BugReportOverlay(
                     shape = RoundedCornerShape(
                         topStart = 0.dp,
                         topEnd = 0.dp,
-                        bottomStart = 18.dp,
-                        bottomEnd = 18.dp
+                        bottomStart = 16.dp,
+                        bottomEnd = 16.dp
                     )
                 )
                 .clickable { showDialog = true },
             contentAlignment = Alignment.Center
         ) {
-            WhiteBugIcon()
+            Text(
+                text = "Bug?",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center,
+                lineHeight = 14.sp
+            )
         }
     }
 
@@ -188,34 +191,5 @@ fun BugReportOverlay(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun WhiteBugIcon() {
-    Canvas(modifier = Modifier.width(33.dp).height(33.dp)) {
-        val white = Color.White
-        val stroke = Stroke(width = 3.4f)
-        val centerX = size.width / 2f
-
-        drawOval(
-            color = white,
-            topLeft = Offset(size.width * 0.30f, size.height * 0.31f),
-            size = Size(size.width * 0.40f, size.height * 0.48f)
-        )
-        drawCircle(
-            color = white,
-            radius = size.width * 0.15f,
-            center = Offset(centerX, size.height * 0.23f)
-        )
-        drawLine(white, Offset(centerX, size.height * 0.35f), Offset(centerX, size.height * 0.78f), strokeWidth = 2.4f)
-
-        drawLine(white, Offset(size.width * 0.30f, size.height * 0.44f), Offset(size.width * 0.10f, size.height * 0.35f), strokeWidth = stroke.width)
-        drawLine(white, Offset(size.width * 0.30f, size.height * 0.56f), Offset(size.width * 0.08f, size.height * 0.58f), strokeWidth = stroke.width)
-        drawLine(white, Offset(size.width * 0.30f, size.height * 0.68f), Offset(size.width * 0.12f, size.height * 0.82f), strokeWidth = stroke.width)
-
-        drawLine(white, Offset(size.width * 0.70f, size.height * 0.44f), Offset(size.width * 0.90f, size.height * 0.35f), strokeWidth = stroke.width)
-        drawLine(white, Offset(size.width * 0.70f, size.height * 0.56f), Offset(size.width * 0.92f, size.height * 0.58f), strokeWidth = stroke.width)
-        drawLine(white, Offset(size.width * 0.70f, size.height * 0.68f), Offset(size.width * 0.88f, size.height * 0.82f), strokeWidth = stroke.width)
     }
 }
