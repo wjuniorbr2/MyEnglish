@@ -2,6 +2,7 @@ package com.example.myenglish.components
 
 import android.os.Handler
 import android.os.Looper
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -11,14 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +26,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -80,12 +80,7 @@ fun BugReportOverlay(
                 .clickable { showDialog = true },
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Filled.BugReport,
-                contentDescription = "Report bug",
-                tint = Color.White,
-                modifier = Modifier.size(29.dp)
-            )
+            WhiteBugIcon()
         }
     }
 
@@ -193,5 +188,34 @@ fun BugReportOverlay(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun WhiteBugIcon() {
+    Canvas(modifier = Modifier.width(31.dp).height(31.dp)) {
+        val white = Color.White
+        val stroke = Stroke(width = 3.2f)
+        val centerX = size.width / 2f
+
+        drawOval(
+            color = white,
+            topLeft = Offset(size.width * 0.30f, size.height * 0.31f),
+            size = Size(size.width * 0.40f, size.height * 0.48f)
+        )
+        drawCircle(
+            color = white,
+            radius = size.width * 0.15f,
+            center = Offset(centerX, size.height * 0.23f)
+        )
+        drawLine(white, Offset(centerX, size.height * 0.35f), Offset(centerX, size.height * 0.78f), strokeWidth = 2.2f)
+
+        drawLine(white, Offset(size.width * 0.30f, size.height * 0.44f), Offset(size.width * 0.10f, size.height * 0.35f), strokeWidth = stroke.width)
+        drawLine(white, Offset(size.width * 0.30f, size.height * 0.56f), Offset(size.width * 0.08f, size.height * 0.58f), strokeWidth = stroke.width)
+        drawLine(white, Offset(size.width * 0.30f, size.height * 0.68f), Offset(size.width * 0.12f, size.height * 0.82f), strokeWidth = stroke.width)
+
+        drawLine(white, Offset(size.width * 0.70f, size.height * 0.44f), Offset(size.width * 0.90f, size.height * 0.35f), strokeWidth = stroke.width)
+        drawLine(white, Offset(size.width * 0.70f, size.height * 0.56f), Offset(size.width * 0.92f, size.height * 0.58f), strokeWidth = stroke.width)
+        drawLine(white, Offset(size.width * 0.70f, size.height * 0.68f), Offset(size.width * 0.88f, size.height * 0.82f), strokeWidth = stroke.width)
     }
 }
