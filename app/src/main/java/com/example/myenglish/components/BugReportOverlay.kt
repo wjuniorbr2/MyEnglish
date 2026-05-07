@@ -56,15 +56,15 @@ fun BugReportOverlay(
         Box(
             modifier = Modifier
                 .offset(x = 10.dp, y = (-14).dp)
-                .width(41.dp)
-                .height(41.dp)
+                .width(62.dp)
+                .height(62.dp)
                 .shadow(
-                    elevation = 7.dp,
+                    elevation = 8.dp,
                     shape = RoundedCornerShape(
                         topStart = 0.dp,
                         topEnd = 0.dp,
-                        bottomStart = 13.dp,
-                        bottomEnd = 13.dp
+                        bottomStart = 18.dp,
+                        bottomEnd = 18.dp
                     ),
                     clip = false
                 )
@@ -73,8 +73,8 @@ fun BugReportOverlay(
                     shape = RoundedCornerShape(
                         topStart = 0.dp,
                         topEnd = 0.dp,
-                        bottomStart = 13.dp,
-                        bottomEnd = 13.dp
+                        bottomStart = 18.dp,
+                        bottomEnd = 18.dp
                     )
                 )
                 .clickable { showDialog = true },
@@ -193,9 +193,9 @@ fun BugReportOverlay(
 
 @Composable
 private fun WhiteBugIcon() {
-    Canvas(modifier = Modifier.width(22.dp).height(22.dp)) {
+    Canvas(modifier = Modifier.width(33.dp).height(33.dp)) {
         val white = Color.White
-        val stroke = Stroke(width = 2.4f)
+        val stroke = Stroke(width = 3.4f)
         val centerX = size.width / 2f
 
         drawOval(
@@ -208,7 +208,7 @@ private fun WhiteBugIcon() {
             radius = size.width * 0.15f,
             center = Offset(centerX, size.height * 0.23f)
         )
-        drawLine(white, Offset(centerX, size.height * 0.35f), Offset(centerX, size.height * 0.78f), strokeWidth = 1.6f)
+        drawLine(white, Offset(centerX, size.height * 0.35f), Offset(centerX, size.height * 0.78f), strokeWidth = 2.4f)
 
         drawLine(white, Offset(size.width * 0.30f, size.height * 0.44f), Offset(size.width * 0.10f, size.height * 0.35f), strokeWidth = stroke.width)
         drawLine(white, Offset(size.width * 0.30f, size.height * 0.56f), Offset(size.width * 0.08f, size.height * 0.58f), strokeWidth = stroke.width)
