@@ -3,18 +3,22 @@ package com.example.myenglish.components
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,15 +29,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.myenglish.R
 import com.example.myenglish.sendBugReportToTeacher
 
 @Composable
@@ -52,29 +53,40 @@ fun BugReportOverlay(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.TopEnd
     ) {
-        ArtButton(
-            text = "",
-            onClick = { showDialog = true },
+        Box(
             modifier = Modifier
-                .width(64.dp)
-                .height(48.dp)
-                .shadow(8.dp, RoundedCornerShape(bottomStart = 18.dp)),
-            backgroundResId = R.drawable.graybutton,
-            heightDp = 48,
-            fontSize = 18,
-            content = {
-                Text(
-                    text = "🐞",
-                    color = Color.White,
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.Black,
-                    textAlign = TextAlign.Center,
-                    style = LocalTextStyle.current.copy(
-                        shadow = Shadow(Color.Black, Offset(2f, 2f), 4f)
+                .offset(x = (-12).dp, y = 0.dp)
+                .width(58.dp)
+                .height(58.dp)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(
+                        topStart = 0.dp,
+                        topEnd = 0.dp,
+                        bottomStart = 18.dp,
+                        bottomEnd = 18.dp
+                    ),
+                    clip = false
+                )
+                .background(
+                    color = Color(0xFF111111),
+                    shape = RoundedCornerShape(
+                        topStart = 0.dp,
+                        topEnd = 0.dp,
+                        bottomStart = 18.dp,
+                        bottomEnd = 18.dp
                     )
                 )
-            }
-        )
+                .clickable { showDialog = true },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.BugReport,
+                contentDescription = "Report bug",
+                tint = Color.White,
+                modifier = Modifier.size(29.dp)
+            )
+        }
     }
 
     if (showDialog) {
