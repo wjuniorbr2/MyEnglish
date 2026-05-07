@@ -6,7 +6,7 @@ import java.net.URL
 import java.net.URLEncoder
 
 private const val HOMEWORK_REPORT_BASE_URL = "https://script.google.com/macros/s/"
-private const val HOMEWORK_REPORT_DEPLOYMENT_ID = "AKfycbyG9fut3IKKvAbyWM07XEtYc-vtmjKHBTOxGNQyHAqCOlXNVHeO8XNSE8JWVboI9QIP"
+private const val HOMEWORK_REPORT_DEPLOYMENT_ID = "AKfycbwY1v-MnCCd_pqkUqn-ri8HjgL3jonLk3rThZImcHilN3QyiG8hS3C8rdjj7OrPO4WT"
 private const val HOMEWORK_REPORT_URL = HOMEWORK_REPORT_BASE_URL + HOMEWORK_REPORT_DEPLOYMENT_ID + "/exec"
 
 fun sendHomeworkReportToTeacher(
@@ -28,28 +28,63 @@ fun sendHomeworkReportToTeacher(
                     "&scoreText=" + encodeForPost(scoreText) +
                     "&report=" + encodeForPost(report)
 
-            val url = URL(HOMEWORK_REPORT_URL)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.requestMethod = "POST"
-            connection.connectTimeout = 15000
-            connection.readTimeout = 15000
-            connection.doOutput = true
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-
-            val writer = OutputStreamWriter(connection.outputStream, "UTF-8")
-            writer.write(postData)
-            writer.flush()
-            writer.close()
-
-            val responseCode = connection.responseCode
-            success = responseCode in 200..299
-            connection.disconnect()
+            success = postToReportEndpoint(postData)
         } catch (_: Exception) {
             success = false
         }
 
         onFinished(success)
     }.start()
+}
+
+fun sendBugReportToTeacher(
+    studentName: String,
+    lessonName: String,
+    currentScreen: String,
+    bugText: String,
+    onFinished: (Boolean) -> Unit
+) {
+    Thread {
+        var success = false
+
+        try {
+            val postData =
+                "studentName=" + encodeForPost(studentName) +
+                    "&lessonName=" + encodeForPost(lessonName) +
+                    "&homeworkType=" + encodeForPost("Bug report") +
+                    "&reportType=" + encodeForPost("Bug report") +
+                    "&currentScreen=" + encodeForPost(currentScreen) +
+                    "&bugText=" + encodeForPost(bugText) +
+                    "&scoreText=" + encodeForPost("0 / 0") +
+                    "&report=" + encodeForPost(bugText)
+
+            success = postToReportEndpoint(postData)
+        } catch (_: Exception) {
+            success = false
+        }
+
+        onFinished(success)
+    }.start()
+}
+
+private fun postToReportEndpoint(postData: String): Boolean {
+    val url = URL(HOMEWORK_REPORT_URL)
+    val connection = url.openConnection() as HttpURLConnection
+    connection.requestMethod = "POST"
+    connection.connectTimeout = 15000
+    connection.readTimeout = 15000
+    connection.doOutput = true
+    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+
+    val writer = OutputStreamWriter(connection.outputStream, "UTF-8")
+    writer.write(postData)
+    writer.flush()
+    writer.close()
+
+    val responseCode = connection.responseCode
+    connection.disconnect()
+
+    return responseCode in 200..299
 }
 
 private fun encodeForPost(value: String): String {
