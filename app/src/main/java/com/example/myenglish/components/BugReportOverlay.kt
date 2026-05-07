@@ -52,8 +52,8 @@ fun BugReportOverlay(
         Box(
             modifier = Modifier
                 .offset(x = 10.dp, y = (-14).dp)
-                .width(53.dp)
-                .height(53.dp)
+                .width(47.dp)
+                .height(47.dp)
                 .shadow(
                     elevation = 8.dp,
                     shape = RoundedCornerShape(
@@ -79,10 +79,10 @@ fun BugReportOverlay(
             Text(
                 text = "Bug?",
                 color = Color.White,
-                fontSize = 14.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Center,
-                lineHeight = 14.sp
+                lineHeight = 11.sp
             )
         }
     }
