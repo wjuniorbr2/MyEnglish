@@ -171,6 +171,21 @@ fun AppRoot() {
 
     fun openPractice() {
         activeHomeworkLesson = selectedLesson
+        screen = "practiceMenu"
+    }
+
+    fun openWrittenPractice() {
+        activeHomeworkLesson = selectedLesson
+        screen = "writtenPractice"
+    }
+
+    fun openListeningPractice() {
+        activeHomeworkLesson = selectedLesson
+        screen = "listeningPractice"
+    }
+
+    fun openSpokenPractice() {
+        activeHomeworkLesson = selectedLesson
         screen = "practice"
     }
 
@@ -181,8 +196,14 @@ fun AppRoot() {
             screen = "lesson"
         } else if (screen == "spokenHomework") {
             screen = "lesson"
-        } else if (screen == "practice") {
+        } else if (screen == "practiceMenu") {
             screen = "lesson"
+        } else if (screen == "writtenPractice") {
+            screen = "practiceMenu"
+        } else if (screen == "listeningPractice") {
+            screen = "practiceMenu"
+        } else if (screen == "practice") {
+            screen = "practiceMenu"
         } else if (screen == "book") {
             screen = "lesson"
         } else if (screen == "lesson") {
@@ -317,7 +338,39 @@ fun AppRoot() {
                     studentName = displayStudentName(studentName),
                     sentences = PracticeData.sentencesForLesson(activeHomeworkLesson),
                     back = {
-                        screen = "lesson"
+                        screen = "practiceMenu"
+                    }
+                )
+            }
+
+            "practiceMenu" -> {
+                PracticeMenu(
+                    name = activeHomeworkLesson,
+                    openWritten = { openWrittenPractice() },
+                    openListening = { openListeningPractice() },
+                    openSpoken = { openSpokenPractice() },
+                    back = { screen = "lesson" }
+                )
+            }
+
+            "writtenPractice" -> {
+                WrittenPracticeScreen(
+                    name = activeHomeworkLesson,
+                    studentName = displayStudentName(studentName),
+                    sentences = PracticeData.writtenSentencesForLesson(activeHomeworkLesson),
+                    back = {
+                        screen = "practiceMenu"
+                    }
+                )
+            }
+
+            "listeningPractice" -> {
+                ListeningPracticeScreen(
+                    name = activeHomeworkLesson,
+                    studentName = displayStudentName(studentName),
+                    sentences = PracticeData.listeningSentencesForLesson(activeHomeworkLesson),
+                    back = {
+                        screen = "practiceMenu"
                     }
                 )
             }

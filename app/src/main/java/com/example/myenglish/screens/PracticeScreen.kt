@@ -1,12 +1,9 @@
 package com.example.myenglish.screens
 
 import android.Manifest
-import android.app.Activity
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
-import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -57,6 +54,7 @@ import com.example.myenglish.sendHomeworkReportToTeacher
 import com.example.myenglish.utils.cleanAnswer
 import com.example.myenglish.utils.currentDateTimeText
 import com.example.myenglish.utils.isCorrectAnswer
+import com.example.myenglish.utils.rememberInAppSpeechRecognizer
 import java.util.Locale
 
 private val practiceRed = Color(0xFFC62828)
@@ -251,35 +249,34 @@ fun PracticeScreen(
         }
     }
 
-    val speechLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        activeListening = false
-        val sentence = currentSentence() ?: return@rememberLauncherForActivityResult
-        if (result.resultCode == Activity.RESULT_OK) {
-            val spokenText = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.trim() ?: ""
-            if (spokenText.isNotBlank()) {
-                attempts++
-                val formatted = applyPracticePunctuation(spokenText, sentence.english)
-                answer = formatted
-                if (firstAnswer.isBlank()) firstAnswer = formatted
-                setTop(if (isCorrectAnswer(answer, sentence.english)) "Correct. The sentence behaved." else "Not yet. The red words are doing cartwheels.", !isCorrectAnswer(answer, sentence.english))
-            } else {
-                setTop("The microphone heard mysterious silence. Try again.", true)
+    val speechRecognizer = rememberInAppSpeechRecognizer(
+        onResult = { spokenText ->
+            val sentence = currentSentence()
+            activeListening = false
+            if (sentence != null) {
+                if (spokenText.isNotBlank()) {
+                    attempts++
+                    val formatted = applyPracticePunctuation(spokenText, sentence.english)
+                    answer = formatted
+                    if (firstAnswer.isBlank()) firstAnswer = formatted
+                    setTop(if (isCorrectAnswer(answer, sentence.english)) "Correct. The sentence behaved." else "Not yet. The red words are doing cartwheels.", !isCorrectAnswer(answer, sentence.english))
+                } else {
+                    setTop("The microphone heard mysterious silence. Try again.", true)
+                }
             }
-        } else {
-            setTop("The robot ear gave up too early. Try again.", true)
+        },
+        onError = { error ->
+            activeListening = false
+            setTop(error, true)
+        },
+        onListeningChanged = { listening ->
+            activeListening = listening
         }
-    }
+    )
 
     fun launchSpeech() {
-        activeListening = true
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak in English")
-        }
-        speechLauncher.launch(intent)
+        if (activeListening) return
+        speechRecognizer.start()
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -324,6 +321,7 @@ fun PracticeScreen(
                 answer = answer,
                 attempts = attempts,
                 hintState = hintState,
+                isListening = activeListening,
                 speak = { startSpeaking() },
                 playAnswer = { playAnswer() },
                 openHints = { if (hintState.isBlank()) hintState = "open:" },
@@ -345,17 +343,6 @@ fun PracticeScreen(
         Spacer(Modifier.height(8.dp))
 
         ArtButton(
-            text = if (sending) "Sending..." else "Your teacher will be proud!",
-            onClick = { finishPractice() },
-            modifier = Modifier.fillMaxWidth(0.85f),
-            backgroundResId = R.drawable.redbutton,
-            enabled = !sending && !activeListening,
-            fontSize = 15
-        )
-
-        Spacer(Modifier.height(14.dp))
-
-        ArtButton(
             text = if (sending) "Sending..." else "Back",
             onClick = { finishPractice() },
             modifier = Modifier.fillMaxWidth(0.45f),
@@ -372,6 +359,7 @@ private fun PracticeCard(
     answer: String,
     attempts: Int,
     hintState: String,
+    isListening: Boolean,
     speak: () -> Unit,
     playAnswer: () -> Unit,
     openHints: () -> Unit,
@@ -397,7 +385,14 @@ private fun PracticeCard(
             Spacer(Modifier.height(8.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ArtButton("🎙 Speak", speak, Modifier.weight(1f), heightDp = 54, fontSize = 16)
+                ArtButton(
+                    text = if (isListening) "Listening..." else "🎙 Speak",
+                    onClick = speak,
+                    modifier = Modifier.weight(1f),
+                    backgroundResId = if (isListening) R.drawable.redbutton else R.drawable.bluebutton,
+                    heightDp = 54,
+                    fontSize = 16
+                )
                 Spacer(Modifier.width(8.dp))
                 ArtButton(
                     text = "",

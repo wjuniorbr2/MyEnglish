@@ -44,6 +44,7 @@ import com.example.myenglish.components.selectedListeningHintCount
 import com.example.myenglish.data.HomeworkSentence
 import com.example.myenglish.sendHomeworkReportToTeacher
 import com.example.myenglish.utils.currentDateTimeText
+import com.example.myenglish.utils.hideKeyboardOnBackgroundTap
 import com.example.myenglish.utils.isCorrectAnswer
 
 @Composable
@@ -74,10 +75,14 @@ fun Homework(
     var topReq by remember { mutableIntStateOf(0) }
     val handler = remember { Handler(Looper.getMainLooper()) }
     var player by remember { mutableStateOf<MediaPlayer?>(null) }
+    var audioPlaying by remember { mutableStateOf(false) }
     val focus = remember(sentences.size) { Array(sentences.size) { FocusRequester() } }
 
     LaunchedEffect(scroll.isScrollInProgress) {
-        if (scroll.isScrollInProgress) focusManager.clearFocus()
+        if (scroll.isScrollInProgress) {
+            focusManager.clearFocus()
+            keyboard?.hide()
+        }
     }
 
     LaunchedEffect(topReq) {
@@ -89,6 +94,7 @@ fun Homework(
         try { player?.stop() } catch (_: Exception) { }
         try { player?.release() } catch (_: Exception) { }
         player = null
+        audioPlaying = false
     }
 
     fun play(i: Int, startMs: Int, endMs: Int) {
@@ -98,8 +104,18 @@ fun Homework(
 
         val currentPlayer = MediaPlayer.create(context, audioResId) ?: return
         player = currentPlayer
+        audioPlaying = true
+        focusManager.clearFocus()
+        keyboard?.hide()
         currentPlayer.setVolume(1f, 1f)
         currentPlayer.seekTo(startMs)
+        currentPlayer.setOnCompletionListener {
+            if (player == currentPlayer) {
+                stop()
+                focus[i].requestFocus()
+                keyboard?.show()
+            }
+        }
         currentPlayer.start()
 
         handler.postDelayed(
@@ -210,6 +226,7 @@ fun Homework(
         Modifier
             .fillMaxSize()
             .verticalScroll(scroll)
+            .hideKeyboardOnBackgroundTap(focusManager, keyboard)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -247,8 +264,10 @@ fun Homework(
                 sentence = sentence,
                 answer = answers[index],
                 change = {
-                    answers[index] = it
-                    onAttemptChanged()
+                    if (!audioPlaying) {
+                        answers[index] = it
+                        onAttemptChanged()
+                    }
                 },
                 playCount = plays[index],
                 submitStep = submitStep,
@@ -256,6 +275,7 @@ fun Homework(
                 currentOk = isCorrectAnswer(answers[index], sentence.correctText),
                 hintCount = hints[index],
                 focus = focus[index],
+                inputEnabled = !audioPlaying,
                 play = {
                     plays[index]++
                     onAttemptChanged()

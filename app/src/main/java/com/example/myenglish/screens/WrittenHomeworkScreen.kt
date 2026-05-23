@@ -55,6 +55,7 @@ import com.example.myenglish.data.WrittenHomeworkSentence
 import com.example.myenglish.sendHomeworkReportToTeacher
 import com.example.myenglish.utils.cleanAnswer
 import com.example.myenglish.utils.currentDateTimeText
+import com.example.myenglish.utils.hideKeyboardOnBackgroundTap
 import com.example.myenglish.utils.isCorrectAnswer
 
 private val writtenRed = Color(0xFFC62828)
@@ -214,7 +215,11 @@ fun WrittenHomework(
     }
 
     Column(
-        Modifier.fillMaxSize().verticalScroll(scroll).padding(16.dp),
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(scroll)
+            .hideKeyboardOnBackgroundTap(focusManager, keyboard)
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Header(name, "Written")

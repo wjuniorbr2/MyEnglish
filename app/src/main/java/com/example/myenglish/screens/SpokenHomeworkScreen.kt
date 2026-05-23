@@ -1,12 +1,9 @@
 package com.example.myenglish.screens
 
 import android.Manifest
-import android.app.Activity
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
-import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -64,6 +61,7 @@ import com.example.myenglish.data.SpokenHomeworkSentence
 import com.example.myenglish.sendHomeworkReportToTeacher
 import com.example.myenglish.utils.cleanAnswer
 import com.example.myenglish.utils.currentDateTimeText
+import com.example.myenglish.utils.rememberInAppSpeechRecognizer
 import com.example.myenglish.utils.isCorrectAnswer
 import java.util.Locale
 
@@ -120,6 +118,7 @@ fun SpokenHomework(
     val hintStates = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
 
     var activeIndex by remember { mutableIntStateOf(-1) }
+    var listeningIndex by remember { mutableIntStateOf(-1) }
     var msg by remember { mutableStateOf("") }
     var msgIsError by remember { mutableStateOf(false) }
     var sending by remember { mutableStateOf(false) }
@@ -235,54 +234,50 @@ fun SpokenHomework(
         if (!prefs.getBoolean(instructionsSeenKey, false)) showInstructions = true
     }
 
-    val speechLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val index = activeIndex
-        activeIndex = -1
+    val speechRecognizer = rememberInAppSpeechRecognizer(
+        onResult = { spokenText ->
+            val index = activeIndex
+            activeIndex = -1
 
-        if (index !in sentences.indices) return@rememberLauncherForActivityResult
+            if (index in sentences.indices) {
+                if (spokenText.isNotBlank()) {
+                    attempts[index] = attempts[index] + 1
+                    val formattedAnswer = applyExpectedPunctuation(spokenText, sentences[index].english)
+                    answers[index] = formattedAnswer
 
-        if (result.resultCode == Activity.RESULT_OK) {
-            val spokenText = result.data
-                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-                ?.firstOrNull()
-                ?.trim()
-                ?: ""
+                    if (firstAnswers[index].isBlank()) {
+                        firstAnswers[index] = formattedAnswer
+                    }
 
-            if (spokenText.isNotBlank()) {
-                attempts[index] = attempts[index] + 1
-                val formattedAnswer = applyExpectedPunctuation(spokenText, sentences[index].english)
-                answers[index] = formattedAnswer
-
-                if (firstAnswers[index].isBlank()) {
-                    firstAnswers[index] = formattedAnswer
-                }
-
-                if (isCorrectAnswer(answers[index], sentences[index].english)) {
-                    setTopMessage(spokenCorrectMessages[index % spokenCorrectMessages.size], false)
+                    if (isCorrectAnswer(answers[index], sentences[index].english)) {
+                        setTopMessage(spokenCorrectMessages[index % spokenCorrectMessages.size], false)
+                    } else {
+                        setTopMessage(spokenWrongMessages[index % spokenWrongMessages.size], true)
+                    }
+                    saveProgress()
                 } else {
-                    setTopMessage(spokenWrongMessages[index % spokenWrongMessages.size], true)
+                    setTopMessage("The microphone heard mysterious silence. Try again.", true)
+                    saveProgress()
                 }
-                saveProgress()
-            } else {
-                setTopMessage("The microphone heard mysterious silence. Try again.", true)
+            }
+        },
+        onError = { error ->
+            val index = activeIndex
+            activeIndex = -1
+            if (index in sentences.indices) {
+                setTopMessage(error, true)
                 saveProgress()
             }
-        } else {
-            setTopMessage("The robot ear gave up too early. Try again.", true)
-            saveProgress()
+        },
+        onListeningChanged = { listening ->
+            listeningIndex = if (listening) activeIndex else -1
         }
-    }
+    )
 
     fun launchSpeech(index: Int) {
+        if (listeningIndex != -1) return
         activeIndex = index
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak in English")
-        }
-        speechLauncher.launch(intent)
+        speechRecognizer.start()
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -421,6 +416,8 @@ fun SpokenHomework(
                 attempts = attempts[index],
                 hintState = hintStates[index],
                 submitted = submitted,
+                isListening = listeningIndex == index,
+                speechBusy = listeningIndex != -1,
                 speak = { startSpeaking(index) },
                 openHints = {
                     if (!submitted && attempts[index] >= 5 && hintStates[index].isBlank()) {
@@ -486,6 +483,8 @@ private fun SpokenSentenceCard(
     attempts: Int,
     hintState: String,
     submitted: Boolean,
+    isListening: Boolean,
+    speechBusy: Boolean,
     speak: () -> Unit,
     openHints: () -> Unit,
     chooseHintWord: (Int) -> Unit,
@@ -518,12 +517,13 @@ private fun SpokenSentenceCard(
             Spacer(Modifier.height(8.dp))
 
             ArtButton(
-                text = "🎙 Speak",
+                text = if (isListening) "Listening..." else "🎙 Speak",
                 onClick = speak,
                 modifier = Modifier.fillMaxWidth(0.55f),
+                backgroundResId = if (isListening) R.drawable.redbutton else R.drawable.bluebutton,
                 heightDp = 54,
                 fontSize = 17,
-                enabled = !submitted
+                enabled = !submitted && (!speechBusy || isListening)
             )
 
             Spacer(Modifier.height(8.dp))

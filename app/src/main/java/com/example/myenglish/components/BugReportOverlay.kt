@@ -26,12 +26,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.myenglish.sendBugReportToTeacher
+import com.example.myenglish.utils.hideKeyboardOnBackgroundTap
 
 @Composable
 fun BugReportOverlay(
@@ -44,6 +47,8 @@ fun BugReportOverlay(
     var sending by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("") }
     var messageIsError by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
 
     Box(
         modifier = Modifier.fillMaxWidth(),
@@ -92,6 +97,7 @@ fun BugReportOverlay(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .hideKeyboardOnBackgroundTap(focusManager, keyboard)
                     .background(Color(0xFFF4F4F4), RoundedCornerShape(20.dp))
                     .padding(18.dp),
                 horizontalAlignment = Alignment.CenterHorizontally

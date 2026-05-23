@@ -105,9 +105,9 @@ fun Lesson(
                         .padding(bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    HomeworkIconSpot(0, listeningDone)
-                    Spacer(Modifier.width(5.dp))
                     HomeworkIconSpot(1, writtenDone)
+                    Spacer(Modifier.width(5.dp))
+                    HomeworkIconSpot(0, listeningDone)
                     Spacer(Modifier.width(5.dp))
                     HomeworkIconSpot(2, spokenDone)
                 }
@@ -123,13 +123,14 @@ fun Lesson(
 
             Box(contentAlignment = Alignment.Center) {
                 ArtButton(
-                    text = if (listeningAvailable) "Listening homework" else "Listening homework - coming soon",
-                    onClick = openListening,
-                    enabled = listeningAvailable,
+                    text = if (writtenAvailable) "Written homework" else "Written homework - coming soon",
+                    onClick = openWritten,
+                    backgroundResId = if (writtenAvailable) R.drawable.bluebutton else R.drawable.graybutton,
+                    enabled = writtenAvailable,
                     fontSize = 17
                 )
 
-                if (listeningDone) {
+                if (writtenDone) {
                     Image(
                         painter = painterResource(id = R.drawable.donestamp),
                         contentDescription = "Done",
@@ -146,14 +147,13 @@ fun Lesson(
 
             Box(contentAlignment = Alignment.Center) {
                 ArtButton(
-                    text = if (writtenAvailable) "Written homework" else "Written homework - coming soon",
-                    onClick = openWritten,
-                    backgroundResId = if (writtenAvailable) R.drawable.bluebutton else R.drawable.graybutton,
-                    enabled = writtenAvailable,
+                    text = if (listeningAvailable) "Listening homework" else "Listening homework - coming soon",
+                    onClick = openListening,
+                    enabled = listeningAvailable,
                     fontSize = 17
                 )
 
-                if (writtenDone) {
+                if (listeningDone) {
                     Image(
                         painter = painterResource(id = R.drawable.donestamp),
                         contentDescription = "Done",

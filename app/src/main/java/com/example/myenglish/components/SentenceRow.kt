@@ -104,6 +104,7 @@ fun SentenceRow(
     currentOk: Boolean,
     hintCount: Int,
     focus: FocusRequester,
+    inputEnabled: Boolean,
     play: () -> Unit,
     stop: () -> Unit,
     hint: (Int?) -> Unit,
@@ -168,11 +169,14 @@ fun SentenceRow(
             TextField(
                 value = answer,
                 onValueChange = {
-                    if (submitStep == 1) {
-                        correctionEdited = true
+                    if (inputEnabled) {
+                        if (submitStep == 1) {
+                            correctionEdited = true
+                        }
+                        change(it)
                     }
-                    change(it)
                 },
+                enabled = inputEnabled,
                 visualTransformation = if (submitStep == 1 && !currentOk) {
                     CorrectionVisualTransformation(
                         correctText = sentence.correctText,
