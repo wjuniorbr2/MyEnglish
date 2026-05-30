@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -78,6 +81,8 @@ fun ListeningPracticeScreen(
     val scroll = rememberScrollState()
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
+    val answerFocus = remember { FocusRequester() }
+    val handler = remember { Handler(Looper.getMainLooper()) }
     val results = remember { mutableStateListOf<ListeningPracticeResult>() }
 
     val remainingIndexes = remember(sentences.size) {
@@ -92,6 +97,7 @@ fun ListeningPracticeScreen(
     var msg by remember { mutableStateOf("") }
     var msgError by remember { mutableStateOf(false) }
     var sending by remember { mutableStateOf(false) }
+    var audioPlaying by remember { mutableStateOf(false) }
     var ttsReady by remember { mutableStateOf(false) }
     var startedAtText by remember { mutableStateOf(currentDateTimeText()) }
     var startedAtMillis by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -112,6 +118,7 @@ fun ListeningPracticeScreen(
 
     DisposableEffect(Unit) {
         onDispose {
+            handler.removeCallbacksAndMessages(null)
             textToSpeech.stop()
             textToSpeech.shutdown()
         }
@@ -128,11 +135,36 @@ fun ListeningPracticeScreen(
         }
     }
 
+    fun finishAudioAndFocusInput() {
+        audioPlaying = false
+        handler.postDelayed({
+            answerFocus.requestFocus()
+            keyboard?.show()
+        }, 120L)
+    }
+
     fun playSentence() {
         val sentence = currentSentence() ?: return
+        if (audioPlaying) return
         if (ttsReady) {
             plays++
-            textToSpeech.speak(sentence.english, TextToSpeech.QUEUE_FLUSH, null, "listening_practice_${currentIndex}_$plays")
+            audioPlaying = true
+            focusManager.clearFocus(force = true)
+            keyboard?.hide()
+            textToSpeech.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) = Unit
+
+                override fun onDone(utteranceId: String?) {
+                    Handler(Looper.getMainLooper()).post { finishAudioAndFocusInput() }
+                }
+
+                @Deprecated("Deprecated in Java")
+                override fun onError(utteranceId: String?) {
+                    Handler(Looper.getMainLooper()).post { finishAudioAndFocusInput() }
+                }
+            })
+            val result = textToSpeech.speak(sentence.english, TextToSpeech.QUEUE_FLUSH, null, "listening_practice_${currentIndex}_$plays")
+            if (result == TextToSpeech.ERROR) finishAudioAndFocusInput()
         } else {
             msg = "This phone is not ready to play English audio yet."
             msgError = true
@@ -197,7 +229,7 @@ fun ListeningPracticeScreen(
     }
 
     fun finishPractice() {
-        if (sending) return
+        if (sending || audioPlaying) return
         recordCurrentIfNeeded()
         if (results.isEmpty()) {
             back()
@@ -229,7 +261,7 @@ fun ListeningPracticeScreen(
         }
     }
 
-    BackHandler(enabled = !sending) {
+    BackHandler(enabled = !sending && !audioPlaying) {
         finishPractice()
     }
 
@@ -265,13 +297,15 @@ fun ListeningPracticeScreen(
                 hintState = hintState,
                 plays = plays,
                 enabled = !sending,
-                changeAnswer = { answer = it },
+                inputEnabled = !sending && !audioPlaying,
+                answerFocus = answerFocus,
+                changeAnswer = { if (!audioPlaying) answer = it },
                 playSentence = { playSentence() },
                 openHints = {
-                    if (hintState.isBlank()) hintState = "open:"
+                    if (!audioPlaying && hintState.isBlank()) hintState = "open:"
                 },
                 chooseHintWord = { index ->
-                    hintState = addListeningPracticeHintIndex(hintState, index)
+                    if (!audioPlaying) hintState = addListeningPracticeHintIndex(hintState, index)
                 }
             )
         }
@@ -283,7 +317,7 @@ fun ListeningPracticeScreen(
             onClick = { nextSentence() },
             modifier = Modifier.fillMaxWidth(0.85f),
             backgroundResId = R.drawable.graybutton,
-            enabled = !sending,
+            enabled = !sending && !audioPlaying,
             fontSize = 16
         )
 
@@ -294,7 +328,7 @@ fun ListeningPracticeScreen(
             onClick = { finishPractice() },
             modifier = Modifier.fillMaxWidth(0.45f),
             backgroundResId = R.drawable.redbutton,
-            enabled = !sending
+            enabled = !sending && !audioPlaying
         )
     }
 }
@@ -308,6 +342,8 @@ private fun ListeningPracticeCard(
     hintState: String,
     plays: Int,
     enabled: Boolean,
+    inputEnabled: Boolean,
+    answerFocus: FocusRequester,
     changeAnswer: (String) -> Unit,
     playSentence: () -> Unit,
     openHints: () -> Unit,
@@ -336,7 +372,7 @@ private fun ListeningPracticeCard(
                 text = "Play sentence",
                 onClick = playSentence,
                 modifier = Modifier.fillMaxWidth(0.62f),
-                enabled = enabled,
+                enabled = enabled && inputEnabled,
                 heightDp = 54,
                 fontSize = 16
             )
@@ -346,8 +382,8 @@ private fun ListeningPracticeCard(
             TextField(
                 value = answer,
                 onValueChange = changeAnswer,
-                enabled = enabled,
-                modifier = Modifier.fillMaxWidth()
+                enabled = inputEnabled,
+                modifier = Modifier.fillMaxWidth().focusRequester(answerFocus)
             )
 
             if (answer.isNotBlank()) {
@@ -370,7 +406,7 @@ private fun ListeningPracticeCard(
                     onClick = openHints,
                     modifier = Modifier.fillMaxWidth(0.75f),
                     backgroundResId = R.drawable.graybutton,
-                    enabled = enabled,
+                    enabled = inputEnabled,
                     heightDp = 52,
                     fontSize = 15
                 )
@@ -388,7 +424,7 @@ private fun ListeningPracticeCard(
                             textDecoration = TextDecoration.Underline,
                             modifier = Modifier
                                 .padding(end = 8.dp, bottom = 4.dp)
-                                .clickable(enabled = enabled && !revealed) { chooseHintWord(index) }
+                                .clickable(enabled = inputEnabled && !revealed) { chooseHintWord(index) }
                         )
                     }
                 }
