@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.myenglish.R
 import com.example.myenglish.components.ArtButton
 import com.example.myenglish.components.BugReportOverlay
 import com.example.myenglish.components.StudentNameDialog
@@ -37,6 +38,7 @@ fun AppRoot() {
     var selectedLesson by remember { mutableStateOf("Lesson 1") }
     var activeHomeworkLesson by remember { mutableStateOf("Lesson 1") }
     var returnToHomeworkScreen by remember { mutableStateOf<String?>(null) }
+    var returnToPracticeScreen by remember { mutableStateOf<String?>(null) }
     var showChoices by remember { mutableStateOf(false) }
     var studentName by remember { mutableStateOf(prefs.getString("student_name", "") ?: "") }
     var showNameDialog by remember { mutableStateOf(studentName == "") }
@@ -123,24 +125,28 @@ fun AppRoot() {
             report = ""
         }
         returnToHomeworkScreen = null
+        returnToPracticeScreen = null
         screen = "homework"
     }
 
     fun openWrittenHomework() {
         activeHomeworkLesson = selectedLesson
         returnToHomeworkScreen = null
+        returnToPracticeScreen = null
         screen = "writtenHomework"
     }
 
     fun openSpokenHomework() {
         activeHomeworkLesson = selectedLesson
         returnToHomeworkScreen = null
+        returnToPracticeScreen = null
         screen = "spokenHomework"
     }
 
     fun openPractice() {
         activeHomeworkLesson = selectedLesson
         returnToHomeworkScreen = null
+        returnToPracticeScreen = null
         screen = "practiceMenu"
     }
 
@@ -162,6 +168,14 @@ fun AppRoot() {
     fun openBookFromHomework(currentHomeworkScreen: String) {
         selectedLesson = activeHomeworkLesson
         returnToHomeworkScreen = currentHomeworkScreen
+        returnToPracticeScreen = null
+        screen = "book"
+    }
+
+    fun openBookFromPractice(currentPracticeScreen: String) {
+        selectedLesson = activeHomeworkLesson
+        returnToPracticeScreen = currentPracticeScreen
+        returnToHomeworkScreen = null
         screen = "book"
     }
 
@@ -171,13 +185,21 @@ fun AppRoot() {
         if (homeworkScreen != null) screen = homeworkScreen
     }
 
+    fun goBackToPractice() {
+        val practiceScreen = returnToPracticeScreen
+        returnToPracticeScreen = null
+        if (practiceScreen != null) screen = practiceScreen
+    }
+
     fun openBookFromLesson() {
         returnToHomeworkScreen = null
+        returnToPracticeScreen = null
         screen = "book"
     }
 
     fun leaveBookToLesson() {
         returnToHomeworkScreen = null
+        returnToPracticeScreen = null
         screen = "lesson"
     }
 
@@ -220,6 +242,7 @@ fun AppRoot() {
                     selectedLesson = lesson
                     showChoices = false
                     returnToHomeworkScreen = null
+                    returnToPracticeScreen = null
                     screen = "lesson"
                 }
             )
@@ -323,6 +346,21 @@ fun AppRoot() {
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth(0.68f)
                     .padding(bottom = 18.dp),
+                backgroundResId = R.drawable.redbutton,
+                heightDp = 54,
+                fontSize = 17
+            )
+        }
+
+        if (screen == "practice" || screen == "writtenPractice" || screen == "listeningPractice") {
+            ArtButton(
+                text = "Go to lesson",
+                onClick = { openBookFromPractice(screen) },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth(0.68f)
+                    .padding(bottom = 18.dp),
+                backgroundResId = R.drawable.redbutton,
                 heightDp = 54,
                 fontSize = 17
             )
@@ -336,6 +374,21 @@ fun AppRoot() {
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth(0.78f)
                     .padding(bottom = 18.dp),
+                backgroundResId = R.drawable.redbutton,
+                heightDp = 54,
+                fontSize = 16
+            )
+        }
+
+        if (screen == "book" && returnToPracticeScreen != null) {
+            ArtButton(
+                text = "Go back to practice",
+                onClick = { goBackToPractice() },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth(0.78f)
+                    .padding(bottom = 18.dp),
+                backgroundResId = R.drawable.redbutton,
                 heightDp = 54,
                 fontSize = 16
             )
