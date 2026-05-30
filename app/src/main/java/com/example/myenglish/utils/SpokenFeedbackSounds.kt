@@ -15,7 +15,7 @@ object SpokenFeedbackSounds {
     }
 
     fun maybePlay(studentAnswer: String, correctAnswer: String, correct: Boolean) {
-        if (!calledFromSpokenHomeworkSpeechResult()) return
+        if (!calledFromSpokenSpeechResult()) return
         if (studentAnswer.isBlank()) return
 
         val now = System.currentTimeMillis()
@@ -58,12 +58,13 @@ object SpokenFeedbackSounds {
         }
     }
 
-    private fun calledFromSpokenHomeworkSpeechResult(): Boolean {
+    private fun calledFromSpokenSpeechResult(): Boolean {
         val stack = Thread.currentThread().stackTrace
         val fromSpokenHomework = stack.any { frame -> frame.className.contains("SpokenHomeworkScreen") }
+        val fromSpokenPractice = stack.any { frame -> frame.className.contains("PracticeScreen") }
         val fromSpeechRecognizerResult = stack.any { frame ->
             frame.className.contains("InAppSpeechRecognizer") && frame.methodName == "onResults"
         }
-        return fromSpokenHomework && fromSpeechRecognizerResult
+        return (fromSpokenHomework || fromSpokenPractice) && fromSpeechRecognizerResult
     }
 }
