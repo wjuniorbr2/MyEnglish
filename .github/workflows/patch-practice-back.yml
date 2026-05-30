@@ -1,4 +1,4 @@
-name: Patch practice Android back button
+name: Patch audio keyboard guard
 
 on:
   push:
@@ -17,46 +17,187 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Patch practice screens
+      - name: Patch listening and spoken practice audio guard
         run: |
           python3 <<'PY'
           from pathlib import Path
 
-          files = [
-              Path('app/src/main/java/com/example/myenglish/screens/PracticeScreen.kt'),
-              Path('app/src/main/java/com/example/myenglish/screens/WrittenPracticeScreen.kt'),
-              Path('app/src/main/java/com/example/myenglish/screens/ListeningPracticeScreen.kt'),
-          ]
+          def write_if_changed(path, original, text):
+              if text != original:
+                  path.write_text(text)
 
-          for path in files:
-              text = path.read_text()
+          # Spoken practice: do not allow mic while answer audio is playing.
+          p = Path('app/src/main/java/com/example/myenglish/screens/PracticeScreen.kt')
+          original = p.read_text()
+          text = original
 
-              if 'import androidx.activity.compose.BackHandler' not in text:
-                  text = text.replace(
-                      'import androidx.activity.compose.rememberLauncherForActivityResult\n',
-                      'import androidx.activity.compose.BackHandler\nimport androidx.activity.compose.rememberLauncherForActivityResult\n'
-                  )
-                  if 'import androidx.activity.compose.BackHandler' not in text:
-                      text = text.replace(
-                          'package com.example.myenglish.screens\n\n',
-                          'package com.example.myenglish.screens\n\nimport androidx.activity.compose.BackHandler\n'
-                      )
+          if 'import android.speech.tts.UtteranceProgressListener' not in text:
+              text = text.replace(
+                  'import android.speech.tts.TextToSpeech\n',
+                  'import android.speech.tts.TextToSpeech\nimport android.speech.tts.UtteranceProgressListener\n'
+              )
 
-              if 'BackHandler(enabled = !sending && !activeListening)' not in text and path.name == 'PracticeScreen.kt':
-                  marker = '    LaunchedEffect(Unit) {\n        startedAtMillis = System.currentTimeMillis()\n        startedAtText = currentDateTimeText()\n    }\n\n    Column('
-                  replacement = '    LaunchedEffect(Unit) {\n        startedAtMillis = System.currentTimeMillis()\n        startedAtText = currentDateTimeText()\n    }\n\n    BackHandler(enabled = !sending && !activeListening) {\n        finishPractice()\n    }\n\n    Column('
-                  if marker not in text:
-                      raise RuntimeError(f'Marker not found in {path}')
-                  text = text.replace(marker, replacement)
+          if 'var answerAudioPlaying by remember { mutableStateOf(false) }' not in text:
+              text = text.replace(
+                  '    var activeListening by remember { mutableStateOf(false) }\n',
+                  '    var activeListening by remember { mutableStateOf(false) }\n    var answerAudioPlaying by remember { mutableStateOf(false) }\n'
+              )
 
-              if 'BackHandler(enabled = !sending)' not in text and path.name in ('WrittenPracticeScreen.kt', 'ListeningPracticeScreen.kt'):
-                  marker = '    Column(\n        Modifier'
-                  replacement = '    BackHandler(enabled = !sending) {\n        finishPractice()\n    }\n\n    Column(\n        Modifier'
-                  if marker not in text:
-                      raise RuntimeError(f'Marker not found in {path}')
-                  text = text.replace(marker, replacement, 1)
+          old = '''    fun playAnswer() {
+        val sentence = currentSentence() ?: return
+        if (ttsReady) {
+            textToSpeech.speak(sentence.english, TextToSpeech.QUEUE_FLUSH, null, "practice_answer_${sentence.english}")
+        } else {
+            setTop("This phone is not ready to pronounce English yet.", true)
+        }
+    }
+'''
+          new = '''    fun playAnswer() {
+        val sentence = currentSentence() ?: return
+        if (answerAudioPlaying) return
+        if (ttsReady) {
+            answerAudioPlaying = true
+            textToSpeech.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) = Unit
 
-              path.write_text(text)
+                override fun onDone(utteranceId: String?) {
+                    Handler(Looper.getMainLooper()).post { answerAudioPlaying = false }
+                }
+
+                @Deprecated("Deprecated in Java")
+                override fun onError(utteranceId: String?) {
+                    Handler(Looper.getMainLooper()).post { answerAudioPlaying = false }
+                }
+            })
+            val result = textToSpeech.speak(sentence.english, TextToSpeech.QUEUE_FLUSH, null, "practice_answer_${sentence.english}")
+            if (result == TextToSpeech.ERROR) answerAudioPlaying = false
+        } else {
+            setTop("This phone is not ready to pronounce English yet.", true)
+        }
+    }
+'''
+          if old in text:
+              text = text.replace(old, new)
+
+          old = '''    fun startSpeaking() {
+        val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        if (hasPermission) launchSpeech() else permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    }
+'''
+          new = '''    fun startSpeaking() {
+        if (answerAudioPlaying) {
+            setTop("Wait for the answer audio to finish before speaking.", true)
+            return
+        }
+        val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        if (hasPermission) launchSpeech() else permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    }
+'''
+          if old in text:
+              text = text.replace(old, new)
+
+          text = text.replace('BackHandler(enabled = !sending && !activeListening) {', 'BackHandler(enabled = !sending && !activeListening && !answerAudioPlaying) {')
+          text = text.replace('                isListening = activeListening,\n                speak = { startSpeaking() },', '                isListening = activeListening,\n                isAnswerPlaying = answerAudioPlaying,\n                speak = { startSpeaking() },')
+          text = text.replace('            enabled = !sending && !activeListening,\n            fontSize = 16', '            enabled = !sending && !activeListening && !answerAudioPlaying,\n            fontSize = 16')
+          text = text.replace('            enabled = !sending && !activeListening\n        )', '            enabled = !sending && !activeListening && !answerAudioPlaying\n        )')
+          text = text.replace('    isListening: Boolean,\n    speak: () -> Unit,', '    isListening: Boolean,\n    isAnswerPlaying: Boolean,\n    speak: () -> Unit,')
+          text = text.replace('                    text = if (isListening) "Listening..." else "🎙 Speak",\n                    onClick = speak,', '                    text = if (isListening) "Listening..." else "🎙 Speak",\n                    onClick = speak,')
+          text = text.replace('                    backgroundResId = if (isListening) R.drawable.redbutton else R.drawable.bluebutton,\n                    heightDp = 54,', '                    backgroundResId = if (isListening) R.drawable.redbutton else R.drawable.bluebutton,\n                    enabled = !isAnswerPlaying,\n                    heightDp = 54,')
+          text = text.replace('                    onClick = playAnswer,\n                    modifier = Modifier.weight(0.45f),', '                    onClick = playAnswer,\n                    modifier = Modifier.weight(0.45f),')
+          text = text.replace('                    backgroundResId = R.drawable.whitebutton,\n                    heightDp = 42,', '                    backgroundResId = R.drawable.whitebutton,\n                    enabled = !isAnswerPlaying && !isListening,\n                    heightDp = 42,')
+
+          write_if_changed(p, original, text)
+
+          # Listening practice: disable input during audio, then focus/open keyboard after audio finishes.
+          p = Path('app/src/main/java/com/example/myenglish/screens/ListeningPracticeScreen.kt')
+          original = p.read_text()
+          text = original
+
+          if 'import android.speech.tts.UtteranceProgressListener' not in text:
+              text = text.replace('import android.speech.tts.TextToSpeech\n', 'import android.speech.tts.TextToSpeech\nimport android.speech.tts.UtteranceProgressListener\n')
+          if 'import androidx.compose.ui.focus.FocusRequester' not in text:
+              text = text.replace('import androidx.compose.ui.Modifier\n', 'import androidx.compose.ui.Modifier\nimport androidx.compose.ui.focus.FocusRequester\nimport androidx.compose.ui.focus.focusRequester\n')
+
+          if 'val answerFocus = remember { FocusRequester() }' not in text:
+              text = text.replace('    val keyboard = LocalSoftwareKeyboardController.current\n', '    val keyboard = LocalSoftwareKeyboardController.current\n    val answerFocus = remember { FocusRequester() }\n')
+          if 'var audioPlaying by remember { mutableStateOf(false) }' not in text:
+              text = text.replace('    var sending by remember { mutableStateOf(false) }\n', '    var sending by remember { mutableStateOf(false) }\n    var audioPlaying by remember { mutableStateOf(false) }\n')
+
+          old = '''    fun playSentence() {
+        val sentence = currentSentence() ?: return
+        if (ttsReady) {
+            plays++
+            textToSpeech.speak(sentence.english, TextToSpeech.QUEUE_FLUSH, null, "listening_practice_${currentIndex}_$plays")
+        } else {
+            msg = "This phone is not ready to play English audio yet."
+            msgError = true
+        }
+    }
+'''
+          new = '''    fun playSentence() {
+        val sentence = currentSentence() ?: return
+        if (audioPlaying) return
+        if (ttsReady) {
+            plays++
+            audioPlaying = true
+            focusManager.clearFocus()
+            keyboard?.hide()
+            textToSpeech.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) = Unit
+
+                override fun onDone(utteranceId: String?) {
+                    Handler(Looper.getMainLooper()).post {
+                        audioPlaying = false
+                        answerFocus.requestFocus()
+                        keyboard?.show()
+                    }
+                }
+
+                @Deprecated("Deprecated in Java")
+                override fun onError(utteranceId: String?) {
+                    Handler(Looper.getMainLooper()).post {
+                        audioPlaying = false
+                        answerFocus.requestFocus()
+                        keyboard?.show()
+                    }
+                }
+            })
+            val result = textToSpeech.speak(sentence.english, TextToSpeech.QUEUE_FLUSH, null, "listening_practice_${currentIndex}_$plays")
+            if (result == TextToSpeech.ERROR) audioPlaying = false
+        } else {
+            msg = "This phone is not ready to play English audio yet."
+            msgError = true
+        }
+    }
+'''
+          if old in text:
+              text = text.replace(old, new)
+
+          text = text.replace('BackHandler(enabled = !sending) {', 'BackHandler(enabled = !sending && !audioPlaying) {')
+          text = text.replace('                enabled = !sending,\n                changeAnswer = { answer = it },', '                enabled = !sending,\n                inputEnabled = !sending && !audioPlaying,\n                answerFocus = answerFocus,\n                changeAnswer = { if (!audioPlaying) answer = it },')
+          text = text.replace('            enabled = !sending,\n            fontSize = 16', '            enabled = !sending && !audioPlaying,\n            fontSize = 16')
+          text = text.replace('            enabled = !sending\n        )', '            enabled = !sending && !audioPlaying\n        )')
+          text = text.replace('    enabled: Boolean,\n    changeAnswer: (String) -> Unit,', '    enabled: Boolean,\n    inputEnabled: Boolean,\n    answerFocus: FocusRequester,\n    changeAnswer: (String) -> Unit,')
+          text = text.replace('                enabled = enabled,\n                heightDp = 54,', '                enabled = enabled,\n                heightDp = 54,')
+          text = text.replace('                enabled = enabled,\n                modifier = Modifier.fillMaxWidth()\n            )', '                enabled = inputEnabled,\n                modifier = Modifier.fillMaxWidth().focusRequester(answerFocus)\n            )')
+
+          write_if_changed(p, original, text)
+
+          # Listening homework: keep input disabled during audio, but reliably focus/open keyboard after audio finishes.
+          p = Path('app/src/main/java/com/example/myenglish/screens/ListeningHomeworkScreen.kt')
+          original = p.read_text()
+          text = original
+          text = text.replace(
+              '''                stop()
+                focus[i].requestFocus()
+                keyboard?.show()''',
+              '''                stop()
+                handler.postDelayed({
+                    focus[i].requestFocus()
+                    keyboard?.show()
+                }, 120L)'''
+          )
+          write_if_changed(p, original, text)
           PY
 
       - name: Commit changes
@@ -64,11 +205,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add app/src/main/java/com/example/myenglish/screens/PracticeScreen.kt \
-                  app/src/main/java/com/example/myenglish/screens/WrittenPracticeScreen.kt \
-                  app/src/main/java/com/example/myenglish/screens/ListeningPracticeScreen.kt
+                  app/src/main/java/com/example/myenglish/screens/ListeningPracticeScreen.kt \
+                  app/src/main/java/com/example/myenglish/screens/ListeningHomeworkScreen.kt
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Make Android back send practice reports"
+            git commit -m "Guard audio playback and restore keyboard focus"
             git push
           fi
