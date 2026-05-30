@@ -1,5 +1,6 @@
 package com.example.myenglish.screens
 
+import androidx.activity.compose.BackHandler
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.foundation.BorderStroke
@@ -186,6 +187,10 @@ fun WrittenPracticeScreen(
                 }
             }
         }
+    }
+
+    BackHandler(enabled = !sending) {
+        finishPractice()
     }
 
     Column(

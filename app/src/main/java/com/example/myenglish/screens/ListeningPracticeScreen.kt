@@ -1,5 +1,6 @@
 package com.example.myenglish.screens
 
+import androidx.activity.compose.BackHandler
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
@@ -226,6 +227,10 @@ fun ListeningPracticeScreen(
                 }
             }
         }
+    }
+
+    BackHandler(enabled = !sending) {
+        finishPractice()
     }
 
     Column(

@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -293,6 +294,10 @@ fun PracticeScreen(
     LaunchedEffect(Unit) {
         startedAtMillis = System.currentTimeMillis()
         startedAtText = currentDateTimeText()
+    }
+
+    BackHandler(enabled = !sending && !activeListening) {
+        finishPractice()
     }
 
     Column(
