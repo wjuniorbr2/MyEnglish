@@ -1,0 +1,74 @@
+name: Patch practice Android back button
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-practice-back.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Patch practice screens
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          files = [
+              Path('app/src/main/java/com/example/myenglish/screens/PracticeScreen.kt'),
+              Path('app/src/main/java/com/example/myenglish/screens/WrittenPracticeScreen.kt'),
+              Path('app/src/main/java/com/example/myenglish/screens/ListeningPracticeScreen.kt'),
+          ]
+
+          for path in files:
+              text = path.read_text()
+
+              if 'import androidx.activity.compose.BackHandler' not in text:
+                  text = text.replace(
+                      'import androidx.activity.compose.rememberLauncherForActivityResult\n',
+                      'import androidx.activity.compose.BackHandler\nimport androidx.activity.compose.rememberLauncherForActivityResult\n'
+                  )
+                  if 'import androidx.activity.compose.BackHandler' not in text:
+                      text = text.replace(
+                          'package com.example.myenglish.screens\n\n',
+                          'package com.example.myenglish.screens\n\nimport androidx.activity.compose.BackHandler\n'
+                      )
+
+              if 'BackHandler(enabled = !sending && !activeListening)' not in text and path.name == 'PracticeScreen.kt':
+                  marker = '    LaunchedEffect(Unit) {\n        startedAtMillis = System.currentTimeMillis()\n        startedAtText = currentDateTimeText()\n    }\n\n    Column('
+                  replacement = '    LaunchedEffect(Unit) {\n        startedAtMillis = System.currentTimeMillis()\n        startedAtText = currentDateTimeText()\n    }\n\n    BackHandler(enabled = !sending && !activeListening) {\n        finishPractice()\n    }\n\n    Column('
+                  if marker not in text:
+                      raise RuntimeError(f'Marker not found in {path}')
+                  text = text.replace(marker, replacement)
+
+              if 'BackHandler(enabled = !sending)' not in text and path.name in ('WrittenPracticeScreen.kt', 'ListeningPracticeScreen.kt'):
+                  marker = '    Column(\n        Modifier'
+                  replacement = '    BackHandler(enabled = !sending) {\n        finishPractice()\n    }\n\n    Column(\n        Modifier'
+                  if marker not in text:
+                      raise RuntimeError(f'Marker not found in {path}')
+                  text = text.replace(marker, replacement, 1)
+
+              path.write_text(text)
+          PY
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/java/com/example/myenglish/screens/PracticeScreen.kt \
+                  app/src/main/java/com/example/myenglish/screens/WrittenPracticeScreen.kt \
+                  app/src/main/java/com/example/myenglish/screens/ListeningPracticeScreen.kt
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Make Android back send practice reports"
+            git push
+          fi
