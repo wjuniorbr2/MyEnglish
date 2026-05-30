@@ -1,13 +1,18 @@
 package com.example.myenglish.utils
 
-import android.media.AudioManager
-import android.media.ToneGenerator
+import android.content.Context
+import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
 
 object SpokenFeedbackSounds {
+    private var appContext: Context? = null
     private var lastFeedbackKey = ""
     private var lastFeedbackTimeMs = 0L
+
+    fun setContext(context: Context) {
+        appContext = context.applicationContext
+    }
 
     fun maybePlay(studentAnswer: String, correctAnswer: String, correct: Boolean) {
         if (!calledFromSpokenHomeworkSpeechResult()) return
@@ -15,25 +20,27 @@ object SpokenFeedbackSounds {
 
         val now = System.currentTimeMillis()
         val feedbackKey = cleanAnswer(studentAnswer) + "|" + cleanAnswer(correctAnswer) + "|" + correct
-
         if (feedbackKey == lastFeedbackKey && now - lastFeedbackTimeMs < 2500L) return
 
         lastFeedbackKey = feedbackKey
         lastFeedbackTimeMs = now
 
         Handler(Looper.getMainLooper()).postDelayed({
-            playTone(correct)
+            playResourceSound(if (correct) "correct" else "wrong")
         }, 1000L)
     }
 
-    private fun playTone(correct: Boolean) {
+    private fun playResourceSound(resourceName: String) {
+        val context = appContext ?: return
+        val resourceId = context.resources.getIdentifier(resourceName, "raw", context.packageName)
+        if (resourceId == 0) return
+
         try {
-            val tone = if (correct) ToneGenerator.TONE_PROP_ACK else ToneGenerator.TONE_PROP_NACK
-            val generator = ToneGenerator(AudioManager.STREAM_MUSIC, 70)
-            generator.startTone(tone, 140)
-            Handler(Looper.getMainLooper()).postDelayed({
-                try { generator.release() } catch (_: Exception) { }
-            }, 400L)
+            val player = MediaPlayer.create(context, resourceId) ?: return
+            player.setOnCompletionListener {
+                try { it.release() } catch (_: Exception) { }
+            }
+            player.start()
         } catch (_: Exception) {
             // Feedback sounds should never interrupt the homework flow.
         }
