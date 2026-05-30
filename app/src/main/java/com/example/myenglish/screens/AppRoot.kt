@@ -219,7 +219,13 @@ fun AppRoot() {
         } else if (screen == "practice") {
             screen = "practiceMenu"
         } else if (screen == "book") {
-            leaveBookToLesson()
+            if (returnToHomeworkScreen != null) {
+                goBackToHomework()
+            } else if (returnToPracticeScreen != null) {
+                goBackToPractice()
+            } else {
+                leaveBookToLesson()
+            }
         } else if (screen == "lesson") {
             screen = "home"
         }
