@@ -97,6 +97,19 @@ fun Homework(
         audioPlaying = false
     }
 
+    fun finishAudioAndFocus(i: Int, currentPlayer: MediaPlayer) {
+        if (player == currentPlayer) {
+            try { currentPlayer.stop() } catch (_: Exception) { }
+            try { currentPlayer.release() } catch (_: Exception) { }
+            player = null
+            audioPlaying = false
+            handler.postDelayed({
+                focus[i].requestFocus()
+                keyboard?.show()
+            }, 120L)
+        }
+    }
+
     fun play(i: Int, startMs: Int, endMs: Int) {
         stop()
 
@@ -105,26 +118,18 @@ fun Homework(
         val currentPlayer = MediaPlayer.create(context, audioResId) ?: return
         player = currentPlayer
         audioPlaying = true
-        focusManager.clearFocus()
+        focusManager.clearFocus(force = true)
         keyboard?.hide()
         currentPlayer.setVolume(1f, 1f)
         currentPlayer.seekTo(startMs)
         currentPlayer.setOnCompletionListener {
-            if (player == currentPlayer) {
-                stop()
-                focus[i].requestFocus()
-                keyboard?.show()
-            }
+            finishAudioAndFocus(i, currentPlayer)
         }
         currentPlayer.start()
 
         handler.postDelayed(
             {
-                if (player == currentPlayer) {
-                    stop()
-                    focus[i].requestFocus()
-                    keyboard?.show()
-                }
+                finishAudioAndFocus(i, currentPlayer)
             },
             (endMs - startMs).toLong()
         )
