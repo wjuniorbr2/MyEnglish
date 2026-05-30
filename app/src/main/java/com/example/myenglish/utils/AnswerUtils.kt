@@ -35,7 +35,9 @@ fun cleanAnswer(text: String): String {
 }
 
 fun isCorrectAnswer(studentAnswer: String, correctAnswer: String): Boolean {
-    return cleanAnswer(studentAnswer) == cleanAnswer(correctAnswer)
+    val correct = cleanAnswer(studentAnswer) == cleanAnswer(correctAnswer)
+    SpokenFeedbackSounds.maybePlay(studentAnswer, correctAnswer, correct)
+    return correct
 }
 
 fun countWords(text: String): Int {
