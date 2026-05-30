@@ -31,7 +31,7 @@ object SpokenFeedbackSounds {
     }
 
     private fun playResourceSound(resourceName: String) {
-        val context = appContext ?: return
+        val context = contextOrCurrentApplication() ?: return
         val resourceId = context.resources.getIdentifier(resourceName, "raw", context.packageName)
         if (resourceId == 0) return
 
@@ -43,6 +43,18 @@ object SpokenFeedbackSounds {
             player.start()
         } catch (_: Exception) {
             // Feedback sounds should never interrupt the homework flow.
+        }
+    }
+
+    private fun contextOrCurrentApplication(): Context? {
+        appContext?.let { return it }
+
+        return try {
+            val activityThread = Class.forName("android.app.ActivityThread")
+            val currentApplication = activityThread.getMethod("currentApplication")
+            (currentApplication.invoke(null) as? Context)?.applicationContext?.also { appContext = it }
+        } catch (_: Exception) {
+            null
         }
     }
 
