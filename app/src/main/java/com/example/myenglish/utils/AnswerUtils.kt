@@ -12,4 +12,4 @@ fun cleanAnswer(text: String): String {
         val lowerChar = Character.toLowerCase(currentChar)
 
         if (lowerChar >= 'a' && lowerChar <= 'z') {
-            builder.append(lowerChar
+            builder.append(lower
