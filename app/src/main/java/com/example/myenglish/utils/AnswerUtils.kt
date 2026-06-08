@@ -1,15 +1,14 @@
 package com.example.myenglish.utils
 
-import java.util.StringTokenizer
-
 fun cleanAnswer(text: String): String {
-    val builder = StringBuilder()
-    var lastWasSpace = true
-    var i = 0
+    return normalize(text)
+        .replace(Regex("[^a-z ]"), " ")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+}
 
-    while (i < text.length) {
-        val currentChar = text[i]
-        val lowerChar = Character.toLowerCase(currentChar)
-
-        if (lowerChar >= 'a' && lowerChar <= 'z') {
-            builder.append(lower
+private fun normalize(text: String): String {
+    return text.lowercase()
+        .replace("’", "'")
+        .replace(Regex("\\bwanna\\b"), "want to")
+        .replace(Regex("\\
