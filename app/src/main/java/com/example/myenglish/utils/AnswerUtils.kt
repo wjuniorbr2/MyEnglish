@@ -11,4 +11,3 @@ private fun normalizeFlexibleAnswer(text: String): String {
     return text.lowercase()
         .replace("’", "'")
         .replace(Regex("\\bwanna\\b"), "want to")
-        .replace(Regex("\\bgonna\\b"), "going to")
