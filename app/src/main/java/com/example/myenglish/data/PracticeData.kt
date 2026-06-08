@@ -6,6 +6,9 @@ object PracticeData {
             "Lesson 1" -> mergePractice(Lesson1SpokenData.sentences, Lesson1WrittenData.sentences)
             "Lesson 2" -> mergePractice(Lesson2SpokenData.sentences, Lesson2WrittenData.sentences)
             "Lesson 3" -> mergePractice(Lesson3SpokenData.sentences, Lesson3WrittenData.sentences)
+            "Lesson 4" -> mergePractice(Lesson4SpokenData.sentences, Lesson4WrittenData.sentences)
+            "Lesson 5" -> mergePractice(Lesson5SpokenData.sentences, Lesson5WrittenData.sentences)
+            "Lesson 6" -> mergePractice(Lesson6SpokenData.sentences, Lesson6WrittenData.sentences)
             else -> emptyArray()
         }
     }
@@ -21,6 +24,15 @@ object PracticeData {
             "Lesson 3" -> mergeWrittenPractice(
                 Lesson3SpokenData.sentences to Lesson3WrittenData.sentences
             )
+            "Lesson 4" -> mergeWrittenPractice(
+                Lesson4SpokenData.sentences to Lesson4WrittenData.sentences
+            )
+            "Lesson 5" -> mergeWrittenPractice(
+                Lesson5SpokenData.sentences to Lesson5WrittenData.sentences
+            )
+            "Lesson 6" -> mergeWrittenPractice(
+                Lesson6SpokenData.sentences to Lesson6WrittenData.sentences
+            )
             else -> emptyArray()
         }
     }
@@ -30,7 +42,12 @@ object PracticeData {
     }
 
     fun hasPractice(lessonName: String): Boolean {
-        return lessonName == "Lesson 1" || lessonName == "Lesson 2" || lessonName == "Lesson 3"
+        return lessonName == "Lesson 1" ||
+                lessonName == "Lesson 2" ||
+                lessonName == "Lesson 3" ||
+                lessonName == "Lesson 4" ||
+                lessonName == "Lesson 5" ||
+                lessonName == "Lesson 6"
     }
 
     private fun mergePractice(
