@@ -55,7 +55,12 @@ fun Lesson(
     val writtenAvailable = HomeworkData.hasWrittenHomework(name)
     val spokenAvailable = HomeworkData.hasSpokenHomework(name)
     val practiceAvailable = PracticeData.hasPractice(name)
-    val bookAvailable = name == "Lesson 1" || name == "Lesson 2" || name == "Lesson 3"
+    val bookAvailable = name == "Lesson 1" ||
+            name == "Lesson 2" ||
+            name == "Lesson 3" ||
+            name == "Lesson 4" ||
+            name == "Lesson 5" ||
+            name == "Lesson 6"
 
     Column(
         Modifier
