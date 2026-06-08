@@ -9,5 +9,12 @@ fun cleanAnswer(text: String): String {
 
 private fun normalizeFlexibleAnswer(text: String): String {
     return text.lowercase()
-        .replace("’", "'")
-        .replace(Regex("\\bwanna\\b"), "want to")
+        .replace("wanna", "want to")
+        .replace("gonna", "going to")
+        .replace("thanks", "thank you")
+        .replace("thx", "thank you")
+}
+
+fun isCorrectAnswer(userAnswer: String, correctAnswer: String): Boolean {
+    return cleanAnswer(userAnswer) == cleanAnswer(correctAnswer)
+}
