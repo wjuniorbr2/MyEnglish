@@ -3,6 +3,7 @@ package com.example.myenglish.screens
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
+import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +52,10 @@ import com.example.myenglish.data.BookLessonData
 import com.example.myenglish.data.Lesson1BookData
 import com.example.myenglish.data.Lesson2BookData
 import com.example.myenglish.data.Lesson3BookData
+import com.example.myenglish.data.Lesson4BookData
+import com.example.myenglish.data.Lesson5BookData
+import com.example.myenglish.data.Lesson6BookData
+import java.util.Locale
 
 private val frameOuterColor = Color(0xFF0D3D7A)
 private val frameInnerColor = Color(0xFF2E75C9)
@@ -63,6 +69,9 @@ fun BookScreen(
     val bookData: BookLessonData = when (lessonName) {
         "Lesson 2" -> Lesson2BookData
         "Lesson 3" -> Lesson3BookData
+        "Lesson 4" -> Lesson4BookData
+        "Lesson 5" -> Lesson5BookData
+        "Lesson 6" -> Lesson6BookData
         else -> Lesson1BookData
     }
 
@@ -70,16 +79,40 @@ fun BookScreen(
     val handler = remember { Handler(Looper.getMainLooper()) }
     val playerRef = remember { arrayOf<MediaPlayer?>(null) }
     var showGrammarInfo by rememberSaveable(lessonName) { mutableStateOf(false) }
+    var ttsReady by remember { mutableStateOf(false) }
+    val textToSpeech = remember {
+        TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) ttsReady = true
+        }
+    }
+
+    LaunchedEffect(ttsReady) {
+        if (ttsReady) {
+            val result = textToSpeech.setLanguage(Locale.US)
+            ttsReady = result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED
+            textToSpeech.setSpeechRate(0.85f)
+        }
+    }
 
     fun stop() {
         handler.removeCallbacksAndMessages(null)
         try { playerRef[0]?.stop() } catch (_: Exception) { }
         try { playerRef[0]?.release() } catch (_: Exception) { }
         playerRef[0] = null
+        textToSpeech.stop()
+    }
+
+    fun speakText(text: String, queueMode: Int = TextToSpeech.QUEUE_FLUSH, utteranceId: String = "book_tts") {
+        if (!ttsReady || text.isBlank()) return
+        textToSpeech.speak(text, queueMode, null, utteranceId)
     }
 
     fun playSegment(item: BookAudioItem) {
         stop()
+        if (item.audioResId == 0) {
+            speakText(item.english, TextToSpeech.QUEUE_FLUSH, "book_${item.english}")
+            return
+        }
         val currentPlayer = MediaPlayer.create(context, item.audioResId) ?: return
         playerRef[0] = currentPlayer
         currentPlayer.setVolume(1f, 1f)
@@ -105,6 +138,22 @@ fun BookScreen(
 
     fun playFull(resId: Int) {
         stop()
+        if (resId == 0) {
+            val chunks = mutableListOf<String>()
+            chunks.add(bookData.title.english)
+            chunks.add(bookData.verbsTitle.english)
+            bookData.verbs.forEach { chunks.add(it.english) }
+            chunks.add(bookData.vocabularyTitle.english)
+            bookData.vocabulary.forEach { chunks.add(it.english) }
+            chunks.add(bookData.expressionsTitle.english)
+            bookData.expressions.forEach { chunks.add(it.english) }
+            chunks.add(bookData.grammarTitle.english)
+            bookData.grammarSentences.forEach { chunks.add(it.english) }
+            chunks.forEachIndexed { index, text ->
+                speakText(text, if (index == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, "book_all_$index")
+            }
+            return
+        }
         val currentPlayer = MediaPlayer.create(context, resId) ?: return
         playerRef[0] = currentPlayer
         currentPlayer.setVolume(1f, 1f)
@@ -113,7 +162,10 @@ fun BookScreen(
     }
 
     DisposableEffect(Unit) {
-        onDispose { stop() }
+        onDispose {
+            stop()
+            textToSpeech.shutdown()
+        }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -250,9 +302,7 @@ private fun FramedSection(content: @Composable () -> Unit) {
             .border(2.dp, frameInnerColor, RoundedCornerShape(12.dp))
             .padding(7.dp)
     ) {
-        Column {
-            content()
-        }
+        Column { content() }
     }
 }
 
@@ -265,10 +315,7 @@ private fun GrammarInfoDialog(text: String, close: () -> Unit) {
 
     Dialog(
         onDismissRequest = close,
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = false
-        )
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false)
     ) {
         Box(
             modifier = Modifier
@@ -281,22 +328,9 @@ private fun GrammarInfoDialog(text: String, close: () -> Unit) {
                 .padding(14.dp)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "GRAMMAR",
-                    color = frameOuterColor,
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Black,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
+                Text("GRAMMAR", color = frameOuterColor, fontSize = 21.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-
-                Box(
-                    modifier = Modifier
-                        .weight(1f, fill = false)
-                        .fillMaxWidth()
-                ) {
+                Box(modifier = Modifier.weight(1f, fill = false).fillMaxWidth()) {
                     Text(
                         text = text,
                         color = Color.Black,
@@ -309,7 +343,6 @@ private fun GrammarInfoDialog(text: String, close: () -> Unit) {
                             .padding(end = if (showScrollHint) 20.dp else 0.dp)
                             .verticalScroll(textScrollState)
                     )
-
                     if (showScrollHint) {
                         Text(
                             text = "▲\n│\n│\n▼",
@@ -325,21 +358,14 @@ private fun GrammarInfoDialog(text: String, close: () -> Unit) {
                         )
                     }
                 }
-
                 Spacer(Modifier.height(10.dp))
-
                 Box(
                     modifier = Modifier
                         .background(frameOuterColor, RoundedCornerShape(12.dp))
                         .clickable { close() }
                         .padding(horizontal = 30.dp, vertical = 9.dp)
                 ) {
-                    Text(
-                        text = "OK",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Black
-                    )
+                    Text("OK", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
                 }
             }
         }
@@ -357,12 +383,7 @@ private fun AudioTitle(item: BookAudioItem, onClick: () -> Unit) {
             .clickable { onClick() }
             .padding(horizontal = 12.dp, vertical = 5.dp)
     ) {
-        Text(
-            text = item.english,
-            color = Color.White,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Black
-        )
+        Text(item.english, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
     }
 }
 
@@ -390,11 +411,7 @@ private fun WordGrid(items: Array<BookAudioItem>, columns: Int, play: (BookAudio
             var col = 0
             while (col < columns) {
                 val index = i + col
-                if (index < items.size) {
-                    WordCell(items[index], Modifier.weight(1f), play)
-                } else {
-                    Spacer(Modifier.weight(1f))
-                }
+                if (index < items.size) WordCell(items[index], Modifier.weight(1f), play) else Spacer(Modifier.weight(1f))
                 if (col < columns - 1) Spacer(Modifier.width(2.dp))
                 col++
             }
@@ -411,22 +428,9 @@ private fun WordCell(item: BookAudioItem, modifier: Modifier, play: (BookAudioIt
             .clickable { play(item) }
             .padding(horizontal = 5.dp, vertical = 6.dp)
     ) {
-        Text(
-            text = item.english,
-            color = Color.White,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 18.sp
-        )
-
+        Text(text = item.english, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, lineHeight = 18.sp)
         if (item.translation.isNotEmpty()) {
-            Text(
-                text = item.translation,
-                color = Color(0xFFE0E0E0),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Normal,
-                lineHeight = 13.sp
-            )
+            Text(text = item.translation, color = Color(0xFFE0E0E0), fontSize = 11.sp, fontWeight = FontWeight.Normal, lineHeight = 13.sp)
         }
     }
 }
@@ -439,11 +443,7 @@ private fun AlphabetGrid(items: Array<BookAudioItem>, play: (BookAudioItem) -> U
             var col = 0
             while (col < 7) {
                 val index = i + col
-                if (index < items.size) {
-                    AlphabetCell(items[index], play)
-                } else {
-                    Spacer(Modifier.width(42.dp))
-                }
+                if (index < items.size) AlphabetCell(items[index], play) else Spacer(Modifier.width(42.dp))
                 col++
             }
         }
@@ -455,7 +455,6 @@ private fun AlphabetGrid(items: Array<BookAudioItem>, play: (BookAudioItem) -> U
 @Composable
 private fun AlphabetCell(item: BookAudioItem, play: (BookAudioItem) -> Unit) {
     val translationFontSize = if (item.english == "W") 7.sp else 9.sp
-
     Column(
         modifier = Modifier
             .width(42.dp)
@@ -466,21 +465,7 @@ private fun AlphabetCell(item: BookAudioItem, play: (BookAudioItem) -> Unit) {
             .padding(3.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = item.english,
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Black,
-            modifier = Modifier.clickable { play(item) }
-        )
-        Text(
-            text = item.translation,
-            color = Color(0xFFE0E0E0),
-            fontSize = translationFontSize,
-            maxLines = 1,
-            softWrap = false,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
+        Text(text = item.english, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.clickable { play(item) })
+        Text(text = item.translation, color = Color(0xFFE0E0E0), fontSize = translationFontSize, maxLines = 1, softWrap = false, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
     }
 }
