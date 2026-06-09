@@ -150,24 +150,7 @@ fun BookScreen(
             chunks.add(bookData.grammarTitle.english)
             bookData.grammarSentences.forEach { chunks.add(it.english) }
             chunks.forEachIndexed { index, text ->
-                speakText(
-                    text,
-                    if (index == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD,
-                    "book_all_$index"
-                )
-
-                val pauseMs = when {
-                    text.length <= 4 -> 1500L
-                    text.length <= 14 -> 2300L
-                    text.length <= 30 -> 3300L
-                    else -> 4600L
-                }
-
-                textToSpeech.playSilentUtterance(
-                    pauseMs,
-                    TextToSpeech.QUEUE_ADD,
-                    "book_pause_$index"
-                )
+                speakText(text, if (index == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, "book_all_$index")
             }
             return
         }
@@ -222,7 +205,7 @@ fun BookScreen(
 
             FramedSection {
                 SectionTitle(bookData.verbsTitle) { playSegment(bookData.verbsTitle) }
-                WordGrid(bookData.verbs, if (lessonName == "Lesson 6") 2 else 3, ::playSegment)
+                WordGrid(bookData.verbs, 3, ::playSegment)
             }
 
             FramedSection {
