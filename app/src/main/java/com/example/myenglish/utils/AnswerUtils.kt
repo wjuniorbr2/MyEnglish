@@ -17,3 +17,7 @@ fun cleanAnswer(text: String): String {
         .replace(Regex("\\s+"), " ")
         .trim()
 }
+
+fun isCorrectAnswer(userAnswer: String, correctAnswer: String): Boolean {
+    return cleanAnswer(userAnswer) == cleanAnswer(correctAnswer)
+}
