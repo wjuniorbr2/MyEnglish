@@ -121,21 +121,171 @@ object Lesson6ListeningData {
     )
 }
 
-object Lesson4SpokenData { val sentences = lesson4PracticeSentences }
-object Lesson4WrittenData { val sentences = lesson4PracticeSentences.map { WrittenHomeworkSentence(it.portuguese, it.english) }.toTypedArray() }
-object Lesson5SpokenData { val sentences = lesson5PracticeSentences }
-object Lesson5WrittenData { val sentences = lesson5PracticeSentences.map { WrittenHomeworkSentence(it.portuguese, it.english) }.toTypedArray() }
-object Lesson6SpokenData { val sentences = lesson6PracticeSentences }
-object Lesson6WrittenData { val sentences = lesson6PracticeSentences.map { WrittenHomeworkSentence(it.portuguese, it.english) }.toTypedArray() }
+object Lesson4SpokenData { val sentences = lesson4SpokenSentences }
+object Lesson4WrittenData { val sentences = lesson4WrittenSentences }
+object Lesson5SpokenData { val sentences = lesson5SpokenSentences }
+object Lesson5WrittenData { val sentences = lesson5WrittenSentences }
+object Lesson6SpokenData { val sentences = lesson6SpokenSentences }
+object Lesson6WrittenData { val sentences = lesson6WrittenSentences }
 
-private val lesson4PracticeSentences = arrayOf(
-    SpokenHomeworkSentence("Eu venho.", "I come."), SpokenHomeworkSentence("Eu bebo.", "I drink."), SpokenHomeworkSentence("Beba.", "Drink."), SpokenHomeworkSentence("Eu venho para casa.", "I come home."), SpokenHomeworkSentence("Escreva um livro.", "Write a book."), SpokenHomeworkSentence("Eles gostam de ler.", "They like to read."), SpokenHomeworkSentence("Você escreve?", "Do you write?"), SpokenHomeworkSentence("Ela lê?", "Does she read?"), SpokenHomeworkSentence("Você gosta de ler?", "Do you like to read?"), SpokenHomeworkSentence("Nós queremos vir para a escola.", "We want to come to school."), SpokenHomeworkSentence("Eu quero escrever.", "I want to write."), SpokenHomeworkSentence("Você vem para a escola?", "Do you come to school?"), SpokenHomeworkSentence("Eu tenho uma vida boa.", "I have a good life."), SpokenHomeworkSentence("Pessoas escrevem bons livros.", "People write good books."), SpokenHomeworkSentence("Eu quero água, obrigado.", "I want water, thank you."), SpokenHomeworkSentence("Eu tenho uma ideia.", "I have an idea."), SpokenHomeworkSentence("Eles não escrevem livros sobre ciência.", "They don’t write books about science."), SpokenHomeworkSentence("Eu gosto da vida.", "I like life."), SpokenHomeworkSentence("Como você soletra FLOWER?", "How do you spell FLOWER?"), SpokenHomeworkSentence("Nós vamos para a escola.", "We go to school."), SpokenHomeworkSentence("Você não estuda matemática.", "You don’t study math."), SpokenHomeworkSentence("Eu venho de Paranavaí.", "I come from Paranavaí."), SpokenHomeworkSentence("Você vem de Maringá?", "Do you come from Maringá?"), SpokenHomeworkSentence("Eu quero escrever para você.", "I want to write to you."), SpokenHomeworkSentence("Eu não tenho comida.", "I don’t have food."), SpokenHomeworkSentence("Meus amigos vão para aquela cidade.", "My friends go to that city."), SpokenHomeworkSentence("Eu gosto de ler sobre países.", "I like to read about countries."), SpokenHomeworkSentence("Eles escrevem cartas para nós.", "They write letters to us."), SpokenHomeworkSentence("Você quer ajuda?", "Do you want help?"), SpokenHomeworkSentence("Nós não queremos comer uma maçã.", "We don’t wanna eat an apple."), SpokenHomeworkSentence("Eu tenho que ir.", "I have to go."), SpokenHomeworkSentence("Eu não como comida quente.", "I don’t eat hot food."), SpokenHomeworkSentence("Como você fala inglês?", "How do you speak English?")
+private val lesson4SpokenSentences = arrayOf(
+    SpokenHomeworkSentence("Eu escrevo cartas.", "I write letters."),
+    SpokenHomeworkSentence("Você lê sobre ciência?", "Do you read about science?"),
+    SpokenHomeworkSentence("Nós vimos para a cidade.", "We come to the city."),
+    SpokenHomeworkSentence("Eles escrevem uma boa história.", "They write a good story."),
+    SpokenHomeworkSentence("Eu tenho uma ideia.", "I have an idea."),
+    SpokenHomeworkSentence("Boa ideia.", "Good idea."),
+    SpokenHomeworkSentence("Como você soletra apple?", "How do you spell apple?"),
+    SpokenHomeworkSentence("Soletra-se A-P-P-L-E.", "It spells A-P-P-L-E."),
+    SpokenHomeworkSentence("Obrigado.", "Thank you."),
+    SpokenHomeworkSentence("De nada.", "You’re welcome."),
+    SpokenHomeworkSentence("Como você está?", "How are you?"),
+    SpokenHomeworkSentence("Estou bem, obrigado.", "I’m fine, thanks."),
+    SpokenHomeworkSentence("Eu não estou bem.", "I’m not well."),
+    SpokenHomeworkSentence("Você vem do país?", "Do you come from the country?"),
+    SpokenHomeworkSentence("Eu escrevo sobre pessoas.", "I write about people."),
+    SpokenHomeworkSentence("Eles leem sobre história.", "They read about history."),
+    SpokenHomeworkSentence("Você tem um exemplo?", "Do you have an example?"),
+    SpokenHomeworkSentence("Eu leio em uma sala.", "I read in a room."),
+    SpokenHomeworkSentence("Nós escrevemos para amigos.", "We write to friends."),
+    SpokenHomeworkSentence("Eles vêm para a minha cidade.", "They come to my city."),
+    SpokenHomeworkSentence("Eu quero ler uma carta.", "I want to read a letter."),
+    SpokenHomeworkSentence("Você quer escrever uma história?", "Do you want to write a story?"),
+    SpokenHomeworkSentence("Eu gosto de ler sobre vida.", "I like to read about life."),
+    SpokenHomeworkSentence("As pessoas vêm para a escola.", "People come to school.")
 )
 
-private val lesson5PracticeSentences = arrayOf(
-    SpokenHomeworkSentence("Eu bebo.", "I drink."), SpokenHomeworkSentence("Beba.", "Drink."), SpokenHomeworkSentence("Eu começo a aula de inglês.", "I start the English class."), SpokenHomeworkSentence("Abra a porta.", "Open the door."), SpokenHomeworkSentence("Eles querem terminar a tarefa de matemática.", "They want to finish the math homework."), SpokenHomeworkSentence("Você quer começar o trabalho?", "Do you want to start the work?"), SpokenHomeworkSentence("Elas terminam hoje.", "They finish today."), SpokenHomeworkSentence("Você vai?", "Do you go?"), SpokenHomeworkSentence("Nós não queremos ir.", "We don’t want to go."), SpokenHomeworkSentence("Eu quero.", "I want."), SpokenHomeworkSentence("Eles começam a aula.", "They start the class."), SpokenHomeworkSentence("Eu tenho sete dias.", "I have seven days."), SpokenHomeworkSentence("Eu termino dois livros hoje.", "I finish two books today."), SpokenHomeworkSentence("Eu estudo dois anos.", "I study two years."), SpokenHomeworkSentence("Ele bebe água.", "He drinks water."), SpokenHomeworkSentence("Ele gosta de falar inglês.", "He likes to speak English."), SpokenHomeworkSentence("Ela não lê em inglês.", "She doesn’t read in English."), SpokenHomeworkSentence("Ela gosta de terminar a comida.", "She likes to finish the food."), SpokenHomeworkSentence("Ele fecha a janela.", "He closes the window."), SpokenHomeworkSentence("Você tem mais comida.", "You have more food."), SpokenHomeworkSentence("Ele estuda matemática.", "He studies math."), SpokenHomeworkSentence("Você gosta de matemática.", "You like math."), SpokenHomeworkSentence("Eu como coisas.", "I eat things."), SpokenHomeworkSentence("Ela gosta de escrever coisas.", "She likes to write things."), SpokenHomeworkSentence("Que número você gosta?", "What number do you like?"), SpokenHomeworkSentence("Eu não tenho dez coisas.", "I don’t have ten things."), SpokenHomeworkSentence("Onde você estuda?", "Where do you study?"), SpokenHomeworkSentence("Eu gosto desta sala.", "I like this room."), SpokenHomeworkSentence("Elas abrem a janela.", "They open the window."), SpokenHomeworkSentence("Legal.", "Cool."), SpokenHomeworkSentence("Às vezes eu trabalho.", "Sometimes I work."), SpokenHomeworkSentence("Ela gosta de feijão.", "She likes beans."), SpokenHomeworkSentence("Por favor, feche a porta.", "Please close the door."), SpokenHomeworkSentence("Com licença, você tem arroz?", "Excuse me, do you have rice?"), SpokenHomeworkSentence("Eu não tenho água.", "I don’t have water."), SpokenHomeworkSentence("Por favor, ela fala português.", "Please, she speaks Portuguese."), SpokenHomeworkSentence("Não se preocupe, eu tenho uma ideia.", "Don’t worry, I have an idea."), SpokenHomeworkSentence("Qual número você quer?", "What number do you want?"), SpokenHomeworkSentence("Eu quero o número um.", "I want number one.")
+private val lesson4WrittenSentences = arrayOf(
+    WrittenHomeworkSentence("Eu venho para a cidade.", "I come to the city."),
+    WrittenHomeworkSentence("Você escreve uma carta?", "Do you write a letter?"),
+    WrittenHomeworkSentence("Eles leem um livro de história.", "They read a history book."),
+    WrittenHomeworkSentence("Nós escrevemos sobre ciência.", "We write about science."),
+    WrittenHomeworkSentence("Eu tenho uma maçã.", "I have an apple."),
+    WrittenHomeworkSentence("Você tem uma boa ideia.", "Do you have a good idea?"),
+    WrittenHomeworkSentence("Como você escreve story?", "How do you write story?"),
+    WrittenHomeworkSentence("Como você soletra letter?", "How do you spell letter?"),
+    WrittenHomeworkSentence("Soletra-se L-E-T-T-E-R.", "It spells L-E-T-T-E-R."),
+    WrittenHomeworkSentence("Eu leio sobre países.", "I read about countries."),
+    WrittenHomeworkSentence("Nós vimos do estado.", "We come from the state."),
+    WrittenHomeworkSentence("Você lê sobre pessoas?", "Do you read about people?"),
+    WrittenHomeworkSentence("Eu quero escrever para um amigo.", "I want to write to a friend."),
+    WrittenHomeworkSentence("Eles não leem cartas.", "They don’t read letters."),
+    WrittenHomeworkSentence("Eu não venho para esta sala.", "I don’t come to this room."),
+    WrittenHomeworkSentence("Obrigado pela comida.", "Thank you for the food."),
+    WrittenHomeworkSentence("Estou bem, obrigado.", "I’m fine, thanks."),
+    WrittenHomeworkSentence("Não estou bem.", "I’m not well."),
+    WrittenHomeworkSentence("De nada.", "You’re welcome."),
+    WrittenHomeworkSentence("Boa ideia.", "Good idea."),
+    WrittenHomeworkSentence("Você tem um exemplo para mim?", "Do you have an example for me?"),
+    WrittenHomeworkSentence("Minha vida é boa.", "My life is good."),
+    WrittenHomeworkSentence("Eles gostam da cidade.", "They like the city."),
+    WrittenHomeworkSentence("Eu escrevo uma história sobre um amigo.", "I write a story about a friend.")
 )
 
-private val lesson6PracticeSentences = arrayOf(
-    SpokenHomeworkSentence("Eu preciso beber água.", "I need to drink water."), SpokenHomeworkSentence("Ele precisa comer pão.", "He needs to eat bread."), SpokenHomeworkSentence("Ela entende inglês?", "Does she understand English?"), SpokenHomeworkSentence("Este arquivo termina aqui.", "This file finishes here."), SpokenHomeworkSentence("Nós preferimos feijão quente.", "We prefer hot beans."), SpokenHomeworkSentence("Eles preferem água do que suco.", "They prefer water than juice."), SpokenHomeworkSentence("O que você prefere beber de manhã?", "What do you prefer to drink in the morning?"), SpokenHomeworkSentence("Quantos carros você precisa?", "How many cars do you need?"), SpokenHomeworkSentence("Eu preciso de onze carros.", "I need eleven cars."), SpokenHomeworkSentence("Eu não entendo você.", "I don’t understand you."), SpokenHomeworkSentence("Ele aprende inglês aqui.", "He learns English here."), SpokenHomeworkSentence("Eu preciso aprender inglês este ano.", "I need to learn English this year."), SpokenHomeworkSentence("Quantas bolas você quer?", "How many balls do you want?"), SpokenHomeworkSentence("Ele tem uma xícara de café.", "He has a cup of coffee."), SpokenHomeworkSentence("Eu sempre bebo uma xícara de café de manhã.", "I always drink a cup of coffee in the morning."), SpokenHomeworkSentence("Você come um prato de arroz?", "Do you eat a plate of rice?"), SpokenHomeworkSentence("Quanto café você quer?", "How much coffee do you want?"), SpokenHomeworkSentence("Eu quero muito café.", "I want a lot of coffee."), SpokenHomeworkSentence("Eu trabalho muito.", "I work a lot."), SpokenHomeworkSentence("Você gosta da sua casa feia?", "Do you like your ugly house?"), SpokenHomeworkSentence("Eu gosto muito da minha casa feia.", "I like my ugly house very much."), SpokenHomeworkSentence("Minha tela funciona bem, muito bem.", "My screen works well, very well."), SpokenHomeworkSentence("Você prefere chá com gelo?", "Do you prefer iced tea?"), SpokenHomeworkSentence("Ele prefere mais do que nós.", "He prefers more than us."), SpokenHomeworkSentence("Quantos ovos você precisa comer?", "How many eggs do you need to eat?"), SpokenHomeworkSentence("Quanta chuva você gosta?", "How much rain do you like?"), SpokenHomeworkSentence("Chove muito aqui?", "Does it rain a lot here?"), SpokenHomeworkSentence("Eu como muito pão.", "I eat a lot of bread."), SpokenHomeworkSentence("Ele quer um carro feio.", "He wants an ugly car."), SpokenHomeworkSentence("Ele quer um amigo bonito.", "He wants a handsome friend."), SpokenHomeworkSentence("Eu aprendo coisas bonitas.", "I learn beautiful things."), SpokenHomeworkSentence("Aprenda inglês bem, muito bem.", "Learn English well, very well."), SpokenHomeworkSentence("Eu preciso muito agora.", "I need it very much now.")
+private val lesson5SpokenSentences = arrayOf(
+    SpokenHomeworkSentence("Ela começa a aula hoje.", "She starts the class today."),
+    SpokenHomeworkSentence("Ele não termina a comida agora.", "He doesn’t finish the food now."),
+    SpokenHomeworkSentence("Ela abre a porta?", "Does she open the door?"),
+    SpokenHomeworkSentence("Ele fecha a janela.", "He closes the window."),
+    SpokenHomeworkSentence("Onde ela estuda?", "Where does she study?"),
+    SpokenHomeworkSentence("Ele começa antes da aula.", "He starts before class."),
+    SpokenHomeworkSentence("Ela termina depois do trabalho.", "She finishes after work."),
+    SpokenHomeworkSentence("Ele quer mais comida.", "He wants more food."),
+    SpokenHomeworkSentence("Ela quer menos pão.", "She wants less bread."),
+    SpokenHomeworkSentence("Que número ele quer?", "What number does he want?"),
+    SpokenHomeworkSentence("Ela não abre esta janela.", "She doesn’t open this window."),
+    SpokenHomeworkSentence("Ele não fecha aquela porta.", "He doesn’t close that door."),
+    SpokenHomeworkSentence("Isso come a comida.", "It eats the food."),
+    SpokenHomeworkSentence("Hoje é um bom dia.", "Today is a good day."),
+    SpokenHomeworkSentence("Amanhã ele começa o trabalho.", "Tomorrow he starts the work."),
+    SpokenHomeworkSentence("Ontem ela terminou a aula.", "Yesterday she finished the class."),
+    SpokenHomeworkSentence("Por favor, abra a porta.", "Please open the door."),
+    SpokenHomeworkSentence("Por favor, feche a janela.", "Please close the window."),
+    SpokenHomeworkSentence("Desculpe, eu não entendo.", "Sorry, I don’t understand."),
+    SpokenHomeworkSentence("Com licença, onde é a aula?", "Excuse me, where is the class?"),
+    SpokenHomeworkSentence("Não se preocupe, ele termina hoje.", "Don’t worry, he finishes today."),
+    SpokenHomeworkSentence("Legal, ela começa agora.", "Cool, she starts now."),
+    SpokenHomeworkSentence("Às vezes ele fecha a loja.", "Sometimes he closes the store."),
+    SpokenHomeworkSentence("Em que mês ela começa?", "What month does she start?")
+)
+
+private val lesson5WrittenSentences = arrayOf(
+    WrittenHomeworkSentence("Ele abre a porta agora.", "He opens the door now."),
+    WrittenHomeworkSentence("Ela fecha a janela hoje.", "She closes the window today."),
+    WrittenHomeworkSentence("Ela começa a aula amanhã.", "She starts the class tomorrow."),
+    WrittenHomeworkSentence("Ele termina o trabalho depois da aula.", "He finishes the work after class."),
+    WrittenHomeworkSentence("Ela não termina o livro.", "She doesn’t finish the book."),
+    WrittenHomeworkSentence("Ele não abre esta porta.", "He doesn’t open this door."),
+    WrittenHomeworkSentence("Ela fecha aquela janela?", "Does she close that window?"),
+    WrittenHomeworkSentence("Ele começa hoje?", "Does he start today?"),
+    WrittenHomeworkSentence("Onde ela trabalha?", "Where does she work?"),
+    WrittenHomeworkSentence("Onde ele come hoje?", "Where does he eat today?"),
+    WrittenHomeworkSentence("Que dia ele começa?", "What day does he start?"),
+    WrittenHomeworkSentence("Que ano ela termina?", "What year does she finish?"),
+    WrittenHomeworkSentence("Ele quer mais coisas.", "He wants more things."),
+    WrittenHomeworkSentence("Ela quer menos comida.", "She wants less food."),
+    WrittenHomeworkSentence("Isso não abre.", "It doesn’t open."),
+    WrittenHomeworkSentence("Isso começa agora.", "It starts now."),
+    WrittenHomeworkSentence("Por favor, comece agora.", "Please start now."),
+    WrittenHomeworkSentence("Por favor, termine hoje.", "Please finish today."),
+    WrittenHomeworkSentence("Desculpe, ela não fala inglês.", "Sorry, she doesn’t speak English."),
+    WrittenHomeworkSentence("Com licença, ele trabalha aqui?", "Excuse me, does he work here?"),
+    WrittenHomeworkSentence("Não se preocupe, ela fecha a loja.", "Don’t worry, she closes the store."),
+    WrittenHomeworkSentence("Legal, ele abre a janela.", "Cool, he opens the window."),
+    WrittenHomeworkSentence("Às vezes ela estuda antes do trabalho.", "Sometimes she studies before work."),
+    WrittenHomeworkSentence("Ela termina mais ou menos hoje.", "She finishes more or less today.")
+)
+
+private val lesson6SpokenSentences = arrayOf(
+    SpokenHomeworkSentence("Eu preciso aprender inglês.", "I need to learn English."),
+    SpokenHomeworkSentence("Você entende este arquivo?", "Do you understand this file?"),
+    SpokenHomeworkSentence("Ela prefere café ou chá?", "Does she prefer coffee or tea?"),
+    SpokenHomeworkSentence("Ele precisa de arroz e feijão.", "He needs rice and beans."),
+    SpokenHomeworkSentence("Quantos ovos você tem?", "How many eggs do you have?"),
+    SpokenHomeworkSentence("Quanto café você quer?", "How much coffee do you want?"),
+    SpokenHomeworkSentence("Eu tenho muitos pratos.", "I have many plates."),
+    SpokenHomeworkSentence("Nós temos muito arroz.", "We have much rice."),
+    SpokenHomeworkSentence("Eles têm muitas xícaras.", "They have many cups."),
+    SpokenHomeworkSentence("Eu bebo muito chá.", "I drink a lot of tea."),
+    SpokenHomeworkSentence("Ela gosta muito de café.", "She likes coffee very much."),
+    SpokenHomeworkSentence("Este arquivo é muito bom.", "This file is very good."),
+    SpokenHomeworkSentence("A tela é muito bonita.", "The screen is very pretty."),
+    SpokenHomeworkSentence("A bola é bonita.", "The ball is beautiful."),
+    SpokenHomeworkSentence("Ele é bonito.", "He is handsome."),
+    SpokenHomeworkSentence("A comida é horrível.", "The food is horrible."),
+    SpokenHomeworkSentence("Eu quero um copo de água com gelo.", "I want a glass of water with ice."),
+    SpokenHomeworkSentence("Ela quer uma xícara de café.", "She wants a cup of coffee."),
+    SpokenHomeworkSentence("Nós precisamos de chuva este mês.", "We need rain this month."),
+    SpokenHomeworkSentence("Eu gosto de vento.", "I like wind."),
+    SpokenHomeworkSentence("Ele prefere este prato.", "He prefers this plate."),
+    SpokenHomeworkSentence("Ela aprende ciência este ano.", "She learns science this year."),
+    SpokenHomeworkSentence("Você precisa entender isso agora?", "Do you need to understand this now?"),
+    SpokenHomeworkSentence("Eu prefiro chá a café.", "I prefer tea to coffee.")
+)
+
+private val lesson6WrittenSentences = arrayOf(
+    WrittenHomeworkSentence("Eu preciso de uma xícara.", "I need a cup."),
+    WrittenHomeworkSentence("Você precisa aprender isso.", "You need to learn this."),
+    WrittenHomeworkSentence("Nós entendemos você.", "We understand you."),
+    WrittenHomeworkSentence("Eles preferem arroz.", "They prefer rice."),
+    WrittenHomeworkSentence("Ela prefere feijão a arroz.", "She prefers beans to rice."),
+    WrittenHomeworkSentence("Ele aprende inglês hoje.", "He learns English today."),
+    WrittenHomeworkSentence("Quantas bolas você quer?", "How many balls do you want?"),
+    WrittenHomeworkSentence("Quantos pratos ela tem?", "How many plates does she have?"),
+    WrittenHomeworkSentence("Quanto chá ele bebe?", "How much tea does he drink?"),
+    WrittenHomeworkSentence("Quanto gelo você quer?", "How much ice do you want?"),
+    WrittenHomeworkSentence("Eu tenho muitos ovos.", "I have many eggs."),
+    WrittenHomeworkSentence("Ela tem muito café.", "She has much coffee."),
+    WrittenHomeworkSentence("Nós temos muitas coisas.", "We have a lot of things."),
+    WrittenHomeworkSentence("Ele estuda muito.", "He studies a lot."),
+    WrittenHomeworkSentence("Ela gosta muito de chá.", "She likes tea very much."),
+    WrittenHomeworkSentence("A tela é muito boa.", "The screen is very good."),
+    WrittenHomeworkSentence("Este arquivo é muito pequeno.", "This file is very small."),
+    WrittenHomeworkSentence("A casa é muito bonita.", "The house is very beautiful."),
+    WrittenHomeworkSentence("O amigo é bonito.", "The friend is handsome."),
+    WrittenHomeworkSentence("A ideia é horrível.", "The idea is horrible."),
+    WrittenHomeworkSentence("Eu quero um copo de vidro.", "I want a glass."),
+    WrittenHomeworkSentence("Ele quer café com gelo.", "He wants coffee with ice."),
+    WrittenHomeworkSentence("Nós precisamos de chuva agora.", "We need rain now."),
+    WrittenHomeworkSentence("Ela entende este número mais do que ele.", "She understands this number more than he does.")
 )
