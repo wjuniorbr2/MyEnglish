@@ -10,4 +10,5 @@ fun cleanAnswer(text: String): String {
 private fun normalizeFlexibleAnswer(text: String): String {
     return text.lowercase()
         .replace("’", "'")
-        .replace("i'm", "i
+        .replace("i'm", "i am")
+        .replace("im
