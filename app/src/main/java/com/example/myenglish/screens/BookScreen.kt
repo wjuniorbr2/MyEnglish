@@ -354,7 +354,7 @@ fun BookScreen(
             AlphabetGrid(
                 items = bottomItems,
                 play = ::playBottomItem,
-                columns = if (useNumberSection) 5 else 7
+                columns = if (useNumberSection) 4 else 7
             )
 
             Spacer(Modifier.height(14.dp))
@@ -544,10 +544,16 @@ private fun AlphabetGrid(
 
 @Composable
 private fun AlphabetCell(item: BookAudioItem, play: (BookAudioItem) -> Unit) {
-    val translationFontSize = if (item.english == "W") 7.sp else 9.sp
+    val isNumber = item.english.toIntOrNull() != null
+    val translationFontSize = when {
+        isNumber -> 7.sp
+        item.english == "W" -> 7.sp
+        else -> 9.sp
+    }
+    val cellWidth = if (isNumber) 48.dp else 42.dp
     Column(
         modifier = Modifier
-            .width(42.dp)
+            .width(cellWidth)
             .background(darkPanelColor, RoundedCornerShape(8.dp))
             .border(3.dp, frameOuterColor, RoundedCornerShape(8.dp))
             .padding(2.dp)

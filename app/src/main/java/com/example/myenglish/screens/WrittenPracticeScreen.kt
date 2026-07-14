@@ -370,28 +370,26 @@ private fun practiceUnderlineToken(token: String): String = "____" + token.takeL
 private fun practiceColoredAnswer(answer: String, expected: String, wrongColor: Color) = buildAnnotatedString {
     val expectedWords = cleanAnswer(expected).split(" ").filter { it.isNotBlank() }
     val ranges = practiceWordRanges(answer)
-    val studentWords = ranges.map { cleanAnswer(answer.substring(it.first, it.last)) }
-    val matchMap = practiceMatchingStudentToExpected(studentWords, expectedWords)
     var expectedCursor = 0
 
-    for (i in ranges.indices) {
-        val expectedIndex = matchMap[i]
-        if (expectedIndex != null && expectedIndex >= expectedCursor) {
-            while (expectedCursor < expectedIndex) {
-                appendPracticeMissingUnderline(wrongColor)
-                expectedCursor++
-            }
-        }
+    for (range in ranges) {
+        val rawToken = answer.substring(range.first, range.last)
+        val studentParts = cleanAnswer(rawToken).split(" ").filter { it.isNotBlank() }
+        val endCursor = expectedCursor + studentParts.size
+        val matches = studentParts.isNotEmpty() &&
+                endCursor <= expectedWords.size &&
+                expectedWords.subList(expectedCursor, endCursor) == studentParts
 
         val start = length
-        append(answer.substring(ranges[i].first, ranges[i].last))
+        append(rawToken)
         val end = length
-        if (studentWords[i].isNotBlank() && expectedIndex == null) {
+
+        if (studentParts.isNotEmpty() && !matches) {
             addStyle(SpanStyle(color = wrongColor), start, end)
-            if (expectedCursor < expectedWords.size) expectedCursor++
         }
+
         append(" ")
-        if (expectedIndex != null && expectedIndex >= expectedCursor) expectedCursor = expectedIndex + 1
+        expectedCursor += studentParts.size.coerceAtLeast(1)
     }
 
     while (expectedCursor < expectedWords.size) {

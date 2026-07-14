@@ -54,7 +54,7 @@ fun BugReportOverlay(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(start = 10.dp, top = 8.dp),
+            .padding(top = 8.dp),
         contentAlignment = Alignment.TopStart
     ) {
         Box(

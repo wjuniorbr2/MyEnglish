@@ -311,20 +311,25 @@ private class CorrectionVisualTransformation(
         val annotated = buildAnnotatedString {
             append(rawText)
 
-            var i = 0
-            while (i < ranges.size) {
-                val range = ranges[i]
-                val studentWord = cleanAnswer(rawText.substring(range.first, range.last))
-                val expectedWord = if (i < correctedWords.size) correctedWords[i] else ""
+            var expectedCursor = 0
+            for (range in ranges) {
+                val studentParts = cleanAnswer(rawText.substring(range.first, range.last))
+                    .split(" ")
+                    .filter { it.isNotBlank() }
+                val endCursor = expectedCursor + studentParts.size
+                val matches = studentParts.isNotEmpty() &&
+                        endCursor <= correctedWords.size &&
+                        correctedWords.subList(expectedCursor, endCursor) == studentParts
 
-                if (studentWord != "" && studentWord != expectedWord) {
+                if (studentParts.isNotEmpty() && !matches) {
                     addStyle(
                         style = SpanStyle(color = Color(0xFFC62828)),
                         start = range.first,
                         end = range.last
                     )
                 }
-                i++
+
+                expectedCursor += studentParts.size.coerceAtLeast(1)
             }
         }
 

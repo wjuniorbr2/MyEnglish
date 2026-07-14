@@ -360,12 +360,22 @@ private class WrittenCorrectionVisualTransformation(private val correctText: Str
         val ranges = wordRanges(rawText)
         val annotated = buildAnnotatedString {
             append(rawText)
-            for (i in ranges.indices) {
-                val studentWord = cleanAnswer(rawText.substring(ranges[i].first, ranges[i].last))
-                val expectedWord = if (i < expectedWords.size) expectedWords[i] else ""
-                if (studentWord.isNotBlank() && studentWord != expectedWord) {
-                    addStyle(SpanStyle(color = writtenRed), ranges[i].first, ranges[i].last)
+            var expectedCursor = 0
+
+            for (range in ranges) {
+                val studentParts = cleanAnswer(rawText.substring(range.first, range.last))
+                    .split(" ")
+                    .filter { it.isNotBlank() }
+                val endCursor = expectedCursor + studentParts.size
+                val matches = studentParts.isNotEmpty() &&
+                        endCursor <= expectedWords.size &&
+                        expectedWords.subList(expectedCursor, endCursor) == studentParts
+
+                if (studentParts.isNotEmpty() && !matches) {
+                    addStyle(SpanStyle(color = writtenRed), range.first, range.last)
                 }
+
+                expectedCursor += studentParts.size.coerceAtLeast(1)
             }
         }
         return TransformedText(annotated, OffsetMapping.Identity)

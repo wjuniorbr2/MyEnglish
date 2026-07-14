@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -346,15 +347,15 @@ fun AppRoot() {
 
         if (screen == "homework" || screen == "writtenHomework" || screen == "spokenHomework") {
             ArtButton(
-                text = "Go to lesson",
+                text = "Lesson",
                 onClick = { openBookFromHomework(screen) },
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth(0.68f)
-                    .padding(bottom = 72.dp),
+                    .align(Alignment.BottomEnd)
+                    .width(66.dp)
+                    .padding(end = 4.dp, bottom = 18.dp),
                 backgroundResId = R.drawable.redbutton,
-                heightDp = 54,
-                fontSize = 17
+                heightDp = 50,
+                fontSize = 12
             )
         }
 
