@@ -232,6 +232,16 @@ fun AppRoot() {
         }
     }
 
+    val contentScreen = when {
+        screen == "book" && returnToHomeworkScreen != null ->
+            returnToHomeworkScreen!!
+
+        screen == "book" && returnToPracticeScreen != null ->
+            returnToPracticeScreen!!
+
+        else -> screen
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (showNameDialog) {
             StudentNameDialog(studentName) { newName ->
@@ -241,7 +251,7 @@ fun AppRoot() {
             }
         }
 
-        when (screen) {
+        when (contentScreen) {
             "home" -> Home(
                 studentName = displayStudentName(studentName),
                 onChangeName = { showNameDialog = true },
@@ -269,10 +279,7 @@ fun AppRoot() {
                 back = { screen = "home" }
             )
 
-            "book" -> BookScreen(
-                lessonName = selectedLesson,
-                back = { leaveBookToLesson() }
-            )
+            "book" -> Unit
 
             "homework" -> {
                 val sentences = HomeworkData.sentencesForLesson(activeHomeworkLesson)
@@ -342,6 +349,24 @@ fun AppRoot() {
                 studentName = displayStudentName(studentName),
                 sentences = PracticeData.listeningSentencesForLesson(activeHomeworkLesson),
                 back = { screen = "practiceMenu" }
+            )
+        }
+
+        if (screen == "book") {
+            BookScreen(
+                lessonName = selectedLesson,
+                back = {
+                    when {
+                        returnToHomeworkScreen != null ->
+                            goBackToHomework()
+
+                        returnToPracticeScreen != null ->
+                            goBackToPractice()
+
+                        else ->
+                            leaveBookToLesson()
+                    }
+                }
             )
         }
 
