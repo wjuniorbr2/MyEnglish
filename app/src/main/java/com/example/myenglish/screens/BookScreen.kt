@@ -75,6 +75,39 @@ fun BookScreen(
         else -> Lesson1BookData
     }
 
+    val lessonNumber = lessonName.removePrefix("Lesson ").toIntOrNull()
+    val useNumberSection = lessonNumber != null && lessonNumber in 5..8
+    val numberItems = remember {
+        arrayOf(
+            BookAudioItem("1", "One", 0, 0, 0, true),
+            BookAudioItem("2", "Two", 0, 0, 0, true),
+            BookAudioItem("3", "Three", 0, 0, 0, true),
+            BookAudioItem("4", "Four", 0, 0, 0, true),
+            BookAudioItem("5", "Five", 0, 0, 0, true),
+            BookAudioItem("6", "Six", 0, 0, 0, true),
+            BookAudioItem("7", "Seven", 0, 0, 0, true),
+            BookAudioItem("8", "Eight", 0, 0, 0, true),
+            BookAudioItem("9", "Nine", 0, 0, 0, true),
+            BookAudioItem("10", "Ten", 0, 0, 0, true),
+            BookAudioItem("11", "Eleven", 0, 0, 0, true),
+            BookAudioItem("12", "Twelve", 0, 0, 0, true),
+            BookAudioItem("13", "Thirteen", 0, 0, 0, true),
+            BookAudioItem("14", "Fourteen", 0, 0, 0, true),
+            BookAudioItem("15", "Fifteen", 0, 0, 0, true),
+            BookAudioItem("16", "Sixteen", 0, 0, 0, true),
+            BookAudioItem("17", "Seventeen", 0, 0, 0, true),
+            BookAudioItem("18", "Eighteen", 0, 0, 0, true),
+            BookAudioItem("19", "Nineteen", 0, 0, 0, true),
+            BookAudioItem("20", "Twenty", 0, 0, 0, true)
+        )
+    }
+    val bottomTitle = if (useNumberSection) {
+        BookAudioItem("NUMBERS", "", 0, 0, 0, true)
+    } else {
+        bookData.alphabetTitle
+    }
+    val bottomItems = if (useNumberSection) numberItems else bookData.alphabet
+
     val context = LocalContext.current
     val handler = remember { Handler(Looper.getMainLooper()) }
     val playerRef = remember { arrayOf<MediaPlayer?>(null) }
@@ -178,6 +211,38 @@ fun BookScreen(
         currentPlayer.setOnCompletionListener { stop() }
     }
 
+    fun playBottomItem(item: BookAudioItem) {
+        if (useNumberSection) {
+            stop()
+            speakText(item.translation, TextToSpeech.QUEUE_FLUSH, "book_number_${item.english}")
+        } else {
+            playSegment(item)
+        }
+    }
+
+    fun playBottomSection() {
+        if (!useNumberSection && bookData.alphabetAudioResId != 0) {
+            playFull(bookData.alphabetAudioResId)
+            return
+        }
+        if (!ttsReady) return
+
+        stop()
+        bottomItems.forEachIndexed { index, item ->
+            val spokenText = if (useNumberSection) item.translation else item.english
+            speakText(
+                spokenText,
+                if (index == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD,
+                "book_bottom_$index"
+            )
+            textToSpeech.playSilentUtterance(
+                700L,
+                TextToSpeech.QUEUE_ADD,
+                "book_bottom_pause_$index"
+            )
+        }
+    }
+
     DisposableEffect(Unit) {
         onDispose {
             stop()
@@ -268,25 +333,29 @@ fun BookScreen(
                         .border(4.dp, frameOuterColor, RoundedCornerShape(12.dp))
                         .padding(3.dp)
                         .border(2.dp, frameInnerColor, RoundedCornerShape(10.dp))
-                        .clickable { playSegment(bookData.alphabetTitle) }
+                        .clickable { playSegment(bottomTitle) }
                         .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Text(
-                        text = "ALPHABET",
+                        text = if (useNumberSection) "NUMBERS" else "ALPHABET",
                         color = Color.White,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Black
                     )
                 }
                 ArtButton(
-                    text = "▶ ABC",
-                    onClick = { playFull(bookData.alphabetAudioResId) },
+                    text = if (useNumberSection) "▶ 1-20" else "▶ ABC",
+                    onClick = { playBottomSection() },
                     modifier = Modifier.width(95.dp),
                     heightDp = 46,
                     fontSize = 14
                 )
             }
-            AlphabetGrid(bookData.alphabet, ::playSegment)
+            AlphabetGrid(
+                items = bottomItems,
+                play = ::playBottomItem,
+                columns = if (useNumberSection) 5 else 7
+            )
 
             Spacer(Modifier.height(14.dp))
             ArtButton(
@@ -453,19 +522,23 @@ private fun WordCell(item: BookAudioItem, modifier: Modifier, play: (BookAudioIt
 }
 
 @Composable
-private fun AlphabetGrid(items: Array<BookAudioItem>, play: (BookAudioItem) -> Unit) {
+private fun AlphabetGrid(
+    items: Array<BookAudioItem>,
+    play: (BookAudioItem) -> Unit,
+    columns: Int = 7
+) {
     var i = 0
     while (i < items.size) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             var col = 0
-            while (col < 7) {
+            while (col < columns) {
                 val index = i + col
                 if (index < items.size) AlphabetCell(items[index], play) else Spacer(Modifier.width(42.dp))
                 col++
             }
         }
         Spacer(Modifier.height(5.dp))
-        i += 7
+        i += columns
     }
 }
 

@@ -3,6 +3,8 @@ package com.example.myenglish.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -93,6 +95,7 @@ private val revealButtonMessages = arrayOf(
     "Open secret door"
 )
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SentenceRow(
     sentence: HomeworkSentence,
@@ -231,7 +234,7 @@ fun SentenceRow(
                     Text("Choose a word to reveal.")
                     Spacer(Modifier.height(5.dp))
 
-                    Row(modifier = Modifier.fillMaxWidth()) {
+                    FlowRow(modifier = Modifier.fillMaxWidth()) {
                         var i = 0
                         while (i < hintTokens.size) {
                             val wordIndex = i

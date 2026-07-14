@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,32 +51,24 @@ fun BugReportOverlay(
     val keyboard = LocalSoftwareKeyboardController.current
 
     Box(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(start = 10.dp, top = 8.dp),
         contentAlignment = Alignment.TopStart
     ) {
         Box(
             modifier = Modifier
-                .offset(x = 10.dp, y = (-14).dp)
                 .width(47.dp)
                 .height(47.dp)
                 .shadow(
                     elevation = 8.dp,
-                    shape = RoundedCornerShape(
-                        topStart = 0.dp,
-                        topEnd = 0.dp,
-                        bottomStart = 16.dp,
-                        bottomEnd = 16.dp
-                    ),
+                    shape = RoundedCornerShape(14.dp),
                     clip = false
                 )
                 .background(
                     color = Color(0xFF111111),
-                    shape = RoundedCornerShape(
-                        topStart = 0.dp,
-                        topEnd = 0.dp,
-                        bottomStart = 16.dp,
-                        bottomEnd = 16.dp
-                    )
+                    shape = RoundedCornerShape(14.dp)
                 )
                 .clickable { showDialog = true },
             contentAlignment = Alignment.Center

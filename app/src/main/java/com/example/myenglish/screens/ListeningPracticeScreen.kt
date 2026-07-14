@@ -8,6 +8,8 @@ import android.speech.tts.UtteranceProgressListener
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -333,6 +335,7 @@ fun ListeningPracticeScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ListeningPracticeCard(
     number: Int,
@@ -413,7 +416,7 @@ private fun ListeningPracticeCard(
             } else {
                 Text("Choose a word to reveal.")
                 Spacer(Modifier.height(5.dp))
-                Row(Modifier.fillMaxWidth()) {
+                FlowRow(Modifier.fillMaxWidth()) {
                     tokens.forEachIndexed { index, token ->
                         val revealed = selectedHints.contains(index)
                         Text(

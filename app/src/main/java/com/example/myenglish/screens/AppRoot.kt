@@ -351,7 +351,7 @@ fun AppRoot() {
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth(0.68f)
-                    .padding(bottom = 18.dp),
+                    .padding(bottom = 72.dp),
                 backgroundResId = R.drawable.redbutton,
                 heightDp = 54,
                 fontSize = 17
@@ -365,7 +365,7 @@ fun AppRoot() {
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth(0.68f)
-                    .padding(bottom = 18.dp),
+                    .padding(bottom = 72.dp),
                 backgroundResId = R.drawable.redbutton,
                 heightDp = 54,
                 fontSize = 17

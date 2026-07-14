@@ -12,6 +12,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -475,6 +477,7 @@ fun SpokenHomework(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SpokenSentenceCard(
     number: Int,
@@ -579,7 +582,7 @@ private fun SpokenSentenceCard(
                 Text("Choose a word to reveal. Tap revealed words to hear them.")
                 Spacer(Modifier.height(5.dp))
 
-                Row(modifier = Modifier.fillMaxWidth()) {
+                FlowRow(modifier = Modifier.fillMaxWidth()) {
                     var i = 0
                     while (i < hintTokens.size) {
                         val wordIndex = i

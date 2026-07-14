@@ -11,6 +11,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -357,6 +359,7 @@ fun PracticeScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PracticeCard(
     practicedCount: Int,
@@ -435,7 +438,7 @@ private fun PracticeCard(
                 Spacer(Modifier.height(8.dp))
                 Text("Choose a word to reveal.")
                 Spacer(Modifier.height(5.dp))
-                Row(Modifier.fillMaxWidth()) {
+                FlowRow(Modifier.fillMaxWidth()) {
                     for (i in tokens.indices) {
                         val token = tokens[i]
                         val revealed = selectedHints.contains(i)
