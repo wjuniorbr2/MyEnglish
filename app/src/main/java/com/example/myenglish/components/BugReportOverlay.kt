@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,9 +52,8 @@ fun BugReportOverlay(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(top = 8.dp),
-        contentAlignment = Alignment.TopStart
+            .padding(top = 58.dp, end = 8.dp),
+        contentAlignment = Alignment.TopEnd
     ) {
         Box(
             modifier = Modifier
