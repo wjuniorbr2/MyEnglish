@@ -5,7 +5,7 @@ import android.content.Context
 object HomeworkData {
 
     fun sentencesForLesson(lessonName: String): Array<HomeworkSentence> {
-        return when (lessonName) {
+        val sentences = when (lessonName) {
             "Lesson 1" -> Lesson1ListeningData.sentences
             "Lesson 2" -> Lesson2ListeningData.sentences
             "Lesson 3" -> Lesson3ListeningData.sentences
@@ -13,6 +13,12 @@ object HomeworkData {
             "Lesson 5" -> Lesson5ListeningData.sentences
             "Lesson 6" -> Lesson6ListeningData.sentences
             else -> emptyArray()
+        }
+
+        return if (lessonNumber(lessonName) < 11) {
+            sentences.filterNot { containsEarlyVerbToBe(it.correctText) }.toTypedArray()
+        } else {
+            sentences
         }
     }
 
@@ -29,7 +35,7 @@ object HomeworkData {
     }
 
     fun spokenSentencesForLesson(lessonName: String): Array<SpokenHomeworkSentence> {
-        return when (lessonName) {
+        val sentences = when (lessonName) {
             "Lesson 1" -> Lesson1SpokenData.sentences
             "Lesson 2" -> Lesson2SpokenData.sentences
             "Lesson 3" -> Lesson3SpokenData.sentences
@@ -38,10 +44,16 @@ object HomeworkData {
             "Lesson 6" -> Lesson6SpokenData.sentences
             else -> emptyArray()
         }
+
+        return if (lessonNumber(lessonName) < 11) {
+            sentences.filterNot { containsEarlyVerbToBe(it.english) }.toTypedArray()
+        } else {
+            sentences
+        }
     }
 
     fun writtenSentencesForLesson(lessonName: String): Array<WrittenHomeworkSentence> {
-        return when (lessonName) {
+        val sentences = when (lessonName) {
             "Lesson 1" -> Lesson1WrittenData.sentences
             "Lesson 2" -> Lesson2WrittenData.sentences
             "Lesson 3" -> Lesson3WrittenData.sentences
@@ -49,6 +61,12 @@ object HomeworkData {
             "Lesson 5" -> Lesson5WrittenData.sentences
             "Lesson 6" -> Lesson6WrittenData.sentences
             else -> emptyArray()
+        }
+
+        return if (lessonNumber(lessonName) < 11) {
+            sentences.filterNot { containsEarlyVerbToBe(it.english) }.toTypedArray()
+        } else {
+            sentences
         }
     }
 
@@ -77,5 +95,9 @@ object HomeworkData {
                 lessonName == "Lesson 4" ||
                 lessonName == "Lesson 5" ||
                 lessonName == "Lesson 6"
+    }
+
+    private fun lessonNumber(lessonName: String): Int {
+        return lessonName.removePrefix("Lesson ").toIntOrNull() ?: Int.MAX_VALUE
     }
 }
