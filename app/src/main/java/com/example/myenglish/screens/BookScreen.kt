@@ -550,7 +550,7 @@ private fun AlphabetCell(item: BookAudioItem, play: (BookAudioItem) -> Unit) {
         item.english == "W" -> 7.sp
         else -> 9.sp
     }
-    val cellWidth = if (isNumber) 48.dp else 42.dp
+    val cellWidth = if (isNumber) 54.dp else 42.dp
     Column(
         modifier = Modifier
             .width(cellWidth)
