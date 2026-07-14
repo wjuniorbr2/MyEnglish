@@ -52,7 +52,7 @@ fun BugReportOverlay(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 58.dp, end = 8.dp),
+            .padding(top = 6.dp, end = 8.dp),
         contentAlignment = Alignment.TopEnd
     ) {
         Box(
