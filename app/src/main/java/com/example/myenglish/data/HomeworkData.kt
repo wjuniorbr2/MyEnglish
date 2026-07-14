@@ -16,7 +16,12 @@ object HomeworkData {
         }
 
         return if (lessonNumber(lessonName) < 11) {
-            sentences.filterNot { containsEarlyVerbToBe(it.correctText) }.toTypedArray()
+            sentences
+                .filterNot { containsEarlyVerbToBe(it.correctText) }
+                .mapIndexed { index, sentence ->
+                    sentence.copy(label = "Sentence ${index + 1}")
+                }
+                .toTypedArray()
         } else {
             sentences
         }
