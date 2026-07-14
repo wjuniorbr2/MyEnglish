@@ -32,13 +32,15 @@ function Replace-ExactlyOnce {
         [Parameter(Mandatory)][string]$Description
     )
 
-    $matches = [regex]::Matches($Text, [regex]::Escape($Old)).Count
+    $normalizedOld = $Old.Replace("`r`n", "`n")
+    $normalizedNew = $New.Replace("`r`n", "`n")
+    $matches = [regex]::Matches($Text, [regex]::Escape($normalizedOld)).Count
 
     if ($matches -ne 1) {
         throw "${Description}: expected exactly one match, found $matches."
     }
 
-    return $Text.Replace($Old, $New)
+    return $Text.Replace($normalizedOld, $normalizedNew)
 }
 
 Write-Host "Applying homework hint wrapping..."
@@ -122,11 +124,16 @@ $bugPath = "app/src/main/java/com/example/myenglish/components/BugReportOverlay.
 $bugText = Read-NormalizedText $bugPath
 
 if (-not $bugText.Contains(".statusBarsPadding()")) {
-    $bugText = Replace-ExactlyOnce `
-        -Text $bugText `
-        -Old "import androidx.compose.foundation.layout.offset`n" `
-        -New "import androidx.compose.foundation.layout.statusBarsPadding`n" `
-        -Description "Bug button status-bar import"
+    if ($bugText.Contains("import androidx.compose.foundation.layout.offset`n")) {
+        $bugText = Replace-ExactlyOnce `
+            -Text $bugText `
+            -Old "import androidx.compose.foundation.layout.offset`n" `
+            -New "import androidx.compose.foundation.layout.statusBarsPadding`n" `
+            -Description "Bug button status-bar import"
+    }
+    elseif (-not $bugText.Contains("import androidx.compose.foundation.layout.statusBarsPadding`n")) {
+        throw "Bug button status-bar import was not found."
+    }
 
     $oldBugBlock = @'
     Box(
