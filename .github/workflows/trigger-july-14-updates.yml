@@ -18,20 +18,11 @@ jobs:
           ref: master
           fetch-depth: 0
 
-      - name: Run embedded update script
+      - name: Apply requested source changes
         shell: bash
         run: |
-          python3 <<'PY'
-          from pathlib import Path
-          import textwrap
-
-          workflow_path = Path('.github/workflows/apply-july-14-updates.yml')
-          lines = workflow_path.read_text(encoding='utf-8').splitlines()
-          start = next(i for i, line in enumerate(lines) if line.strip() == "python3 <<'PY'")
-          end = next(i for i in range(start + 1, len(lines)) if lines[i].strip() == 'PY')
-          embedded = textwrap.dedent('\n'.join(lines[start + 1:end]))
-          exec(compile(embedded, str(workflow_path), 'exec'))
-          PY
+          git apply --check .github/july-14-app-updates.patch
+          git apply .github/july-14-app-updates.patch
 
       - name: Compile Kotlin
         shell: bash
@@ -45,6 +36,7 @@ jobs:
           rm -f .github/workflows/apply-july-14-updates.yml
           rm -f .github/workflows/trigger-july-14-updates.yml
           rm -f .github/july-14-update-trigger.txt
+          rm -f .github/july-14-app-updates.patch
           git config user.name "OpenAI"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
