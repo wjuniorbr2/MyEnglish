@@ -35,7 +35,7 @@ function Replace-ExactlyOnce {
     $matches = [regex]::Matches($Text, [regex]::Escape($Old)).Count
 
     if ($matches -ne 1) {
-        throw "$Description: expected exactly one match, found $matches."
+        throw "${Description}: expected exactly one match, found $matches."
     }
 
     return $Text.Replace($Old, $New)
