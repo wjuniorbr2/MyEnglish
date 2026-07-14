@@ -69,7 +69,7 @@ object Lesson6ListeningData {
         HomeworkSentence("Sentence 2", "How much water do you drink at night?", 4354, 9685),
         HomeworkSentence("Sentence 3", "It spells R-A-I-N.", 9685, 15371),
         HomeworkSentence("Sentence 4", "I eat lots of things in the mall.", 15371, 20880),
-        HomeworkSentence("Sentence 5", "He prefers eggs than ham.", 20880, 26389),
+        HomeworkSentence("Sentence 5", "He prefers eggs to ham.", 20880, 26389),
         HomeworkSentence("Sentence 6", "Does she always drink a lot of coffee in the morning?", 26389, 32963),
         HomeworkSentence("Sentence 7", "Excuse me, do you learn French in this school?", 32963, 39894),
         HomeworkSentence("Sentence 8", "Where do you need to go with your friend now?", 39894, 46291),
@@ -85,14 +85,13 @@ object Lesson6ListeningData {
         HomeworkSentence("Sentence 18", "What does he prefer, wine or beer?", 102533, 108575),
         HomeworkSentence("Sentence 19", "She likes wine very much.", 108575, 113817),
         HomeworkSentence("Sentence 20", "Does he prefer to study here or in your house?", 113817, 119770),
-        HomeworkSentence("Sentence 21", "What? She prefers beer than water?", 119770, 125545),
+        HomeworkSentence("Sentence 21", "What? She prefers beer to water?", 119770, 125545),
         HomeworkSentence("Sentence 22", "Hey, what do you have for me?", 125545, 131232),
         HomeworkSentence("Sentence 23", "We always understand you.", 131232, 136829),
         HomeworkSentence("Sentence 24", "We don’t need this now, we need that.", 136829, 143315),
         HomeworkSentence("Sentence 25", "Where does she go after she comes from school?", 143315, 149535)
     )
 }
-
 
 object Lesson6SpokenData {
     val sentences = lesson6SpokenSentences
@@ -114,24 +113,24 @@ private val lesson6SpokenSentences = arrayOf(
         SpokenHomeworkSentence("Eles têm muitas xícaras.", "They have many cups."),
         SpokenHomeworkSentence("Eu bebo muito chá.", "I drink a lot of tea."),
         SpokenHomeworkSentence("Ela gosta muito de café.", "She likes coffee very much."),
-        SpokenHomeworkSentence("Este arquivo é muito bom.", "This file is very good."),
-        SpokenHomeworkSentence("A tela é muito bonita.", "The screen is very pretty."),
-        SpokenHomeworkSentence("A bola é bonita.", "The ball is beautiful."),
-        SpokenHomeworkSentence("Ele é bonito.", "He is handsome."),
-        SpokenHomeworkSentence("A comida é horrível.", "The food is horrible."),
+        SpokenHomeworkSentence("Este arquivo funciona muito bem.", "This file works very well."),
+        SpokenHomeworkSentence("A tela funciona muito bem.", "The screen works very well."),
+        SpokenHomeworkSentence("Ela gosta muito da bola.", "She likes the ball very much."),
+        SpokenHomeworkSentence("Ele prefere este arquivo.", "He prefers this file."),
+        SpokenHomeworkSentence("Ela não gosta da comida.", "She doesn’t like the food."),
         SpokenHomeworkSentence("Eu quero um copo de água com gelo.", "I want a glass of water with ice."),
         SpokenHomeworkSentence("Ela quer uma xícara de café.", "She wants a cup of coffee."),
         SpokenHomeworkSentence("Nós precisamos de chuva este mês.", "We need rain this month."),
         SpokenHomeworkSentence("Eu gosto de vento.", "I like wind."),
         SpokenHomeworkSentence("Ele prefere este prato.", "He prefers this plate."),
         SpokenHomeworkSentence("Ela aprende ciência este ano.", "She learns science this year."),
-        SpokenHomeworkSentence("Você precisa entender isso agora?", "Do you need to understand this now?"),
+        SpokenHomeworkSentence("Você precisa entender o arquivo agora?", "Do you need to understand the file now?"),
         SpokenHomeworkSentence("Eu prefiro chá a café.", "I prefer tea to coffee.")
 )
 
 private val lesson6WrittenSentences = arrayOf(
         WrittenHomeworkSentence("Eu preciso de uma xícara.", "I need a cup."),
-        WrittenHomeworkSentence("Você precisa aprender isso.", "You need to learn this."),
+        WrittenHomeworkSentence("Você precisa aprender matemática.", "You need to learn math."),
         WrittenHomeworkSentence("Nós entendemos você.", "We understand you."),
         WrittenHomeworkSentence("Eles preferem arroz.", "They prefer rice."),
         WrittenHomeworkSentence("Ela prefere feijão a arroz.", "She prefers beans to rice."),
@@ -145,11 +144,11 @@ private val lesson6WrittenSentences = arrayOf(
         WrittenHomeworkSentence("Nós temos muitas coisas.", "We have a lot of things."),
         WrittenHomeworkSentence("Ele estuda muito.", "He studies a lot."),
         WrittenHomeworkSentence("Ela gosta muito de chá.", "She likes tea very much."),
-        WrittenHomeworkSentence("A tela é muito boa.", "The screen is very good."),
-        WrittenHomeworkSentence("Este arquivo é muito pequeno.", "This file is very small."),
-        WrittenHomeworkSentence("A casa é muito bonita.", "The house is very beautiful."),
-        WrittenHomeworkSentence("O amigo é bonito.", "The friend is handsome."),
-        WrittenHomeworkSentence("A comida é horrível.", "The food is horrible."),
+        WrittenHomeworkSentence("A tela funciona muito bem.", "The screen works very well."),
+        WrittenHomeworkSentence("Este arquivo funciona muito bem.", "This file works very well."),
+        WrittenHomeworkSentence("Ela gosta muito da casa.", "She likes the house very much."),
+        WrittenHomeworkSentence("O amigo prefere esta casa.", "The friend prefers this house."),
+        WrittenHomeworkSentence("Ela não gosta da comida.", "She doesn’t like the food."),
         WrittenHomeworkSentence("Eu quero um copo de vidro.", "I want a glass."),
         WrittenHomeworkSentence("Ele quer café com gelo.", "He wants coffee with ice."),
         WrittenHomeworkSentence("Nós precisamos de chuva agora.", "We need rain now."),
