@@ -59,8 +59,7 @@ object PracticeData {
 
         fun add(portuguese: String, english: String) {
             val key = english.lowercase().trim()
-            if (!seen.contains(key)) {
-                seen.add(key)
+            if (!containsEarlyVerbToBe(english) && seen.add(key)) {
                 list.add(SpokenHomeworkSentence(portuguese, english))
             }
         }
@@ -79,8 +78,7 @@ object PracticeData {
 
         fun add(portuguese: String, english: String) {
             val key = english.lowercase().trim()
-            if (!seen.contains(key)) {
-                seen.add(key)
+            if (!containsEarlyVerbToBe(english) && seen.add(key)) {
                 list.add(WrittenHomeworkSentence(portuguese, english))
             }
         }
