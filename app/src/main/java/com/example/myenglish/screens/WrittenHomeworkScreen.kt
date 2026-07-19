@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -72,15 +73,34 @@ fun WrittenHomework(
     back: () -> Unit
 ) {
     val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("my_english_prefs", android.content.Context.MODE_PRIVATE) }
-    val key = remember(name) { "written_progress_" + name.lowercase().replace(" ", "_") }
+    val prefs = remember {
+        context.getSharedPreferences(
+            "my_english_prefs",
+            android.content.Context.MODE_PRIVATE
+        )
+    }
+    val key = remember(name) {
+        "written_progress_" + name.lowercase().replace(" ", "_")
+    }
     val scroll = rememberScrollState()
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
 
-    val answers = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
-    val firstAnswers = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
-    val hints = remember(sentences.size) { mutableStateListOf<String>().apply { repeat(sentences.size) { add("") } } }
+    val answers = remember(sentences.size) {
+        mutableStateListOf<String>().apply {
+            repeat(sentences.size) { add("") }
+        }
+    }
+    val firstAnswers = remember(sentences.size) {
+        mutableStateListOf<String>().apply {
+            repeat(sentences.size) { add("") }
+        }
+    }
+    val hints = remember(sentences.size) {
+        mutableStateListOf<String>().apply {
+            repeat(sentences.size) { add("") }
+        }
+    }
 
     var step by remember { mutableIntStateOf(0) }
     var firstScore by remember { mutableIntStateOf(0) }
@@ -90,38 +110,45 @@ fun WrittenHomework(
     var submitted by remember { mutableStateOf(false) }
     var topRequest by remember { mutableIntStateOf(0) }
 
-    fun allCorrect(): Boolean = sentences.indices.all { isCorrectAnswer(answers[it], sentences[it].english) }
+    fun allCorrect(): Boolean = sentences.indices.all { index ->
+        isCorrectAnswer(answers[index], sentences[index].english)
+    }
 
     fun saveProgress() {
         if (submitted) return
-        val edit = prefs.edit()
-        edit.putInt("${key}_count", sentences.size)
-        edit.putInt("${key}_step", step)
-        edit.putInt("${key}_score", firstScore)
-        edit.putString("${key}_msg", msg)
-        edit.putBoolean("${key}_msg_error", msgError)
-        for (i in sentences.indices) {
-            edit.putString("${key}_answer_$i", answers[i])
-            edit.putString("${key}_first_$i", firstAnswers[i])
-            edit.putString("${key}_hint_$i", hints[i])
+
+        val editor = prefs.edit()
+            .putInt("${key}_count", sentences.size)
+            .putInt("${key}_step", step)
+            .putInt("${key}_score", firstScore)
+            .putString("${key}_msg", msg)
+            .putBoolean("${key}_msg_error", msgError)
+
+        for (index in sentences.indices) {
+            editor.putString("${key}_answer_$index", answers[index])
+            editor.putString("${key}_first_$index", firstAnswers[index])
+            editor.putString("${key}_hint_$index", hints[index])
         }
-        edit.apply()
+
+        editor.apply()
     }
 
     fun clearProgress() {
         val count = prefs.getInt("${key}_count", sentences.size)
-        val edit = prefs.edit()
-        edit.remove("${key}_count")
-        edit.remove("${key}_step")
-        edit.remove("${key}_score")
-        edit.remove("${key}_msg")
-        edit.remove("${key}_msg_error")
-        for (i in 0 until count) {
-            edit.remove("${key}_answer_$i")
-            edit.remove("${key}_first_$i")
-            edit.remove("${key}_hint_$i")
+        val editor = prefs.edit()
+            .remove("${key}_count")
+            .remove("${key}_step")
+            .remove("${key}_score")
+            .remove("${key}_msg")
+            .remove("${key}_msg_error")
+
+        for (index in 0 until count) {
+            editor.remove("${key}_answer_$index")
+            editor.remove("${key}_first_$index")
+            editor.remove("${key}_hint_$index")
         }
-        edit.apply()
+
+        editor.apply()
     }
 
     LaunchedEffect(key, sentences.size) {
@@ -130,18 +157,15 @@ fun WrittenHomework(
             firstScore = prefs.getInt("${key}_score", 0)
             msg = prefs.getString("${key}_msg", "") ?: ""
             msgError = prefs.getBoolean("${key}_msg_error", false)
-            for (i in sentences.indices) {
-                answers[i] = prefs.getString("${key}_answer_$i", "") ?: ""
-                firstAnswers[i] = prefs.getString("${key}_first_$i", "") ?: ""
-                hints[i] = prefs.getString("${key}_hint_$i", "") ?: ""
-            }
-        }
-    }
 
-    LaunchedEffect(scroll.isScrollInProgress) {
-        if (scroll.isScrollInProgress) {
-            focusManager.clearFocus()
-            keyboard?.hide()
+            for (index in sentences.indices) {
+                answers[index] =
+                    prefs.getString("${key}_answer_$index", "") ?: ""
+                firstAnswers[index] =
+                    prefs.getString("${key}_first_$index", "") ?: ""
+                hints[index] =
+                    prefs.getString("${key}_hint_$index", "") ?: ""
+            }
         }
     }
 
@@ -150,7 +174,9 @@ fun WrittenHomework(
     }
 
     DisposableEffect(Unit) {
-        onDispose { if (submitted) clearProgress() else saveProgress() }
+        onDispose {
+            if (submitted) clearProgress() else saveProgress()
+        }
     }
 
     fun setTop(text: String, error: Boolean) {
@@ -159,51 +185,110 @@ fun WrittenHomework(
     }
 
     fun reportText(): String {
+        val totalHints = hints.sumOf {
+            selectedWrittenHintIndexes(it).size
+        }
         val builder = StringBuilder()
+
         builder.append("Student: ").append(studentName).append("\n")
         builder.append("Submitted at: ").append(currentDateTimeText()).append("\n")
         builder.append("Lesson: ").append(name).append("\n")
         builder.append("Homework: Written homework\n")
-        builder.append("Original score: ").append(firstScore).append(" / ").append(sentences.size).append("\n\n")
-        for (i in sentences.indices) {
-            builder.append(i + 1).append(". Expected English: ").append(sentences[i].english).append("\n")
-            builder.append("First written answer: ").append(firstAnswers[i]).append("\n")
-            builder.append("Hints used: ").append(selectedHintIndexes(hints[i]).size).append("\n\n")
+        builder.append("Original score: ")
+            .append(firstScore)
+            .append(" / ")
+            .append(sentences.size)
+            .append("\n")
+        builder.append("Total hints: ").append(totalHints).append("\n\n")
+
+        for (index in sentences.indices) {
+            builder.append(index + 1)
+                .append(". Portuguese: ")
+                .append(sentences[index].portuguese)
+                .append("\n")
+            builder.append("Expected English: ")
+                .append(sentences[index].english)
+                .append("\n")
+            builder.append("First written answer: ")
+                .append(firstAnswers[index])
+                .append("\n")
+            builder.append("Hints used: ")
+                .append(selectedWrittenHintIndexes(hints[index]).size)
+                .append("\n")
+            builder.append("First try correct: ")
+                .append(
+                    if (
+                        isCorrectAnswer(
+                            firstAnswers[index],
+                            sentences[index].english
+                        )
+                    ) "yes" else "no"
+                )
+                .append("\n\n")
         }
+
         return builder.toString()
     }
 
     fun checkFirstTry() {
         var score = 0
-        for (i in sentences.indices) {
-            firstAnswers[i] = answers[i]
-            if (isCorrectAnswer(firstAnswers[i], sentences[i].english)) score++
+
+        for (index in sentences.indices) {
+            firstAnswers[index] = answers[index]
+            if (
+                isCorrectAnswer(
+                    firstAnswers[index],
+                    sentences[index].english
+                )
+            ) {
+                score++
+            }
         }
+
         firstScore = score
         step = 1
-        setTop("First try score: $score / ${sentences.size}. Fix the red words, then submit again.", score != sentences.size)
+        setTop(
+            "First try score: $score / ${sentences.size}. " +
+                    "Fix the red words, then submit again.",
+            score != sentences.size
+        )
         saveProgress()
         topRequest++
     }
 
     fun sendFinal() {
         if (!allCorrect()) {
-            setTop("The red words are still partying. Fix every sentence first.", true)
+            setTop(
+                "The red words are still partying. Fix every sentence first.",
+                true
+            )
             saveProgress()
             topRequest++
             return
         }
+
         sending = true
         setTop("Sending your written masterpiece...", false)
         val report = reportText()
         saveProgress()
         topRequest++
-        sendHomeworkReportToTeacher(studentName, name, "Written homework", "$firstScore / ${sentences.size}", report) { success ->
+
+        sendHomeworkReportToTeacher(
+            studentName = studentName,
+            lessonName = name,
+            homeworkType = "Written homework",
+            scoreText = "$firstScore / ${sentences.size}",
+            report = report
+        ) { success ->
             Handler(Looper.getMainLooper()).post {
                 sending = false
+
                 if (success) {
                     submitted = true
-                    setTop("Boom! Your written masterpiece reached your teacher.", false)
+                    setTop(
+                        "Boom! Your written masterpiece reached your teacher.",
+                        false
+                    )
                     clearProgress()
                     done()
                     topRequest++
@@ -219,12 +304,14 @@ fun WrittenHomework(
     Column(
         Modifier
             .fillMaxSize()
+            .imePadding()
             .verticalScroll(scroll)
             .hideKeyboardOnBackgroundTap(focusManager, keyboard)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Header(name, "Written")
+
         if (msg.isNotBlank()) {
             Spacer(Modifier.height(8.dp))
             Text(
@@ -232,13 +319,16 @@ fun WrittenHomework(
                 color = if (msgError) writtenRed else writtenGreen,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                style = LocalTextStyle.current.copy(shadow = Shadow(Color.White, Offset(1f, 1f), 3f))
+                style = LocalTextStyle.current.copy(
+                    shadow = Shadow(Color.White, Offset(1f, 1f), 3f)
+                )
             )
         }
+
         Spacer(Modifier.height(16.dp))
-        for (i in sentences.indices) {
-            val index = i
-            WrittenCard(
+
+        for (index in sentences.indices) {
+            WrittenHomeworkCard(
                 number = index + 1,
                 sentence = sentences[index],
                 answer = answers[index],
@@ -250,41 +340,67 @@ fun WrittenHomework(
                     saveProgress()
                 },
                 openHints = {
-                    if (!submitted && step >= 1 && hints[index].isBlank()) {
+                    if (
+                        !submitted &&
+                        step >= 1 &&
+                        hints[index].isBlank()
+                    ) {
                         hints[index] = "open:"
                         saveProgress()
                     }
                 },
                 chooseHintWord = { wordIndex ->
                     if (!submitted) {
-                        hints[index] = addHintIndex(hints[index], wordIndex)
+                        hints[index] = addWrittenHintIndex(
+                            hints[index],
+                            wordIndex
+                        )
                         saveProgress()
                     }
                 }
             )
             Spacer(Modifier.height(12.dp))
         }
+
         if (submitted) {
             Button(
                 onClick = {},
                 enabled = false,
                 modifier = Modifier.fillMaxWidth(0.85f),
-                colors = ButtonDefaults.buttonColors(disabledContainerColor = writtenGreen, disabledContentColor = Color.White)
-            ) { Text("Submit written mission") }
+                colors = ButtonDefaults.buttonColors(
+                    disabledContainerColor = writtenGreen,
+                    disabledContentColor = Color.White
+                )
+            ) {
+                Text("Submit written mission")
+            }
         } else {
             ArtButton(
-                text = if (sending) "Sending..." else if (step == 0) "Correct me, I dare you!" else "Submit written mission",
-                onClick = { if (!sending) { if (step == 0) checkFirstTry() else sendFinal() } },
+                text = when {
+                    sending -> "Sending..."
+                    step == 0 -> "Correct me, I dare you!"
+                    else -> "Submit written mission"
+                },
+                onClick = {
+                    if (!sending) {
+                        if (step == 0) checkFirstTry() else sendFinal()
+                    }
+                },
                 enabled = !sending,
                 modifier = Modifier.fillMaxWidth(0.85f),
                 backgroundResId = R.drawable.graybutton,
                 fontSize = 16
             )
         }
+
         Spacer(Modifier.height(16.dp))
+
         ArtButton(
             text = "Back",
-            onClick = { if (submitted) clearProgress() else saveProgress(); back() },
+            onClick = {
+                if (submitted) clearProgress() else saveProgress()
+                back()
+            },
             modifier = Modifier.fillMaxWidth(0.45f),
             backgroundResId = R.drawable.redbutton
         )
@@ -293,7 +409,7 @@ fun WrittenHomework(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun WrittenCard(
+private fun WrittenHomeworkCard(
     number: Int,
     sentence: WrittenHomeworkSentence,
     answer: String,
@@ -304,48 +420,106 @@ private fun WrittenCard(
     openHints: () -> Unit,
     chooseHintWord: (Int) -> Unit
 ) {
-    val ok = isCorrectAnswer(answer, sentence.english)
-    val selectedHints = selectedHintIndexes(hintState)
-    val tokens = expectedDisplayTokens(sentence.english)
-    Card(Modifier.fillMaxWidth(), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
+    val correct = isCorrectAnswer(answer, sentence.english)
+    val selectedHints = selectedWrittenHintIndexes(hintState)
+    val tokens = writtenExpectedDisplayTokens(sentence.english)
+
+    Card(
+        Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
         Column(Modifier.fillMaxWidth().padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("$number. ${sentence.portuguese}", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                if (step >= 1) Text(if (ok) "✓" else "✕", color = if (ok) writtenGreen else writtenRed, fontSize = 54.sp)
+                Text(
+                    "$number. ${sentence.portuguese}",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f)
+                )
+
+                if (step >= 1) {
+                    Text(
+                        if (correct) "✓" else "✕",
+                        color = if (correct) writtenGreen else writtenRed,
+                        fontSize = 54.sp
+                    )
+                }
             }
+
             Spacer(Modifier.height(8.dp))
+
             TextField(
                 value = answer,
                 onValueChange = change,
                 enabled = !submitted,
-                visualTransformation = if (step >= 1 && !ok) WrittenCorrectionVisualTransformation(sentence.english) else VisualTransformation.None,
+                visualTransformation =
+                    if (step >= 1 && !correct) {
+                        WrittenCorrectionVisualTransformation(sentence.english)
+                    } else {
+                        VisualTransformation.None
+                    },
                 modifier = Modifier.fillMaxWidth()
             )
+
             if (step >= 1) {
                 Spacer(Modifier.height(4.dp))
-                Text(if (ok) "Perfect. Translation unlocked." else "Red words detected. Fix the sentence.", color = if (ok) writtenGreen else writtenRed, fontWeight = FontWeight.Bold)
-                if (!ok && !submitted && hintState.isBlank()) {
+                Text(
+                    if (correct) {
+                        "Perfect. Translation unlocked."
+                    } else {
+                        "Red words detected. Fix the sentence."
+                    },
+                    color = if (correct) writtenGreen else writtenRed,
+                    fontWeight = FontWeight.Bold
+                )
+
+                if (!correct && !submitted && hintState.isBlank()) {
                     Spacer(Modifier.height(6.dp))
-                    ArtButton("Choose a spoiler word", openHints, Modifier.fillMaxWidth(0.75f), R.drawable.graybutton, true, 52, 15)
+                    ArtButton(
+                        "Choose a spoiler word",
+                        openHints,
+                        Modifier.fillMaxWidth(0.75f),
+                        R.drawable.graybutton,
+                        true,
+                        52,
+                        15
+                    )
                 }
+
                 if (hintState.startsWith("open:")) {
                     Spacer(Modifier.height(8.dp))
                     Text("Choose a word to reveal.")
                     Spacer(Modifier.height(5.dp))
+
                     FlowRow(Modifier.fillMaxWidth()) {
-                        for (i in tokens.indices) {
-                            val token = tokens[i]
-                            val revealed = selectedHints.contains(i)
+                        for (index in tokens.indices) {
+                            val token = tokens[index]
+                            val revealed = selectedHints.contains(index)
+
                             Text(
-                                text = if (revealed) token else underlineToken(token),
-                                color = if (revealed) Color(0xFF0D3D7A) else Color(0xFF555555),
+                                text = if (revealed) {
+                                    token
+                                } else {
+                                    writtenUnderlineToken(token)
+                                },
+                                color = if (revealed) {
+                                    Color(0xFF0D3D7A)
+                                } else {
+                                    Color(0xFF555555)
+                                },
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Black,
                                 textDecoration = TextDecoration.Underline,
-                                modifier = Modifier.padding(end = 8.dp, bottom = 4.dp).clickable { if (!revealed) chooseHintWord(i) }
+                                modifier = Modifier
+                                    .padding(end = 8.dp, bottom = 4.dp)
+                                    .clickable(
+                                        enabled = !submitted && !revealed
+                                    ) {
+                                        chooseHintWord(index)
+                                    }
                             )
                         }
                     }
+
                     Text("Spoilers used: ${selectedHints.size}")
                 }
             }
@@ -353,62 +527,91 @@ private fun WrittenCard(
     }
 }
 
-private class WrittenCorrectionVisualTransformation(private val correctText: String) : VisualTransformation {
+private class WrittenCorrectionVisualTransformation(
+    private val correctText: String
+) : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         val rawText = text.text
-        val expectedWords = cleanAnswer(correctText).split(" ").filter { it.isNotBlank() }
-        val ranges = wordRanges(rawText)
+        val expectedWords = cleanAnswer(correctText)
+            .split(" ")
+            .filter { it.isNotBlank() }
+        val ranges = writtenWordRanges(rawText)
+
         val annotated = buildAnnotatedString {
             append(rawText)
             var expectedCursor = 0
 
             for (range in ranges) {
-                val studentParts = cleanAnswer(rawText.substring(range.first, range.last))
+                val studentParts = cleanAnswer(
+                    rawText.substring(range.first, range.last)
+                )
                     .split(" ")
                     .filter { it.isNotBlank() }
                 val endCursor = expectedCursor + studentParts.size
-                val matches = studentParts.isNotEmpty() &&
-                        endCursor <= expectedWords.size &&
-                        expectedWords.subList(expectedCursor, endCursor) == studentParts
+                val matches =
+                    studentParts.isNotEmpty() &&
+                            endCursor <= expectedWords.size &&
+                            expectedWords.subList(
+                                expectedCursor,
+                                endCursor
+                            ) == studentParts
 
                 if (studentParts.isNotEmpty() && !matches) {
-                    addStyle(SpanStyle(color = writtenRed), range.first, range.last)
+                    addStyle(
+                        SpanStyle(color = writtenRed),
+                        range.first,
+                        range.last
+                    )
                 }
 
                 expectedCursor += studentParts.size.coerceAtLeast(1)
             }
         }
+
         return TransformedText(annotated, OffsetMapping.Identity)
     }
 }
 
-private fun selectedHintIndexes(state: String): Set<Int> {
+private fun selectedWrittenHintIndexes(state: String): Set<Int> {
     if (!state.startsWith("open:")) return emptySet()
+
     val raw = state.removePrefix("open:")
     if (raw.isBlank()) return emptySet()
+
     return raw.split(",").mapNotNull { it.toIntOrNull() }.toSet()
 }
 
-private fun addHintIndex(state: String, index: Int): String {
-    val selected = selectedHintIndexes(state).toMutableSet()
+private fun addWrittenHintIndex(state: String, index: Int): String {
+    val selected = selectedWrittenHintIndexes(state).toMutableSet()
     selected.add(index)
     return "open:" + selected.sorted().joinToString(",")
 }
 
-private fun expectedDisplayTokens(text: String): List<String> = text.trim().split(" ").filter { it.isNotBlank() }
-private fun underlineToken(token: String): String = "____" + token.takeLastWhile { !it.isLetterOrDigit() }
+private fun writtenExpectedDisplayTokens(text: String): List<String> =
+    text.trim().split(" ").filter { it.isNotBlank() }
 
-private fun wordRanges(text: String): List<IntRange> {
+private fun writtenUnderlineToken(token: String): String =
+    "____" + token.takeLastWhile { !it.isLetterOrDigit() }
+
+private fun writtenWordRanges(text: String): List<IntRange> {
     val ranges = mutableListOf<IntRange>()
     var start = -1
-    for (i in text.indices) {
-        val word = text[i].isLetterOrDigit() || text[i] == '’' || text[i] == '\''
-        if (word && start == -1) start = i
-        if (!word && start != -1) {
-            ranges.add(IntRange(start, i))
+
+    for (index in text.indices) {
+        val isWord =
+            text[index].isLetterOrDigit() ||
+                    text[index] == '’' ||
+                    text[index] == '\''
+
+        if (isWord && start == -1) start = index
+
+        if (!isWord && start != -1) {
+            ranges.add(IntRange(start, index))
             start = -1
         }
     }
+
     if (start != -1) ranges.add(IntRange(start, text.length))
+
     return ranges
 }
