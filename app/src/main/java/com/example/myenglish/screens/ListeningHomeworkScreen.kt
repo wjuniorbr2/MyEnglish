@@ -3,8 +3,6 @@ package com.example.myenglish.screens
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,7 +47,6 @@ import com.example.myenglish.sendHomeworkReportToTeacher
 import com.example.myenglish.utils.currentDateTimeText
 import com.example.myenglish.utils.hideKeyboardOnBackgroundTap
 import com.example.myenglish.utils.isCorrectAnswer
-import java.util.Locale
 
 @Composable
 fun Homework(
@@ -80,29 +77,10 @@ fun Homework(
     val focus = remember(sentences.size) {
         Array(sentences.size) { FocusRequester() }
     }
-    val useGeneratedLessonFiveAudio = name == "Lesson 5"
 
     var topRequest by remember { mutableIntStateOf(0) }
     var player by remember { mutableStateOf<MediaPlayer?>(null) }
     var audioPlaying by remember { mutableStateOf(false) }
-    var ttsReady by remember { mutableStateOf(false) }
-    var activeUtteranceId by remember { mutableStateOf<String?>(null) }
-
-    val textToSpeech = remember {
-        TextToSpeech(context) { status ->
-            ttsReady = status == TextToSpeech.SUCCESS
-        }
-    }
-
-    LaunchedEffect(ttsReady) {
-        if (ttsReady) {
-            val languageResult = textToSpeech.setLanguage(Locale.US)
-            ttsReady =
-                languageResult != TextToSpeech.LANG_MISSING_DATA &&
-                        languageResult != TextToSpeech.LANG_NOT_SUPPORTED
-            textToSpeech.setSpeechRate(0.85f)
-        }
-    }
 
     LaunchedEffect(topRequest) {
         if (topRequest > 0) scroll.scrollTo(0)
@@ -127,17 +105,13 @@ fun Homework(
             player?.stop()
         } catch (_: Exception) {
         }
+
         try {
             player?.release()
         } catch (_: Exception) {
         }
 
         player = null
-        activeUtteranceId = null
-        try {
-            textToSpeech.stop()
-        } catch (_: Exception) {
-        }
         audioPlaying = false
     }
 
@@ -148,6 +122,7 @@ fun Homework(
             currentPlayer.stop()
         } catch (_: Exception) {
         }
+
         try {
             currentPlayer.release()
         } catch (_: Exception) {
@@ -158,80 +133,19 @@ fun Homework(
         focusAnswerAfterAudio(index)
     }
 
-    fun finishGeneratedAudio(index: Int, utteranceId: String?) {
-        if (utteranceId == null || activeUtteranceId != utteranceId) return
-
-        activeUtteranceId = null
-        audioPlaying = false
-        focusAnswerAfterAudio(index)
-    }
-
-    fun playGeneratedLessonFiveAudio(index: Int) {
-        if (!ttsReady) {
-            audioPlaying = false
-            setMsg("This phone is not ready to play the corrected Lesson 5 audio yet.")
-            return
-        }
-
-        val utteranceId = "lesson_5_listening_${index}_${System.nanoTime()}"
-        activeUtteranceId = utteranceId
-
-        textToSpeech.setOnUtteranceProgressListener(
-            object : UtteranceProgressListener() {
-                override fun onStart(id: String?) = Unit
-
-                override fun onDone(id: String?) {
-                    Handler(Looper.getMainLooper()).post {
-                        finishGeneratedAudio(index, id)
-                    }
-                }
-
-                @Deprecated("Deprecated in Java")
-                override fun onError(id: String?) {
-                    Handler(Looper.getMainLooper()).post {
-                        finishGeneratedAudio(index, id)
-                    }
-                }
-            }
-        )
-
-        val spokenText = "Number ${index + 1}. ${sentences[index].correctText}"
-        val result = textToSpeech.speak(
-            spokenText,
-            TextToSpeech.QUEUE_FLUSH,
-            null,
-            utteranceId
-        )
-
-        if (result == TextToSpeech.ERROR) {
-            activeUtteranceId = null
-            audioPlaying = false
-            setMsg("Lesson 5 audio could not be played on this phone.")
-        }
-    }
-
-    fun play(index: Int, startMs: Int, endMs: Int) {
+    fun play(index: Int, startMs: Int, endMs: Int): Boolean {
         stopAudio()
 
-        if (index !in sentences.indices) return
-        if (!useGeneratedLessonFiveAudio && audioResId == 0) return
+        if (index !in sentences.indices || audioResId == 0) return false
 
+        val currentPlayer = MediaPlayer.create(context, audioResId)
+            ?: return false
+
+        player = currentPlayer
         audioPlaying = true
         focusManager.clearFocus(force = true)
         keyboard?.hide()
 
-        if (useGeneratedLessonFiveAudio) {
-            playGeneratedLessonFiveAudio(index)
-            return
-        }
-
-        val currentPlayer = MediaPlayer.create(context, audioResId)
-        if (currentPlayer == null) {
-            audioPlaying = false
-            return
-        }
-
-        player = currentPlayer
         currentPlayer.setVolume(1f, 1f)
         currentPlayer.seekTo(startMs)
         currentPlayer.setOnCompletionListener {
@@ -245,6 +159,8 @@ fun Homework(
             },
             (endMs - startMs).coerceAtLeast(100).toLong()
         )
+
+        return true
     }
 
     fun buildReport(currentScore: Int): String {
@@ -293,6 +209,7 @@ fun Homework(
         focusManager.clearFocus()
 
         var currentScore = 0
+
         for (index in sentences.indices) {
             val correct = isCorrectAnswer(
                 answers[index],
@@ -306,7 +223,7 @@ fun Homework(
         setStep(1)
         setMsg(
             "Pretty good! The commas are clapping. " +
-                    "$currentScore / ${sentences.size}"
+                "$currentScore / ${sentences.size}"
         )
         setReport(buildReport(currentScore))
         onAttemptChanged()
@@ -327,7 +244,7 @@ fun Homework(
         if (!allCorrect) {
             setMsg(
                 "The red Xs are still causing drama. " +
-                        "Mission: eliminate red Xs"
+                    "Mission: eliminate red Xs"
             )
             setReport(buildReport(score))
             onAttemptChanged()
@@ -365,10 +282,6 @@ fun Homework(
     DisposableEffect(Unit) {
         onDispose {
             stopAudio()
-            try {
-                textToSpeech.shutdown()
-            } catch (_: Exception) {
-            }
         }
     }
 
@@ -399,7 +312,7 @@ fun Homework(
             )
         }
 
-        if (audioResId == 0 && !useGeneratedLessonFiveAudio) {
+        if (audioResId == 0) {
             Spacer(Modifier.height(4.dp))
             Text(
                 text = "Audio file not found in res/raw.",
@@ -433,13 +346,16 @@ fun Homework(
                 focus = focus[index],
                 inputEnabled = !audioPlaying,
                 play = {
-                    plays[index]++
-                    onAttemptChanged()
-                    play(
-                        index,
-                        sentence.startMs,
-                        sentence.endMs
-                    )
+                    if (
+                        play(
+                            index,
+                            sentence.startMs,
+                            sentence.endMs
+                        )
+                    ) {
+                        plays[index]++
+                        onAttemptChanged()
+                    }
                 },
                 stop = { stopAudio() },
                 hint = { wordIndex ->
