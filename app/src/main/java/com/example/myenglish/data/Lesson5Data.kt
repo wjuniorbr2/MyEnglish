@@ -78,8 +78,8 @@ object Lesson5ListeningData {
         HomeworkSentence("Sentence 14", "We like to open the windows in the morning.", 72542, 78552),
         HomeworkSentence("Sentence 15", "Where does he study science?", 78552, 84422),
         HomeworkSentence("Sentence 16", "He has to work two months.", 84422, 90293),
-        HomeworkSentence("Sentence 17", "Do you have to work after your class today?", 90550, 97002),
-        HomeworkSentence("Sentence 18", "Sometimes I speak Spanish, but I always speak English.", 97002, 104500),
+        HomeworkSentence("Sentence 17", "Do you have to work after your class today?", 90700, 97002),
+        HomeworkSentence("Sentence 18", "Sometimes I speak Spanish, but I always speak English.", 97002, 104800),
         HomeworkSentence("Sentence 19", "What things do you like to eat at home?", 104500, 110420),
         HomeworkSentence("Sentence 20", "My window doesn’t open today.", 110420, 115731),
         HomeworkSentence("Sentence 21", "Sorry, I don’t speak German.", 115731, 121462),
@@ -99,7 +99,7 @@ object Lesson5ListeningData {
         HomeworkSentence("Sentence 35", "What month do we have to study?", 205046, 211475),
         HomeworkSentence("Sentence 36", "You help me today and I help you tomorrow, ok?", 211475, 218744),
         HomeworkSentence("Sentence 37", "I study before my class, but I eat before I study.", 218744, 225592),
-        HomeworkSentence("Sentence 38", "He studies where you work.", 225900, 232600),
+        HomeworkSentence("Sentence 38", "He studies where you work.", 226300, 232600),
         HomeworkSentence("Sentence 39", "Help me, help you.", 231323, 237054)
     )
 }
