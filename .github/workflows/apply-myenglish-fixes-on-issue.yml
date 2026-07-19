@@ -1,0 +1,68 @@
+name: Apply MyEnglish requested fixes
+
+on:
+  issues:
+    types:
+      - opened
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-build:
+    if: github.event.issue.title == '[automation] Apply MyEnglish report lesson 5 keyboard fixes'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/report-lesson5-keyboard-fixes
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Apply source changes
+        shell: bash
+        run: |
+          mkdir -p tools
+          python3 - <<'PY'
+          import base64
+          import gzip
+          from pathlib import Path
+
+          encoded = """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"""
+          Path("tools/apply-report-lesson5-keyboard-fixes.py").write_bytes(
+              gzip.decompress(base64.b64decode(encoded))
+          )
+          PY
+          python3 tools/apply-report-lesson5-keyboard-fixes.py
+
+      - name: Check Apps Script syntax
+        shell: bash
+        run: |
+          cp google-apps-script/MyEnglishAPI.gs /tmp/MyEnglishAPI.js
+          node --check /tmp/MyEnglishAPI.js
+
+      - name: Build debug APK
+        shell: bash
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Commit completed fixes
+        shell: bash
+        run: |
+          rm -f tools/apply-report-lesson5-keyboard-fixes.py
+          rm -f .github/workflows/apply-report-lesson5-keyboard-fixes.yml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          git commit -m "Fix practice reports, lesson 5 audio, and keyboard focus"
+          git push origin HEAD:agent/report-lesson5-keyboard-fixes
