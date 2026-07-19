@@ -149,6 +149,27 @@ function phrasesPracticed_(report, fallback) {
   return match ? Number(match[1]) : Number(fallback || 0);
 }
 
+function reportField_(report, label) {
+  const escaped = String(label || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = String(report || "").match(
+    new RegExp("^" + escaped + ":\\s*(.+)$", "im")
+  );
+  return match ? String(match[1]).trim() : "";
+}
+
+function cleanLegacyNote_(note) {
+  const text = String(note || "");
+  if (
+    text.startsWith("myenglish-events:") ||
+    text.startsWith("myenglish-practice-event:")
+  ) {
+    const parts = text.split(/\n\s*\n/);
+    parts.shift();
+    return parts.join("\n\n").trim();
+  }
+  return text.trim();
+}
+
 function safeSheetName_(name) {
   return (
     String(name || "Unknown Student")
@@ -478,6 +499,16 @@ function hoverNote_(
 ) {
   const score = parseScore_(scoreText);
   const type = normalizeSummaryText_(homeworkType);
+  const receivedAt = Utilities.formatDate(
+    submittedAt,
+    timeZone,
+    "yyyy-MM-dd HH:mm:ss"
+  );
+  const startedAt = reportField_(report, "Started at") || "Not reported";
+  const finishedAt =
+    reportField_(report, "Finished at") ||
+    reportField_(report, "Submitted at") ||
+    receivedAt;
   const plays = type.includes("written")
     ? "0 (no audio)"
     : String(totalPlays_(report, homeworkType));
@@ -486,17 +517,18 @@ function hoverNote_(
     "Student: " + studentName,
     "Lesson: " + lessonName,
     "Activity: " + homeworkType,
+    "Started at: " + startedAt,
+    "Finished at: " + finishedAt,
     "Phrases practiced: " + phrasesPracticed_(report, score.total),
     "Correct answers: " + score.correct + " / " + score.total,
     "Times played: " + plays,
     "Hints used: " + totalHints_(report),
-    "Report received: " +
-      Utilities.formatDate(submittedAt, timeZone, "yyyy-MM-dd HH:mm:ss")
+    "Report received: " + receivedAt
   ];
 
   const full = String(report || "").trim();
   let note = lines.join("\n");
-  if (full) note += "\n\nFULL ACTIVITY REPORT\n" + full;
+  if (full) note += "\n\nPER-PHRASE DETAILS\n" + full;
   return note.substring(0, 49000);
 }
 
@@ -516,12 +548,7 @@ function addPracticeMarker_(sheet, row, type, lesson, color, note) {
         MY_ENGLISH_PRACTICE_FIRST_COLUMN + offset
       );
       setSingleMarker_(cell, lesson, color);
-      cell.setNote(
-        "myenglish-practice-event:" +
-        JSON.stringify({ type: type, lesson: lesson, color: color }) +
-        "\n\n" +
-        note
-      );
+      cell.setNote(note);
       return;
     }
   }
@@ -538,29 +565,20 @@ function addPracticeMarker_(sheet, row, type, lesson, color, note) {
 }
 
 function addHomeworkMarker_(cell, type, lesson, color, note) {
-  const events = readEvents_(cell);
-  const exists = events.some(function(event) {
-    return event.type === type && event.lesson === lesson;
-  });
+  const marker = circledNumber_(lesson);
+  const currentText = String(cell.getDisplayValue() || "").trim();
+  const markers = currentText
+    ? currentText.split(/\s+/).filter(function(value) { return value; })
+    : [];
 
-  if (!exists) events.push({ type: type, lesson: lesson, color: color });
-  renderMarkers_(cell, events);
-  cell.setNote(
-    "myenglish-events:" + JSON.stringify(events) + "\n\n" + note
-  );
-}
+  if (markers.indexOf(marker) < 0) markers.push(marker);
+  renderHomeworkMarkers_(cell, markers, color);
 
-function readEvents_(cell) {
-  const firstLine = String(cell.getNote() || "").split("\n")[0];
-  if (!firstLine.startsWith("myenglish-events:")) return [];
-
-  try {
-    const value = JSON.parse(
-      firstLine.substring("myenglish-events:".length)
-    );
-    return Array.isArray(value) ? value : [];
-  } catch (ignored) {
-    return [];
+  const previous = cleanLegacyNote_(cell.getNote());
+  if (!previous) {
+    cell.setNote(note);
+  } else if (previous.indexOf(note) < 0) {
+    cell.setNote(previous + "\n\n" + note);
   }
 }
 
@@ -582,25 +600,20 @@ function setSingleMarker_(cell, lesson, color) {
     .setWrap(false);
 }
 
-function renderMarkers_(cell, events) {
-  let text = "";
-  const ranges = [];
-
-  events.forEach(function(event, index) {
-    if (index > 0) text += "  ";
-    const start = text.length;
-    text += circledNumber_(event.lesson);
-    ranges.push({ start: start, end: text.length, color: event.color });
-  });
-
+function renderHomeworkMarkers_(cell, markers, color) {
+  const text = markers.join("  ");
   const builder = SpreadsheetApp.newRichTextValue().setText(text);
-  ranges.forEach(function(range) {
-    const style = SpreadsheetApp.newTextStyle()
-      .setForegroundColor(range.color)
-      .setBold(true)
-      .setFontSize(16)
-      .build();
-    builder.setTextStyle(range.start, range.end, style);
+  const style = SpreadsheetApp.newTextStyle()
+    .setForegroundColor(color)
+    .setBold(true)
+    .setFontSize(16)
+    .build();
+
+  let cursor = 0;
+  markers.forEach(function(marker, index) {
+    if (index > 0) cursor += 2;
+    builder.setTextStyle(cursor, cursor + marker.length, style);
+    cursor += marker.length;
   });
 
   cell.setRichTextValue(builder.build())
