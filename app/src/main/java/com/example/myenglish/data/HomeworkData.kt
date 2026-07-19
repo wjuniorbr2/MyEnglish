@@ -20,7 +20,11 @@ object HomeworkData {
                 .filterNot { containsEarlyVerbToBe(it.correctText) }
                 .mapIndexed { index, sentence ->
                     sentence.copy(
-                        label = "Sentence ${index + 1}",
+                        label = if (lessonName == "Lesson 5") {
+                            sentence.label
+                        } else {
+                            "Sentence ${index + 1}"
+                        },
                         correctText = correctedListeningText(
                             lessonName = lessonName,
                             text = sentence.correctText
