@@ -5,8 +5,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
@@ -42,6 +45,25 @@ fun ArtButton(
     fontSize: Int = 19,
     content: (@Composable BoxScope.() -> Unit)? = null
 ) {
+    if (text == "Go to lesson") {
+        Box(Modifier.fillMaxSize()) {
+            ArtButton(
+                text = "Lesson",
+                onClick = onClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .width(66.dp)
+                    .padding(end = 4.dp, bottom = 18.dp),
+                backgroundResId = backgroundResId,
+                enabled = enabled,
+                heightDp = 50,
+                fontSize = 12,
+                content = content
+            )
+        }
+        return
+    }
+
     val actualBackgroundResId = if (enabled) backgroundResId else R.drawable.graybutton
 
     Box(

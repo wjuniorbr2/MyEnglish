@@ -19,7 +19,17 @@ object HomeworkData {
             sentences
                 .filterNot { containsEarlyVerbToBe(it.correctText) }
                 .mapIndexed { index, sentence ->
-                    sentence.copy(label = "Sentence ${index + 1}")
+                    sentence.copy(
+                        label = if (lessonName == "Lesson 5") {
+                            sentence.label
+                        } else {
+                            "Sentence ${index + 1}"
+                        },
+                        correctText = correctedListeningText(
+                            lessonName = lessonName,
+                            text = sentence.correctText
+                        )
+                    )
                 }
                 .toTypedArray()
         } else {
@@ -100,6 +110,16 @@ object HomeworkData {
                 lessonName == "Lesson 4" ||
                 lessonName == "Lesson 5" ||
                 lessonName == "Lesson 6"
+    }
+
+    private fun correctedListeningText(lessonName: String, text: String): String {
+        if (lessonName != "Lesson 5") return text
+
+        return when (text) {
+            "Excuse me, I have to come." -> "Excuse me, I have to go now."
+            "What month do we have to study?" -> "What month do we have to start?"
+            else -> text
+        }
     }
 
     private fun lessonNumber(lessonName: String): Int {
