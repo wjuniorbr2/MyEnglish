@@ -3,11 +3,14 @@ package com.example.myenglish.screens
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -46,6 +49,7 @@ import com.example.myenglish.sendHomeworkReportToTeacher
 import com.example.myenglish.utils.currentDateTimeText
 import com.example.myenglish.utils.hideKeyboardOnBackgroundTap
 import com.example.myenglish.utils.isCorrectAnswer
+import java.util.Locale
 
 @Composable
 fun Homework(
@@ -72,164 +76,306 @@ fun Homework(
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
     val scroll = rememberScrollState()
-    var topReq by remember { mutableIntStateOf(0) }
     val handler = remember { Handler(Looper.getMainLooper()) }
+    val focus = remember(sentences.size) {
+        Array(sentences.size) { FocusRequester() }
+    }
+    val useGeneratedLessonFiveAudio = name == "Lesson 5"
+
+    var topRequest by remember { mutableIntStateOf(0) }
     var player by remember { mutableStateOf<MediaPlayer?>(null) }
     var audioPlaying by remember { mutableStateOf(false) }
-    val focus = remember(sentences.size) { Array(sentences.size) { FocusRequester() } }
+    var ttsReady by remember { mutableStateOf(false) }
+    var activeUtteranceId by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(scroll.isScrollInProgress) {
-        if (scroll.isScrollInProgress) {
-            focusManager.clearFocus()
-            keyboard?.hide()
+    val textToSpeech = remember {
+        TextToSpeech(context) { status ->
+            ttsReady = status == TextToSpeech.SUCCESS
         }
     }
 
-    LaunchedEffect(topReq) {
-        if (topReq > 0) scroll.scrollTo(0)
+    LaunchedEffect(ttsReady) {
+        if (ttsReady) {
+            val languageResult = textToSpeech.setLanguage(Locale.US)
+            ttsReady =
+                languageResult != TextToSpeech.LANG_MISSING_DATA &&
+                        languageResult != TextToSpeech.LANG_NOT_SUPPORTED
+            textToSpeech.setSpeechRate(0.85f)
+        }
     }
 
-    fun stop() {
+    LaunchedEffect(topRequest) {
+        if (topRequest > 0) scroll.scrollTo(0)
+    }
+
+    fun focusAnswerAfterAudio(index: Int) {
+        handler.postDelayed(
+            {
+                if (!audioPlaying && index in focus.indices) {
+                    focus[index].requestFocus()
+                    keyboard?.show()
+                }
+            },
+            140L
+        )
+    }
+
+    fun stopAudio() {
         handler.removeCallbacksAndMessages(null)
-        try { player?.stop() } catch (_: Exception) { }
-        try { player?.release() } catch (_: Exception) { }
+
+        try {
+            player?.stop()
+        } catch (_: Exception) {
+        }
+        try {
+            player?.release()
+        } catch (_: Exception) {
+        }
+
         player = null
+        activeUtteranceId = null
+        try {
+            textToSpeech.stop()
+        } catch (_: Exception) {
+        }
         audioPlaying = false
     }
 
-    fun finishAudioAndFocus(i: Int, currentPlayer: MediaPlayer) {
-        if (player == currentPlayer) {
-            try { currentPlayer.stop() } catch (_: Exception) { }
-            try { currentPlayer.release() } catch (_: Exception) { }
-            player = null
+    fun finishRecordedAudio(index: Int, currentPlayer: MediaPlayer) {
+        if (player !== currentPlayer) return
+
+        try {
+            currentPlayer.stop()
+        } catch (_: Exception) {
+        }
+        try {
+            currentPlayer.release()
+        } catch (_: Exception) {
+        }
+
+        player = null
+        audioPlaying = false
+        focusAnswerAfterAudio(index)
+    }
+
+    fun finishGeneratedAudio(index: Int, utteranceId: String?) {
+        if (utteranceId == null || activeUtteranceId != utteranceId) return
+
+        activeUtteranceId = null
+        audioPlaying = false
+        focusAnswerAfterAudio(index)
+    }
+
+    fun playGeneratedLessonFiveAudio(index: Int) {
+        if (!ttsReady) {
             audioPlaying = false
-            handler.postDelayed({
-                focus[i].requestFocus()
-                keyboard?.show()
-            }, 120L)
+            setMsg("This phone is not ready to play the corrected Lesson 5 audio yet.")
+            return
+        }
+
+        val utteranceId = "lesson_5_listening_${index}_${System.nanoTime()}"
+        activeUtteranceId = utteranceId
+
+        textToSpeech.setOnUtteranceProgressListener(
+            object : UtteranceProgressListener() {
+                override fun onStart(id: String?) = Unit
+
+                override fun onDone(id: String?) {
+                    Handler(Looper.getMainLooper()).post {
+                        finishGeneratedAudio(index, id)
+                    }
+                }
+
+                @Deprecated("Deprecated in Java")
+                override fun onError(id: String?) {
+                    Handler(Looper.getMainLooper()).post {
+                        finishGeneratedAudio(index, id)
+                    }
+                }
+            }
+        )
+
+        val spokenText = "Number ${index + 1}. ${sentences[index].correctText}"
+        val result = textToSpeech.speak(
+            spokenText,
+            TextToSpeech.QUEUE_FLUSH,
+            null,
+            utteranceId
+        )
+
+        if (result == TextToSpeech.ERROR) {
+            activeUtteranceId = null
+            audioPlaying = false
+            setMsg("Lesson 5 audio could not be played on this phone.")
         }
     }
 
-    fun play(i: Int, startMs: Int, endMs: Int) {
-        stop()
+    fun play(index: Int, startMs: Int, endMs: Int) {
+        stopAudio()
 
-        if (audioResId == 0) return
+        if (index !in sentences.indices) return
+        if (!useGeneratedLessonFiveAudio && audioResId == 0) return
 
-        val currentPlayer = MediaPlayer.create(context, audioResId) ?: return
-        player = currentPlayer
         audioPlaying = true
         focusManager.clearFocus(force = true)
         keyboard?.hide()
+
+        if (useGeneratedLessonFiveAudio) {
+            playGeneratedLessonFiveAudio(index)
+            return
+        }
+
+        val currentPlayer = MediaPlayer.create(context, audioResId)
+        if (currentPlayer == null) {
+            audioPlaying = false
+            return
+        }
+
+        player = currentPlayer
         currentPlayer.setVolume(1f, 1f)
         currentPlayer.seekTo(startMs)
         currentPlayer.setOnCompletionListener {
-            finishAudioAndFocus(i, currentPlayer)
+            finishRecordedAudio(index, currentPlayer)
         }
         currentPlayer.start()
 
         handler.postDelayed(
             {
-                finishAudioAndFocus(i, currentPlayer)
+                finishRecordedAudio(index, currentPlayer)
             },
-            (endMs - startMs).toLong()
+            (endMs - startMs).coerceAtLeast(100).toLong()
         )
     }
 
     fun buildReport(currentScore: Int): String {
+        val totalPlays = plays.sum()
+        val totalHints = hints.sumOf { selectedListeningHintCount(it) }
         val builder = StringBuilder()
+
         builder.append("Student: ").append(studentName).append("\n")
         builder.append("Submitted at: ").append(currentDateTimeText()).append("\n")
         builder.append("Lesson: ").append(name).append("\n")
         builder.append("Homework: Listening homework\n")
-        builder.append("Original score: ").append(currentScore).append(" / ").append(sentences.size).append("\n")
+        builder.append("Original score: ")
+            .append(currentScore)
+            .append(" / ")
+            .append(sentences.size)
+            .append("\n")
+        builder.append("Total plays: ").append(totalPlays).append("\n")
+        builder.append("Total hints: ").append(totalHints).append("\n\n")
 
-        var i = 0
-        while (i < sentences.size) {
-            builder.append(sentences[i].label)
-            builder.append(": plays = ")
-            builder.append(plays[i])
-            builder.append(", hints = ")
-            builder.append(selectedListeningHintCount(hints[i]))
-            builder.append("\n")
-            i++
+        for (index in sentences.indices) {
+            val firstTryWasCorrect =
+                index in firstCorrect.indices && firstCorrect[index]
+
+            builder.append(sentences[index].label)
+                .append(": plays = ")
+                .append(plays[index])
+                .append(", hints = ")
+                .append(selectedListeningHintCount(hints[index]))
+                .append("\n")
+            builder.append("Expected English: ")
+                .append(sentences[index].correctText)
+                .append("\n")
+            builder.append("Written answer: ")
+                .append(answers[index])
+                .append("\n")
+            builder.append("First try correct: ")
+                .append(if (firstTryWasCorrect) "yes" else "no")
+                .append("\n\n")
         }
 
         return builder.toString()
     }
 
     fun submitAnswers() {
-        stop()
+        stopAudio()
         focusManager.clearFocus()
 
         var currentScore = 0
-        var i = 0
-
-        while (i < sentences.size) {
-            val ok = isCorrectAnswer(answers[i], sentences[i].correctText)
-            firstCorrect[i] = ok
-            if (ok) currentScore++
-            i++
+        for (index in sentences.indices) {
+            val correct = isCorrectAnswer(
+                answers[index],
+                sentences[index].correctText
+            )
+            firstCorrect[index] = correct
+            if (correct) currentScore++
         }
 
         setScore(currentScore)
         setStep(1)
-        setMsg("Pretty good! The commas are clapping. $currentScore / ${sentences.size}")
+        setMsg(
+            "Pretty good! The commas are clapping. " +
+                    "$currentScore / ${sentences.size}"
+        )
         setReport(buildReport(currentScore))
         onAttemptChanged()
-        topReq++
+        topRequest++
     }
 
     fun submitCorrections() {
-        stop()
+        stopAudio()
         focusManager.clearFocus()
 
-        var allCorrect = true
-        var i = 0
-
-        while (i < sentences.size) {
-            if (!isCorrectAnswer(answers[i], sentences[i].correctText)) allCorrect = false
-            i++
+        val allCorrect = sentences.indices.all { index ->
+            isCorrectAnswer(
+                answers[index],
+                sentences[index].correctText
+            )
         }
 
-        if (allCorrect) {
-            val finalReport = buildReport(score)
-
-            setMsg("Delivering your masterpiece...")
-            setReport(finalReport)
-
-            sendHomeworkReportToTeacher(
-                studentName = studentName,
-                lessonName = name,
-                homeworkType = "Listening homework",
-                scoreText = "$score / ${sentences.size}",
-                report = finalReport
-            ) { success ->
-                Handler(Looper.getMainLooper()).post {
-                    if (success) {
-                        setStep(2)
-                        done()
-                        setMsg("Boom! Your masterpiece has been sent to your teacher.")
-                    } else {
-                        setMsg("Failed to send report. Please try again.")
-                    }
-                }
-            }
-        } else {
-            setMsg("The red Xs are still causing drama. Mission: eliminate red Xs")
+        if (!allCorrect) {
+            setMsg(
+                "The red Xs are still causing drama. " +
+                        "Mission: eliminate red Xs"
+            )
             setReport(buildReport(score))
             onAttemptChanged()
+            topRequest++
+            return
         }
 
-        topReq++
+        val finalReport = buildReport(score)
+        setMsg("Delivering your masterpiece...")
+        setReport(finalReport)
+
+        sendHomeworkReportToTeacher(
+            studentName = studentName,
+            lessonName = name,
+            homeworkType = "Listening homework",
+            scoreText = "$score / ${sentences.size}",
+            report = finalReport
+        ) { success ->
+            Handler(Looper.getMainLooper()).post {
+                if (success) {
+                    setStep(2)
+                    done()
+                    setMsg(
+                        "Boom! Your masterpiece has been sent to your teacher."
+                    )
+                } else {
+                    setMsg("Failed to send report. Please try again.")
+                }
+            }
+        }
+
+        topRequest++
     }
 
     DisposableEffect(Unit) {
-        onDispose { stop() }
+        onDispose {
+            stopAudio()
+            try {
+                textToSpeech.shutdown()
+            } catch (_: Exception) {
+            }
+        }
     }
 
     Column(
         Modifier
             .fillMaxSize()
+            .imePadding()
             .verticalScroll(scroll)
             .hideKeyboardOnBackgroundTap(focusManager, keyboard)
             .padding(16.dp),
@@ -237,19 +383,23 @@ fun Homework(
     ) {
         Header(name, "Listening")
 
-        if (msg != "") {
+        if (msg.isNotBlank()) {
             Spacer(Modifier.height(8.dp))
             Text(
                 text = msg,
                 color = Color(0xFF555555),
                 fontWeight = FontWeight.Bold,
                 style = LocalTextStyle.current.copy(
-                    shadow = Shadow(Color.White, Offset(1f, 1f), 3f)
+                    shadow = Shadow(
+                        Color.White,
+                        Offset(1f, 1f),
+                        3f
+                    )
                 )
             )
         }
 
-        if (audioResId == 0) {
+        if (audioResId == 0 && !useGeneratedLessonFiveAudio) {
             Spacer(Modifier.height(4.dp))
             Text(
                 text = "Audio file not found in res/raw.",
@@ -260,9 +410,7 @@ fun Homework(
 
         Spacer(Modifier.height(16.dp))
 
-        var i = 0
-        while (i < sentences.size) {
-            val index = i
+        for (index in sentences.indices) {
             val sentence = sentences[index]
 
             SentenceRow(
@@ -277,23 +425,39 @@ fun Homework(
                 playCount = plays[index],
                 submitStep = submitStep,
                 firstOk = firstCorrect[index],
-                currentOk = isCorrectAnswer(answers[index], sentence.correctText),
+                currentOk = isCorrectAnswer(
+                    answers[index],
+                    sentence.correctText
+                ),
                 hintCount = hints[index],
                 focus = focus[index],
                 inputEnabled = !audioPlaying,
                 play = {
                     plays[index]++
                     onAttemptChanged()
-                    play(index, sentence.startMs, sentence.endMs)
+                    play(
+                        index,
+                        sentence.startMs,
+                        sentence.endMs
+                    )
                 },
-                stop = { stop() },
+                stop = { stopAudio() },
                 hint = { wordIndex ->
-                    if (answers[index].isNotBlank() && plays[index] >= 5 && submitStep >= 1 && submitStep < 2) {
-                        hints[index] = if (wordIndex == null) {
-                            openListeningHintState(hints[index])
-                        } else {
-                            addListeningHintIndex(hints[index], wordIndex)
-                        }
+                    if (
+                        answers[index].isNotBlank() &&
+                        plays[index] >= 5 &&
+                        submitStep >= 1 &&
+                        submitStep < 2
+                    ) {
+                        hints[index] =
+                            if (wordIndex == null) {
+                                openListeningHintState(hints[index])
+                            } else {
+                                addListeningHintIndex(
+                                    hints[index],
+                                    wordIndex
+                                )
+                            }
                         setReport(buildReport(score))
                         onAttemptChanged()
                     }
@@ -302,16 +466,21 @@ fun Homework(
             )
 
             Spacer(Modifier.height(12.dp))
-            i++
         }
 
-        if (submitStep == 0) {
-            ArtButton("Correct me, I dare you!", { submitAnswers() })
-        } else if (submitStep == 1) {
-            ArtButton("Submit corrections", { submitCorrections() })
-        } else {
-            Button(
-                onClick = { },
+        when (submitStep) {
+            0 -> ArtButton(
+                "Correct me, I dare you!",
+                { submitAnswers() }
+            )
+
+            1 -> ArtButton(
+                "Submit corrections",
+                { submitCorrections() }
+            )
+
+            else -> Button(
+                onClick = {},
                 enabled = false,
                 colors = ButtonDefaults.buttonColors(
                     disabledContainerColor = Color(0xFF2E7D32),
@@ -327,7 +496,7 @@ fun Homework(
         ArtButton(
             text = "Back",
             onClick = {
-                stop()
+                stopAudio()
                 back()
             },
             modifier = Modifier.fillMaxWidth(0.45f),
