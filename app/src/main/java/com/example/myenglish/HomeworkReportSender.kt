@@ -7,7 +7,8 @@ import java.net.URL
 import java.net.URLEncoder
 
 private const val HOMEWORK_REPORT_URL = "https://script.google.com/macros/s/AKfycbyi6cDyYEuDI3n6XNZhDrbt-3I7h3cYg7cfaEkJCpKI4_TYVd-vIOHmWcfkDGrl4O3g/exec"
-private const val REPORT_TIMEOUT_MS = 120000
+private const val REPORT_CONNECT_TIMEOUT_MS = 15000
+private const val REPORT_READ_TIMEOUT_MS = 60000
 private const val MAX_REPORT_REDIRECTS = 8
 private const val REPORT_LOG_TAG = "MyEnglishReport"
 
@@ -85,8 +86,8 @@ fun sendBugReportToTeacher(
 private fun postToReportEndpoint(postData: String): Boolean {
     val connection = (URL(HOMEWORK_REPORT_URL).openConnection() as HttpURLConnection).apply {
         requestMethod = "POST"
-        connectTimeout = REPORT_TIMEOUT_MS
-        readTimeout = REPORT_TIMEOUT_MS
+        connectTimeout = REPORT_CONNECT_TIMEOUT_MS
+        readTimeout = REPORT_READ_TIMEOUT_MS
         doOutput = true
         instanceFollowRedirects = false
         useCaches = false
@@ -127,8 +128,8 @@ private fun readRedirectedReportResponse(
     repeat(MAX_REPORT_REDIRECTS) { redirectIndex ->
         val connection = (currentUrl.openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
-            connectTimeout = REPORT_TIMEOUT_MS
-            readTimeout = REPORT_TIMEOUT_MS
+            connectTimeout = REPORT_CONNECT_TIMEOUT_MS
+            readTimeout = REPORT_READ_TIMEOUT_MS
             instanceFollowRedirects = false
             useCaches = false
             setRequestProperty("Accept", "application/json, text/plain, */*")
