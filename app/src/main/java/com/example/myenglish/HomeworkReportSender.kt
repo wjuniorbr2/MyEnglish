@@ -6,9 +6,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
-private const val HOMEWORK_REPORT_BASE_URL = "https://script.google.com/macros/s/"
-private const val HOMEWORK_REPORT_DEPLOYMENT_ID = "AKfycbyi6cDyYEuDI3n6XNZhDrbt-3I7h3cYg7cfaEkJCpKI4_TYVd-vlOHmWcfkDGrI4O3g"
-private const val HOMEWORK_REPORT_URL = HOMEWORK_REPORT_BASE_URL + HOMEWORK_REPORT_DEPLOYMENT_ID + "/exec"
+private const val HOMEWORK_REPORT_URL = "https://script.google.com/macros/s/AKfycbyi6cDyYEuDI3n6XNZhDrbt-3I7h3cYg7cfaEkJCpKI4_TYVd-vIOHmWcfkDGrl4O3g/exec"
 private const val REPORT_TIMEOUT_MS = 120000
 private const val MAX_REPORT_REDIRECTS = 8
 private const val REPORT_LOG_TAG = "MyEnglishReport"
