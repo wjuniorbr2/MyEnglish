@@ -1,5 +1,6 @@
 package com.example.myenglish
 
+import android.util.Log
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
@@ -8,8 +9,14 @@ import java.net.URLEncoder
 private const val HOMEWORK_REPORT_BASE_URL = "https://script.google.com/macros/s/"
 private const val HOMEWORK_REPORT_DEPLOYMENT_ID = "AKfycbyi6cDyYEuDI3n6XNZhDrbt-3I7h3cYg7cfaEkJCpKI4_TYVd-vlOHmWcfkDGrI4O3g"
 private const val HOMEWORK_REPORT_URL = HOMEWORK_REPORT_BASE_URL + HOMEWORK_REPORT_DEPLOYMENT_ID + "/exec"
-private const val REPORT_TIMEOUT_MS = 15000
-private const val MAX_REPORT_REDIRECTS = 5
+private const val REPORT_TIMEOUT_MS = 120000
+private const val MAX_REPORT_REDIRECTS = 8
+private const val REPORT_LOG_TAG = "MyEnglishReport"
+
+@Volatile
+private var latestReportFailure = ""
+
+fun latestReportFailureDetail(): String = latestReportFailure
 
 fun sendHomeworkReportToTeacher(
     studentName: String,
@@ -20,9 +27,9 @@ fun sendHomeworkReportToTeacher(
     onFinished: (Boolean) -> Unit
 ) {
     Thread {
-        var success = false
+        latestReportFailure = ""
 
-        try {
+        val success = try {
             val postData =
                 "studentName=" + encodeForPost(studentName) +
                     "&lessonName=" + encodeForPost(lessonName) +
@@ -30,9 +37,13 @@ fun sendHomeworkReportToTeacher(
                     "&scoreText=" + encodeForPost(scoreText) +
                     "&report=" + encodeForPost(report)
 
-            success = postToReportEndpoint(postData)
-        } catch (_: Exception) {
-            success = false
+            postToReportEndpoint(postData)
+        } catch (error: Exception) {
+            recordReportFailure(
+                "${error.javaClass.simpleName}: ${error.message ?: "No error message"}",
+                error
+            )
+            false
         }
 
         onFinished(success)
@@ -47,9 +58,9 @@ fun sendBugReportToTeacher(
     onFinished: (Boolean) -> Unit
 ) {
     Thread {
-        var success = false
+        latestReportFailure = ""
 
-        try {
+        val success = try {
             val postData =
                 "studentName=" + encodeForPost(studentName) +
                     "&lessonName=" + encodeForPost(lessonName) +
@@ -60,9 +71,13 @@ fun sendBugReportToTeacher(
                     "&scoreText=" + encodeForPost("0 / 0") +
                     "&report=" + encodeForPost(bugText)
 
-            success = postToReportEndpoint(postData)
-        } catch (_: Exception) {
-            success = false
+            postToReportEndpoint(postData)
+        } catch (error: Exception) {
+            recordReportFailure(
+                "${error.javaClass.simpleName}: ${error.message ?: "No error message"}",
+                error
+            )
+            false
         }
 
         onFinished(success)
@@ -76,7 +91,11 @@ private fun postToReportEndpoint(postData: String): Boolean {
         readTimeout = REPORT_TIMEOUT_MS
         doOutput = true
         instanceFollowRedirects = false
+        useCaches = false
         setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+        setRequestProperty("Accept", "application/json, text/plain, */*")
+        setRequestProperty("User-Agent", "MyEnglish-Android")
+        setRequestProperty("Connection", "close")
     }
 
     OutputStreamWriter(connection.outputStream, Charsets.UTF_8).use { writer ->
@@ -88,6 +107,7 @@ private fun postToReportEndpoint(postData: String): Boolean {
     val redirectLocation = connection.getHeaderField("Location")
 
     if (responseCode in 300..399 && !redirectLocation.isNullOrBlank()) {
+        Log.d(REPORT_LOG_TAG, "POST response $responseCode; following redirect")
         connection.disconnect()
         return readRedirectedReportResponse(
             initialUrl = URL(HOMEWORK_REPORT_URL),
@@ -97,7 +117,7 @@ private fun postToReportEndpoint(postData: String): Boolean {
 
     val responseBody = readResponseBody(connection, responseCode)
     connection.disconnect()
-    return responseCode in 200..299 && responseSaysSuccess(responseBody)
+    return evaluateReportResponse(responseCode, responseBody, "POST")
 }
 
 private fun readRedirectedReportResponse(
@@ -106,27 +126,68 @@ private fun readRedirectedReportResponse(
 ): Boolean {
     var currentUrl = URL(initialUrl, redirectLocation)
 
-    repeat(MAX_REPORT_REDIRECTS) {
+    repeat(MAX_REPORT_REDIRECTS) { redirectIndex ->
         val connection = (currentUrl.openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
             connectTimeout = REPORT_TIMEOUT_MS
             readTimeout = REPORT_TIMEOUT_MS
             instanceFollowRedirects = false
+            useCaches = false
+            setRequestProperty("Accept", "application/json, text/plain, */*")
+            setRequestProperty("User-Agent", "MyEnglish-Android")
+            setRequestProperty("Connection", "close")
         }
 
         val responseCode = connection.responseCode
         val nextLocation = connection.getHeaderField("Location")
 
         if (responseCode in 300..399 && !nextLocation.isNullOrBlank()) {
+            Log.d(REPORT_LOG_TAG, "Redirect ${redirectIndex + 1}: HTTP $responseCode")
             currentUrl = URL(currentUrl, nextLocation)
             connection.disconnect()
         } else {
             val responseBody = readResponseBody(connection, responseCode)
             connection.disconnect()
-            return responseCode in 200..299 && responseSaysSuccess(responseBody)
+            return evaluateReportResponse(
+                responseCode = responseCode,
+                responseBody = responseBody,
+                stage = "redirect ${redirectIndex + 1}"
+            )
         }
     }
 
+    recordReportFailure("Too many Apps Script redirects")
+    return false
+}
+
+private fun evaluateReportResponse(
+    responseCode: Int,
+    responseBody: String,
+    stage: String
+): Boolean {
+    val compactBody = responseBody
+        .replace(Regex("\\s+"), " ")
+        .trim()
+        .take(1000)
+
+    Log.d(REPORT_LOG_TAG, "$stage HTTP $responseCode: $compactBody")
+
+    if (responseCode !in 200..299) {
+        recordReportFailure("$stage returned HTTP $responseCode: $compactBody")
+        return false
+    }
+
+    if (responseSaysSuccess(responseBody)) return true
+
+    val serverMessage = Regex(
+        "\\\"message\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"",
+        RegexOption.IGNORE_CASE
+    ).find(responseBody)?.groupValues?.getOrNull(1)
+
+    recordReportFailure(
+        serverMessage?.let { "Apps Script error: $it" }
+            ?: "$stage returned an unexpected response: $compactBody"
+    )
     return false
 }
 
@@ -144,8 +205,17 @@ private fun readResponseBody(
 }
 
 private fun responseSaysSuccess(responseBody: String): Boolean {
-    return Regex("\"status\"\\s*:\\s*\"success\"", RegexOption.IGNORE_CASE)
+    return Regex("\\\"status\\\"\\s*:\\s*\\\"success\\\"", RegexOption.IGNORE_CASE)
         .containsMatchIn(responseBody)
+}
+
+private fun recordReportFailure(message: String, error: Throwable? = null) {
+    latestReportFailure = message
+    if (error == null) {
+        Log.e(REPORT_LOG_TAG, message)
+    } else {
+        Log.e(REPORT_LOG_TAG, message, error)
+    }
 }
 
 private fun encodeForPost(value: String): String {
