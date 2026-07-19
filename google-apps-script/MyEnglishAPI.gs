@@ -1,8 +1,18 @@
 const MY_ENGLISH_SPREADSHEET_ID = "1smP3D6WXZKk6X8_MEfSBbp03r4hE8oKu4tobeo5tfKw";
 const MY_ENGLISH_GENERAL_SHEET = "General";
 const MY_ENGLISH_BUG_REPORT_SHEET = "Bug Reports";
-const MY_ENGLISH_PRACTICE_FIRST_COLUMN = 5;
+
+const MY_ENGLISH_LAYOUT_NOTE = "myenglish-summary-layout-v3";
+const MY_ENGLISH_HOMEWORK_SLOTS = 8;
 const MY_ENGLISH_PRACTICE_SLOTS = 20;
+
+const MY_ENGLISH_WRITTEN_FIRST_COLUMN = 2;
+const MY_ENGLISH_LISTENING_FIRST_COLUMN =
+  MY_ENGLISH_WRITTEN_FIRST_COLUMN + MY_ENGLISH_HOMEWORK_SLOTS;
+const MY_ENGLISH_SPOKEN_FIRST_COLUMN =
+  MY_ENGLISH_LISTENING_FIRST_COLUMN + MY_ENGLISH_HOMEWORK_SLOTS;
+const MY_ENGLISH_PRACTICE_FIRST_COLUMN =
+  MY_ENGLISH_SPOKEN_FIRST_COLUMN + MY_ENGLISH_HOMEWORK_SLOTS;
 const MY_ENGLISH_SUMMARY_TOTAL_COLUMNS =
   MY_ENGLISH_PRACTICE_FIRST_COLUMN + MY_ENGLISH_PRACTICE_SLOTS - 1;
 
@@ -16,17 +26,42 @@ const MY_ENGLISH_SUMMARY_STUDENTS = [
 ];
 
 const MY_ENGLISH_SUMMARY_TYPES = {
-  "written homework": { column: 2, color: "#2E7D32", isPractice: false },
-  "listening homework": { column: 3, color: "#1565C0", isPractice: false },
-  "spoken homework": { column: 4, color: "#C62828", isPractice: false },
-  "written practice": { color: "#2E7D32", isPractice: true },
-  "listening practice": { color: "#1565C0", isPractice: true },
-  "spoken practice": { color: "#C62828", isPractice: true }
+  "written homework": {
+    firstColumn: MY_ENGLISH_WRITTEN_FIRST_COLUMN,
+    slots: MY_ENGLISH_HOMEWORK_SLOTS,
+    color: "#2E7D32"
+  },
+  "listening homework": {
+    firstColumn: MY_ENGLISH_LISTENING_FIRST_COLUMN,
+    slots: MY_ENGLISH_HOMEWORK_SLOTS,
+    color: "#1565C0"
+  },
+  "spoken homework": {
+    firstColumn: MY_ENGLISH_SPOKEN_FIRST_COLUMN,
+    slots: MY_ENGLISH_HOMEWORK_SLOTS,
+    color: "#C62828"
+  },
+  "written practice": {
+    firstColumn: MY_ENGLISH_PRACTICE_FIRST_COLUMN,
+    slots: MY_ENGLISH_PRACTICE_SLOTS,
+    color: "#2E7D32"
+  },
+  "listening practice": {
+    firstColumn: MY_ENGLISH_PRACTICE_FIRST_COLUMN,
+    slots: MY_ENGLISH_PRACTICE_SLOTS,
+    color: "#1565C0"
+  },
+  "spoken practice": {
+    firstColumn: MY_ENGLISH_PRACTICE_FIRST_COLUMN,
+    slots: MY_ENGLISH_PRACTICE_SLOTS,
+    color: "#C62828"
+  }
 };
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
   let locked = false;
+
   try {
     lock.waitLock(30000);
     locked = true;
@@ -41,6 +76,7 @@ function doPost(e) {
       appendBugReport_(data, submittedAt);
     } else {
       appendDetailedStudentReport_(data, submittedAt);
+
       try {
         updateWeeklyGeneralSummary_(
           data.studentName,
@@ -67,26 +103,37 @@ function doPost(e) {
 }
 
 function doGet() {
-  return jsonResponse_({ status: "success", service: "MyEnglish report API" });
+  return jsonResponse_({
+    status: "success",
+    service: "MyEnglish report API"
+  });
 }
 
 function readMyEnglishRequest_(e) {
   const data = {};
   const params = e && e.parameter ? e.parameter : {};
-  Object.keys(params).forEach(function(key) { data[key] = params[key]; });
+
+  Object.keys(params).forEach(function(key) {
+    data[key] = params[key];
+  });
 
   const raw = e && e.postData && e.postData.contents
     ? String(e.postData.contents).trim()
     : "";
+
   if (raw.startsWith("{")) {
     const parsed = JSON.parse(raw);
-    Object.keys(parsed).forEach(function(key) { data[key] = parsed[key]; });
+    Object.keys(parsed).forEach(function(key) {
+      data[key] = parsed[key];
+    });
   }
 
   return {
     studentName: String(data.studentName || "Unknown Student").trim(),
     lessonName: String(data.lessonName || "").trim(),
-    homeworkType: String(data.homeworkType || data.reportType || "").trim(),
+    homeworkType: String(
+      data.homeworkType || data.reportType || ""
+    ).trim(),
     reportType: String(data.reportType || "").trim(),
     scoreText: String(data.scoreText || "0 / 0").trim(),
     report: String(data.report || ""),
@@ -107,6 +154,7 @@ function spreadsheet_() {
 
 function parseScore_(text) {
   const match = String(text || "").match(/(\d+)\s*\/\s*(\d+)/);
+
   return {
     correct: match ? Number(match[1]) : 0,
     total: match ? Number(match[2]) : 0
@@ -122,11 +170,16 @@ function totalHints_(report) {
   let match = summarySection_(text).match(
     /^(?:Total hints|Hints used):\s*(\d+)/im
   );
+
   if (match) return Number(match[1]);
 
   let total = 0;
   const regex = /^(?:Hints used|hints)\s*(?:=|:)\s*(\d+)/gim;
-  while ((match = regex.exec(text)) !== null) total += Number(match[1] || 0);
+
+  while ((match = regex.exec(text)) !== null) {
+    total += Number(match[1] || 0);
+  }
+
   return total;
 }
 
@@ -135,39 +188,25 @@ function totalPlays_(report, type) {
   let match = summarySection_(text).match(
     /^(?:Total plays|Times played|Times heard):\s*(\d+)/im
   );
+
   if (match) return Number(match[1]);
 
   let total = 0;
   const regex = /^(?:Plays|plays|Times heard)\s*(?:=|:)\s*(\d+)/gim;
-  while ((match = regex.exec(text)) !== null) total += Number(match[1] || 0);
+
+  while ((match = regex.exec(text)) !== null) {
+    total += Number(match[1] || 0);
+  }
 
   return normalizeSummaryText_(type).includes("written") ? 0 : total;
 }
 
 function phrasesPracticed_(report, fallback) {
-  const match = String(report || "").match(/^Phrases practiced:\s*(\d+)/im);
-  return match ? Number(match[1]) : Number(fallback || 0);
-}
-
-function reportField_(report, label) {
-  const escaped = String(label || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = String(report || "").match(
-    new RegExp("^" + escaped + ":\\s*(.+)$", "im")
+    /^Phrases practiced:\s*(\d+)/im
   );
-  return match ? String(match[1]).trim() : "";
-}
 
-function cleanLegacyNote_(note) {
-  const text = String(note || "");
-  if (
-    text.startsWith("myenglish-events:") ||
-    text.startsWith("myenglish-practice-event:")
-  ) {
-    const parts = text.split(/\n\s*\n/);
-    parts.shift();
-    return parts.join("\n\n").trim();
-  }
-  return text.trim();
+  return match ? Number(match[1]) : Number(fallback || 0);
 }
 
 function safeSheetName_(name) {
@@ -175,7 +214,8 @@ function safeSheetName_(name) {
     String(name || "Unknown Student")
       .trim()
       .replace(/[\\\/\?\*\[\]:]/g, "")
-      .substring(0, 90) || "Unknown Student"
+      .substring(0, 90) ||
+    "Unknown Student"
   );
 }
 
@@ -183,7 +223,9 @@ function studentSheet_(studentName) {
   const book = spreadsheet_();
   const name = safeSheetName_(studentName);
   let sheet = book.getSheetByName(name);
+
   if (!sheet) sheet = book.insertSheet(name);
+
   ensureStudentHeaders_(sheet);
   return sheet;
 }
@@ -203,7 +245,8 @@ function ensureStudentHeaders_(sheet) {
   if (sheet.getLastRow() === 0) {
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   } else {
-    const current = sheet.getRange(1, 1, 1, headers.length)
+    const current = sheet
+      .getRange(1, 1, 1, headers.length)
       .getDisplayValues()[0];
 
     if (current[0] !== "Timestamp" || current[1] !== "Lesson ID") {
@@ -211,7 +254,9 @@ function ensureStudentHeaders_(sheet) {
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     } else {
       headers.forEach(function(header, index) {
-        if (!current[index]) sheet.getRange(1, index + 1).setValue(header);
+        if (!current[index]) {
+          sheet.getRange(1, index + 1).setValue(header);
+        }
       });
     }
   }
@@ -221,6 +266,7 @@ function ensureStudentHeaders_(sheet) {
     .setBackground("#D9EAF7")
     .setHorizontalAlignment("center")
     .setVerticalAlignment("middle");
+
   sheet.setFrozenRows(1);
 }
 
@@ -240,6 +286,7 @@ function appendDetailedStudentReport_(data, submittedAt) {
   ]);
 
   const row = sheet.getLastRow();
+
   sheet.getRange(row, 1).setNumberFormat("yyyy-mm-dd hh:mm:ss");
   sheet.getRange(row, 7).setWrap(true);
   sheet.autoResizeColumns(1, 6);
@@ -250,7 +297,10 @@ function appendDetailedStudentReport_(data, submittedAt) {
 function appendBugReport_(data, submittedAt) {
   const book = spreadsheet_();
   let sheet = book.getSheetByName(MY_ENGLISH_BUG_REPORT_SHEET);
-  if (!sheet) sheet = book.insertSheet(MY_ENGLISH_BUG_REPORT_SHEET);
+
+  if (!sheet) {
+    sheet = book.insertSheet(MY_ENGLISH_BUG_REPORT_SHEET);
+  }
 
   if (sheet.getLastRow() === 0) {
     sheet.getRange(1, 1, 1, 6).setValues([[
@@ -260,7 +310,10 @@ function appendBugReport_(data, submittedAt) {
       "Current Screen",
       "Report Type",
       "Bug Text"
-    ]]).setFontWeight("bold").setBackground("#F4CCCC");
+    ]])
+      .setFontWeight("bold")
+      .setBackground("#F4CCCC");
+
     sheet.setFrozenRows(1);
   }
 
@@ -274,6 +327,7 @@ function appendBugReport_(data, submittedAt) {
   ]);
 
   const row = sheet.getLastRow();
+
   sheet.getRange(row, 1).setNumberFormat("yyyy-mm-dd hh:mm:ss");
   sheet.getRange(row, 6).setWrap(true);
   sheet.setColumnWidth(6, 560);
@@ -290,10 +344,14 @@ function normalizeSummaryText_(value) {
 }
 
 function summaryStudentIndex_(studentName) {
-  const first = (normalizeSummaryText_(studentName).split(" ")[0] || "");
+  const first = normalizeSummaryText_(studentName).split(" ")[0] || "";
+
   for (let i = 0; i < MY_ENGLISH_SUMMARY_STUDENTS.length; i++) {
-    if (MY_ENGLISH_SUMMARY_STUDENTS[i].firstNameKey === first) return i;
+    if (MY_ENGLISH_SUMMARY_STUDENTS[i].firstNameKey === first) {
+      return i;
+    }
   }
+
   return -1;
 }
 
@@ -303,7 +361,9 @@ function summaryWeek_(date, timeZone) {
   const day = Number(Utilities.formatDate(date, timeZone, "dd"));
   const local = new Date(Date.UTC(year, month - 1, day));
   const start = new Date(local.getTime());
+
   start.setUTCDate(start.getUTCDate() - local.getUTCDay());
+
   const end = new Date(start.getTime());
   end.setUTCDate(end.getUTCDate() + 6);
 
@@ -318,6 +378,7 @@ function weekTitle_(start, end) {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
+
   return (
     months[start.getUTCMonth()] + " " + ordinal_(start.getUTCDate()) +
     " to " +
@@ -335,10 +396,12 @@ function ordinal_(day) {
 
 function generalSheet_(book) {
   let sheet = book.getSheetByName(MY_ENGLISH_GENERAL_SHEET);
+
   if (!sheet) {
     sheet = book.insertSheet(MY_ENGLISH_GENERAL_SHEET, 0);
     sheet.setHiddenGridlines(true);
   }
+
   return sheet;
 }
 
@@ -348,6 +411,7 @@ function weekBlockRow_(sheet, week) {
 
   if (lastRow > 0) {
     const notes = sheet.getRange(1, 1, lastRow, 1).getNotes();
+
     for (let i = 0; i < notes.length; i++) {
       if (notes[i][0] === expected) return i + 1;
     }
@@ -358,10 +422,149 @@ function weekBlockRow_(sheet, week) {
   return row;
 }
 
+function summaryOnlyNote_(note) {
+  let text = String(note || "").trim();
+
+  if (
+    text.startsWith("myenglish-events:") ||
+    text.startsWith("myenglish-practice-event:")
+  ) {
+    const parts = text.split(/\n\s*\n/);
+    parts.shift();
+    text = parts.join("\n\n").trim();
+  }
+
+  const lines = text.split(/\r?\n/);
+  const summary = [];
+  let collecting = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (!collecting && /^Student:\s*/i.test(line)) {
+      collecting = true;
+    }
+
+    if (!collecting) continue;
+
+    if (
+      /^(?:FULL ACTIVITY REPORT|PER-PHRASE DETAILS)\s*$/i.test(line)
+    ) {
+      break;
+    }
+
+    summary.push(line);
+
+    if (/^Report received:\s*/i.test(line)) {
+      break;
+    }
+  }
+
+  return summary.join("\n").trim();
+}
+
+function migrateLegacyWeekLayout_(sheet, titleRow) {
+  const headerRow = titleRow + 1;
+
+  if (sheet.getRange(headerRow, 1).getNote() === MY_ENGLISH_LAYOUT_NOTE) {
+    return;
+  }
+
+  const startRow = titleRow + 2;
+  const studentCount = MY_ENGLISH_SUMMARY_STUDENTS.length;
+  const legacyWritten = [];
+  const legacyListening = [];
+  const legacySpoken = [];
+  const legacyPractices = [];
+
+  for (let offset = 0; offset < studentCount; offset++) {
+    const row = startRow + offset;
+
+    legacyWritten.push(sheet.getRange(row, 2));
+    legacyListening.push(sheet.getRange(row, 3));
+    legacySpoken.push(sheet.getRange(row, 4));
+
+    const practiceRow = [];
+    for (let slot = 0; slot < 20; slot++) {
+      practiceRow.push(sheet.getRange(row, 5 + slot));
+    }
+    legacyPractices.push(practiceRow);
+  }
+
+  const snapshots = function(cells) {
+    return cells.map(function(cell) {
+      return {
+        text: cell.getDisplayValue(),
+        richText: cell.getRichTextValue(),
+        note: summaryOnlyNote_(cell.getNote())
+      };
+    });
+  };
+
+  const writtenSnapshots = snapshots(legacyWritten);
+  const listeningSnapshots = snapshots(legacyListening);
+  const spokenSnapshots = snapshots(legacySpoken);
+  const practiceSnapshots = legacyPractices.map(snapshots);
+
+  sheet.getRange(
+    startRow,
+    2,
+    studentCount,
+    MY_ENGLISH_SUMMARY_TOTAL_COLUMNS - 1
+  ).clearContent().clearNote();
+
+  const restore = function(snapshot, targetCell) {
+    if (!String(snapshot.text || "").trim()) return;
+
+    if (snapshot.richText) {
+      targetCell.setRichTextValue(snapshot.richText);
+    } else {
+      targetCell.setValue(snapshot.text);
+    }
+
+    targetCell.setNote(snapshot.note || "");
+  };
+
+  for (let offset = 0; offset < studentCount; offset++) {
+    const row = startRow + offset;
+
+    restore(
+      writtenSnapshots[offset],
+      sheet.getRange(row, MY_ENGLISH_WRITTEN_FIRST_COLUMN)
+    );
+    restore(
+      listeningSnapshots[offset],
+      sheet.getRange(row, MY_ENGLISH_LISTENING_FIRST_COLUMN)
+    );
+    restore(
+      spokenSnapshots[offset],
+      sheet.getRange(row, MY_ENGLISH_SPOKEN_FIRST_COLUMN)
+    );
+
+    for (let slot = 0; slot < MY_ENGLISH_PRACTICE_SLOTS; slot++) {
+      restore(
+        practiceSnapshots[offset][slot],
+        sheet.getRange(
+          row,
+          MY_ENGLISH_PRACTICE_FIRST_COLUMN + slot
+        )
+      );
+    }
+  }
+
+  sheet.getRange(headerRow, 1).setNote(MY_ENGLISH_LAYOUT_NOTE);
+}
+
 function ensureWeekLayout_(sheet, titleRow, week) {
+  migrateLegacyWeekLayout_(sheet, titleRow);
+
   const title = sheet.getRange(
-    titleRow, 1, 1, MY_ENGLISH_SUMMARY_TOTAL_COLUMNS
+    titleRow,
+    1,
+    1,
+    MY_ENGLISH_SUMMARY_TOTAL_COLUMNS
   );
+
   title.breakApart();
   title.merge();
   title.setValue(week.title)
@@ -372,17 +575,45 @@ function ensureWeekLayout_(sheet, titleRow, week) {
     .setVerticalAlignment("middle")
     .setBackground("#0D3D7A")
     .setFontColor("#FFFFFF");
+
   sheet.setRowHeight(titleRow, 32);
 
   const headerRow = titleRow + 1;
   const header = sheet.getRange(
-    headerRow, 1, 1, MY_ENGLISH_SUMMARY_TOTAL_COLUMNS
+    headerRow,
+    1,
+    1,
+    MY_ENGLISH_SUMMARY_TOTAL_COLUMNS
   );
+
   header.breakApart();
+  header.clearContent();
+
   sheet.getRange(headerRow, 1).setValue("Student");
-  sheet.getRange(headerRow, 2).setValue("Written homework");
-  sheet.getRange(headerRow, 3).setValue("Listening homework");
-  sheet.getRange(headerRow, 4).setValue("Spoken homework");
+
+  const writtenHeader = sheet.getRange(
+    headerRow,
+    MY_ENGLISH_WRITTEN_FIRST_COLUMN,
+    1,
+    MY_ENGLISH_HOMEWORK_SLOTS
+  );
+  writtenHeader.merge().setValue("Written homework");
+
+  const listeningHeader = sheet.getRange(
+    headerRow,
+    MY_ENGLISH_LISTENING_FIRST_COLUMN,
+    1,
+    MY_ENGLISH_HOMEWORK_SLOTS
+  );
+  listeningHeader.merge().setValue("Listening homework");
+
+  const spokenHeader = sheet.getRange(
+    headerRow,
+    MY_ENGLISH_SPOKEN_FIRST_COLUMN,
+    1,
+    MY_ENGLISH_HOMEWORK_SLOTS
+  );
+  spokenHeader.merge().setValue("Spoken homework");
 
   const practiceHeader = sheet.getRange(
     headerRow,
@@ -390,14 +621,16 @@ function ensureWeekLayout_(sheet, titleRow, week) {
     1,
     MY_ENGLISH_PRACTICE_SLOTS
   );
-  practiceHeader.merge();
-  practiceHeader.setValue("Practices");
+  practiceHeader.merge().setValue("Practices");
 
-  header.setFontWeight("bold")
+  header
+    .setFontWeight("bold")
     .setHorizontalAlignment("center")
     .setVerticalAlignment("middle")
     .setWrap(true)
     .setBackground("#D9EAF7");
+
+  sheet.getRange(headerRow, 1).setNote(MY_ENGLISH_LAYOUT_NOTE);
   sheet.setRowHeight(headerRow, 38);
 
   const startRow = titleRow + 2;
@@ -407,29 +640,36 @@ function ensureWeekLayout_(sheet, titleRow, week) {
     MY_ENGLISH_SUMMARY_STUDENTS.length,
     MY_ENGLISH_SUMMARY_TOTAL_COLUMNS
   );
-  body.setVerticalAlignment("middle")
+
+  body
+    .setVerticalAlignment("middle")
     .setWrap(true)
     .setBorder(
-      true, true, true, true, true, true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
       "#B7C9D6",
       SpreadsheetApp.BorderStyle.SOLID
     );
 
   MY_ENGLISH_SUMMARY_STUDENTS.forEach(function(student, index) {
     const row = startRow + index;
+
     sheet.getRange(row, 1)
       .setValue(student.displayName)
       .setFontWeight("bold");
+
     sheet.setRowHeight(row, 40);
   });
 
   sheet.setColumnWidth(1, 125);
-  sheet.setColumnWidth(2, 120);
-  sheet.setColumnWidth(3, 120);
-  sheet.setColumnWidth(4, 120);
+
   for (
-    let column = MY_ENGLISH_PRACTICE_FIRST_COLUMN;
-    column < MY_ENGLISH_PRACTICE_FIRST_COLUMN + MY_ENGLISH_PRACTICE_SLOTS;
+    let column = 2;
+    column <= MY_ENGLISH_SUMMARY_TOTAL_COLUMNS;
     column++
   ) {
     sheet.setColumnWidth(column, 38);
@@ -459,9 +699,11 @@ function updateWeeklyGeneralSummary_(
     book.getSpreadsheetTimeZone() ||
     Session.getScriptTimeZone() ||
     "America/Sao_Paulo";
+
   const week = summaryWeek_(submittedAt, timeZone);
   const sheet = generalSheet_(book);
   const titleRow = weekBlockRow_(sheet, week);
+
   ensureWeekLayout_(sheet, titleRow, week);
 
   const studentRow = titleRow + 2 + studentIndex;
@@ -475,17 +717,13 @@ function updateWeeklyGeneralSummary_(
     report
   );
 
-  if (config.isPractice) {
-    addPracticeMarker_(sheet, studentRow, type, lesson, config.color, note);
-  } else {
-    addHomeworkMarker_(
-      sheet.getRange(studentRow, config.column),
-      type,
-      lesson,
-      config.color,
-      note
-    );
-  }
+  addActivityMarker_(
+    sheet,
+    studentRow,
+    config,
+    lesson,
+    note
+  );
 }
 
 function hoverNote_(
@@ -499,55 +737,51 @@ function hoverNote_(
 ) {
   const score = parseScore_(scoreText);
   const type = normalizeSummaryText_(homeworkType);
-  const receivedAt = Utilities.formatDate(
-    submittedAt,
-    timeZone,
-    "yyyy-MM-dd HH:mm:ss"
-  );
-  const startedAt = reportField_(report, "Started at") || "Not reported";
-  const finishedAt =
-    reportField_(report, "Finished at") ||
-    reportField_(report, "Submitted at") ||
-    receivedAt;
   const plays = type.includes("written")
     ? "0 (no audio)"
     : String(totalPlays_(report, homeworkType));
 
-  const lines = [
+  return [
     "Student: " + studentName,
     "Lesson: " + lessonName,
     "Activity: " + homeworkType,
-    "Started at: " + startedAt,
-    "Finished at: " + finishedAt,
     "Phrases practiced: " + phrasesPracticed_(report, score.total),
     "Correct answers: " + score.correct + " / " + score.total,
     "Times played: " + plays,
     "Hints used: " + totalHints_(report),
-    "Report received: " + receivedAt
-  ];
-
-  const full = String(report || "").trim();
-  let note = lines.join("\n");
-  if (full) note += "\n\nPER-PHRASE DETAILS\n" + full;
-  return note.substring(0, 49000);
+    "Report received: " +
+      Utilities.formatDate(
+        submittedAt,
+        timeZone,
+        "yyyy-MM-dd HH:mm:ss"
+      )
+  ].join("\n");
 }
 
-function addPracticeMarker_(sheet, row, type, lesson, color, note) {
+function addActivityMarker_(
+  sheet,
+  row,
+  config,
+  lesson,
+  note
+) {
   const range = sheet.getRange(
     row,
-    MY_ENGLISH_PRACTICE_FIRST_COLUMN,
+    config.firstColumn,
     1,
-    MY_ENGLISH_PRACTICE_SLOTS
+    config.slots
   );
+
   const values = range.getDisplayValues()[0];
 
   for (let offset = 0; offset < values.length; offset++) {
     if (!values[offset]) {
       const cell = sheet.getRange(
         row,
-        MY_ENGLISH_PRACTICE_FIRST_COLUMN + offset
+        config.firstColumn + offset
       );
-      setSingleMarker_(cell, lesson, color);
+
+      setSingleMarker_(cell, lesson, config.color);
       cell.setNote(note);
       return;
     }
@@ -555,31 +789,14 @@ function addPracticeMarker_(sheet, row, type, lesson, color, note) {
 
   const overflow = sheet.getRange(
     row,
-    MY_ENGLISH_PRACTICE_FIRST_COLUMN + MY_ENGLISH_PRACTICE_SLOTS - 1
+    config.firstColumn + config.slots - 1
   );
+
   overflow.setNote(
     (overflow.getNote() ? overflow.getNote() + "\n\n" : "") +
-    "Additional practice report:\n" +
+    "Additional submission:\n" +
     note
   );
-}
-
-function addHomeworkMarker_(cell, type, lesson, color, note) {
-  const marker = circledNumber_(lesson);
-  const currentText = String(cell.getDisplayValue() || "").trim();
-  const markers = currentText
-    ? currentText.split(/\s+/).filter(function(value) { return value; })
-    : [];
-
-  if (markers.indexOf(marker) < 0) markers.push(marker);
-  renderHomeworkMarkers_(cell, markers, color);
-
-  const previous = cleanLegacyNote_(cell.getNote());
-  if (!previous) {
-    cell.setNote(note);
-  } else if (previous.indexOf(note) < 0) {
-    cell.setNote(previous + "\n\n" + note);
-  }
 }
 
 function setSingleMarker_(cell, lesson, color) {
@@ -589,6 +806,7 @@ function setSingleMarker_(cell, lesson, color) {
     .setBold(true)
     .setFontSize(16)
     .build();
+
   const rich = SpreadsheetApp.newRichTextValue()
     .setText(marker)
     .setTextStyle(0, marker.length, style)
@@ -600,28 +818,6 @@ function setSingleMarker_(cell, lesson, color) {
     .setWrap(false);
 }
 
-function renderHomeworkMarkers_(cell, markers, color) {
-  const text = markers.join("  ");
-  const builder = SpreadsheetApp.newRichTextValue().setText(text);
-  const style = SpreadsheetApp.newTextStyle()
-    .setForegroundColor(color)
-    .setBold(true)
-    .setFontSize(16)
-    .build();
-
-  let cursor = 0;
-  markers.forEach(function(marker, index) {
-    if (index > 0) cursor += 2;
-    builder.setTextStyle(cursor, cursor + marker.length, style);
-    cursor += marker.length;
-  });
-
-  cell.setRichTextValue(builder.build())
-    .setHorizontalAlignment("center")
-    .setVerticalAlignment("middle")
-    .setWrap(true);
-}
-
 function circledNumber_(number) {
   const values = [
     "",
@@ -631,6 +827,7 @@ function circledNumber_(number) {
     "㉛", "㉜", "㉝", "㉞", "㉟", "㊱", "㊲", "㊳", "㊴", "㊵",
     "㊶", "㊷", "㊸", "㊹", "㊺", "㊻", "㊼", "㊽", "㊾", "㊿"
   ];
+
   return number >= 1 && number < values.length
     ? values[number]
     : "(" + number + ")";
